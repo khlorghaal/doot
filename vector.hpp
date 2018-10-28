@@ -3,13 +3,14 @@
 #include "arr.hpp"
 #include <stdlib.h>
 
+namespace doot{
 /*
 all pointers to elements are invalidated upon nonconst method invocation
 does not use construct or destructors
 reallocation ignores move and copy constructors
 */
 template<typename T>
-struct vector: arr<T>, no_copy{
+struct vector: arr<T>, no_copy, no_assign{
 	T* cap;
 
 	static constexpr size_t GROW_FACTOR= 4;
@@ -17,8 +18,7 @@ struct vector: arr<T>, no_copy{
 
 	vector(size_t init_cap);
 	vector(): vector(CAP_DEFAULT){}
-	//assign-copy all elements
-	void operator=(vector const& that);
+	void copy(vector const& that);//that into this
 	~vector();
 	
 	//release data from this's ownership by nulling this
@@ -84,7 +84,7 @@ vector<T>::vector(size_t init_cap){
 }
 
 template<typename T>
-void vector<T>::operator=(vector const& that){
+void vector<T>::copy(vector const& that){
 	this->clear();
 	this->realloc(that.capacity());
 	for(T* i=that.base; i!=that.stop; i++)
@@ -190,4 +190,6 @@ void print(vector<T> const& v){
 	for(T const& t : v)
 		cnsl<<*i<<" ";
 	cnsl<<endl;
+}
+
 }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include "math.hpp"
+namespace doot{
 
 constexpr int STRFMTMAX= 1024;
 
@@ -107,4 +108,5 @@ unsigned int hash(char const* s){
 	while(c=*s++)
 		x= (x<<5)+x+c;
 	return x;
+}
 }

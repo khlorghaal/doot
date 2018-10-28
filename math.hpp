@@ -2,6 +2,7 @@
 #include "global.hpp"
 #include "vec2.hpp"
 #include "trans2d.hpp"
+#include "hash.hpp"
 #include <cmath>
 #undef min
 #undef max
@@ -172,8 +173,7 @@ inline float invsqrt(){
 	return 0;
 }
 
-#include "hash.hpp"
-static thread_local hash_t frand_seed= 1;
+extern thread_local hash_t frand_seed;
 inline double frand(){
 	frand_seed= hash(frand_seed);
 	return ((float)frand_seed)/HASH_MAX;

@@ -1,2 +1,6 @@
 #include "hash.hpp"
-thread_local extern hash_t frand_seed= 0;
+namespace doot{
+
+thread_local hash_t frand_seed= 1;
+
+}

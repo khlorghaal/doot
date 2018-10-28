@@ -20,7 +20,6 @@ ID's are allocated externally, ideally by an index_recycler
 */
 template<typename T>
 struct mapped_heap: no_copy{
-	static constexpr size_t MAXID= 0x10000ULL-1;
 	static constexpr size_t INIT_CAP= 0x20;
 	static constexpr size_t GROW_FACTOR= 4;
 
@@ -143,7 +142,7 @@ template<typename T>
 T& mapped_heap<T>::make(id id){
 	size_t mapsiz= map.size();
 	if(id>=mapsiz){//expand map
-		if(id>MAXID)
+		if(id>TOO_BIG)
 			error("max id exceded");
 		size_t nmapsiz= (id*vector<T>::GROW_FACTOR);
 		map.realloc(nmapsiz);
@@ -235,7 +234,6 @@ template<typename T, size_t I>
 multimapped_heap<T,I>::~multimapped_heap(){
 	for(auto& o : *this)
 		o.~T();
-	::free(eids);
 }
 template<typename T, size_t I>
 T& multimapped_heap<T,I>::make(eid eid){

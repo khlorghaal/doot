@@ -51,7 +51,10 @@ constexpr index NULLIDX= -1ul;
 typedef uint32 id;
 typedef id eid;//entity ID
 typedef id CID;//component ID
-constexpr id NULLID= -1ul;
+id constexpr NULLID= -1ul;
+
+size_t constexpr TOO_BIG= 0x10000000ULL-1;
+//no reasonable allocation allowed to excede
 
 #ifndef DOOT_NO_COUT
 #ifdef _IOSTREAM_

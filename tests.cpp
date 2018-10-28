@@ -60,6 +60,9 @@ void runTests(){
 		dangeq(     PI/2, TAU-PI/2, PI );
 		dangeq(TAU+-PI/2, TAU+PI/2, PI );
 
+		assert(hash(    0)==hash(    0));
+		assert(hash(0x100)==hash(0x100));
+
 		float racc= 0;
 		for(int i=0; i!=1024; i++)
 			racc+= sfrand();
@@ -83,9 +86,9 @@ void runTests(){
 	pf.start("hashmap");
 	{
 		hash_map<int, int> map;
-		for(int i=0; i!= 1024; i++)
+		for(int i=0; i!= 512; i++)
 			*map.put(i)= i;
-		for(int i=0; i!= 1024; i++)
+		for(int i=0; i!= 512; i++)
 			assert(*map[i]==i);
 	}
 	pf.stop();

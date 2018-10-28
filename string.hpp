@@ -1,4 +1,5 @@
 #pragma once
+namespace doot{
 struct string{
 	char* cstr;
 	unsigned int len;
@@ -31,3 +32,4 @@ string strfmt(char const* fmt, ...);
 
 unsigned int hash(char const*);
 inline unsigned int hash(string s){ return hash(s.cstr); }
+}

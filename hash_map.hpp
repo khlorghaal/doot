@@ -1,8 +1,11 @@
 #pragma once
 #include <cstring>
 #include "vector.hpp"
+#include "array_algos.hpp"
 
 #include "hash.hpp"
+
+namespace doot{
 
 struct void_struct{};//for void value
 
@@ -17,7 +20,7 @@ struct hash_map{
 	};
 	#define SLOT_SIZE sizeof(slot)
 	static constexpr size_t INIT_LEN= 0x20;
-	static constexpr size_t GROW_FACTOR= 8;
+	static constexpr size_t GROW_FACTOR= 4;
 	static constexpr size_t DEPTH= 4;
 
 	size_t len;//number of buckets
@@ -51,10 +54,7 @@ struct hash_map{
 
 template<typename K, typename V>
 hash_map<K,V>::hash_map(size_t init_len){
-	#ifndef NDEBUG
-	if(DEPTH<2)
-		throw;
-	#endif
+	assert(DEPTH>=2);
 	len= init_len;
 	size_t memsiz= len*DEPTH*SLOT_SIZE;
 	heap= (slot*)malloc(memsiz);
@@ -65,33 +65,35 @@ hash_map<K,V>::hash_map(): hash_map(INIT_LEN){};
 template<typename K, typename V>
 hash_map<K,V>::~hash_map(){
 	if(heap)
-		free(heap);
+		::free(heap);
 }
 
 template<typename K, typename V> 
 void hash_map<K,V>::expand(){
 	//copy all !null slots
-	slot* entries= (slot*)malloc(len*DEPTH*SLOT_SIZE);
-	if(!entries)
-		throw;
-	size_t entry_count= 0;
+	vector<slot> entries(len*DEPTH);
 	for(size_t i=0; i!=len*DEPTH; i++){
 		slot& slot= heap[i];
 		if(!slot.null)
-			entries[entry_count++]= slot;
+			entries<<slot;
 	}
+	::free(heap);
 
 	//grow until < DEPTH collisions occur on any bucket
 	//< opposed to <= , aggressively ensures free slots
 	size_t nlen= len;
 check_depth:
 	nlen*= GROW_FACTOR;
-	char* bcounts= (char*)calloc(nlen,1);
-	for(size_t i=0; i!=entry_count; i++){
-		char& bcount= bcounts[hash(entries[i].k)%nlen];
-		if(++bcount==DEPTH){
+	if(nlen*DEPTH*SLOT_SIZE>TOO_BIG)
+		throw;
+	arr<char> bcounts= alloc<char>(nlen);
+	fill<char>(bcounts, 0);
+	for(auto& entry: entries){
+		hash_t hashv= hash(entry.k);
+		size_t hashm= hashv%nlen;
+		if(++bcounts[hashm]==DEPTH){
 			free(bcounts);
-			goto check_depth;		
+			goto check_depth;
 		}
 	}
 	free(bcounts);
@@ -99,18 +101,15 @@ check_depth:
 
 	//reallocate and set nulls
 	size_t size= len*DEPTH*SLOT_SIZE;
-	free(heap);
 	heap= (slot*)malloc(size);
 	if(!heap)
 		throw;
-	memset(heap,1,size);
+	for(int i=0; i!=len*DEPTH; i++)
+		heap[i].null= true;
 
 	//repopulate
-	for(size_t i=0; i!=entry_count; i++){
-		slot& s= entries[i];
-		*put(s.k)= s.v;
-	}
-	free(entries);
+	for(auto& entry: entries)
+		*put(entry.k)= entry.v;
 }
 
 template<typename K, typename V> 
@@ -132,10 +131,7 @@ V* hash_map<K,V>::operator[](K k) const{
 template<typename K, typename V> 
 //places a key without setting its value
 V* hash_map<K,V>::put(K k){
-	#ifndef NDEBUG
-	if(operator[](k))//must not be contained
-		throw;
-	#endif
+	assert(!operator[](k));//must not be contained
 	hash_t h= hash(k);
 	size_t i= (h%len)*DEPTH;
 	size_t b= 0;
@@ -201,4 +197,6 @@ void hash_map<K,V>::values_cpy(vector<V>& v){
 	for(auto& s: arr<slot>(begin(),end()))
 		if(!s.null)
 			r<<s.v;
+}
+
 }
