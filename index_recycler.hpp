@@ -17,7 +17,7 @@ struct index_recycler{
 		if(freed.empty())
 			return next++;
 		else
-			return *--freed.stop;
+			return *(--freed.stop);
 	}
 	inline idx operator()(){ return pop(); }
 

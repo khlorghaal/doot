@@ -49,10 +49,10 @@ void mat3x2::trans_rot_scl(float tx_, float ty_, float theta, float sx, float sy
 	ty= ty_;
 }
 vec2 mat3x2::operator*(vec2 const& p) const{
-	return vec2(
-		p.x*mxx + p.y*mxy + tx,
-		p.x*myx + p.y*myy + ty
-	);
+	
+	float x= p.x*mxx + p.y*mxy + tx;
+	float y= p.x*myx + p.y*myy + ty;
+	return {x,y};
 }
 vec2 mat3x2::mul_atrans(vec2 const& p) const{
 	return vec2(
@@ -105,12 +105,12 @@ void mat3x2::unit(vec2& r) const{
 	r.y= myx+myy+ty;
 };
 void mat3x2::unit_box(vec2(&r)[4]) const{
-	r[0].x= -mxx-myy+tx;//nn
-	r[0].y= -mxx-myy+ty;
-	r[1].x= -mxx+myy+tx;//np
-	r[1].y= -mxx+myy+ty;
-	r[2].x= +mxx-myy+tx;//pn
-	r[2].y= +mxx-myy+ty;
-	r[3].x= +mxx+myy+tx;//pp
-	r[3].y= +mxx+myy+ty;
+	r[0].x= -mxx-mxy+tx;//nn
+	r[0].y= -myx-myy+ty;
+	r[1].x= -mxx+mxy+tx;//np
+	r[1].y= -myx+myy+ty;
+	r[2].x= +mxx-mxy+tx;//pn
+	r[2].y= +myx-myy+ty;
+	r[3].x= +mxx+mxy+tx;//pp
+	r[3].y= +myx+myy+ty;
 };

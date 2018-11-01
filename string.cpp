@@ -26,11 +26,11 @@ string::string(string const& c): string(c.cstr){}
 
 string::string(long long v){
 	strinit(*this, STRFMTMAX);
-	snprintf(cstr, STRFMTMAX, "%llX", v);
+	snprintf(cstr, STRFMTMAX, "%8lli", v);
 };
 string::string(double v){
 	strinit(*this, STRFMTMAX);
-	snprintf(cstr, STRFMTMAX, "%.4f", v);
+	snprintf(cstr, STRFMTMAX, "%4.4f", v);
 
 };
 string strfmt(char const* fmt, ...){

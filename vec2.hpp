@@ -4,11 +4,11 @@
 template<typename T>
 struct gvec2{
 	T x,y;
-	gvec2(        ): x(0),y(0){}
-	gvec2(T x     ): x(x),y(x){};
-	gvec2(T x, T y): x(x),y(y){};
+	gvec2(          ){ x= y= 0;};
+	gvec2(T x_      ){ x=x_; y=x_; };
+	gvec2(T x_, T y_){ x=x_; y=y_; };
 	template<typename C>
-	gvec2(gvec2<C> c): x((T)c.x), y((T)c.y){};
+	gvec2(gvec2<C> c){ x=(T)c.x; y=(T)c.y; };
 
 	template<typename C>
 	inline gvec2<T> operator=(gvec2<C> const& c){ x=c.x; y=c.y; }
