@@ -94,7 +94,8 @@ void vector<T>::copy(vector const& that){
 template<typename T>
 vector<T>::~vector(){
 	clear();
-	::free(base);
+	if(!!base)
+		::free(base);
 	base= stop= cap= 0;
 }
 

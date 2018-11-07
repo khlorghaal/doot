@@ -1,6 +1,8 @@
 #pragma once
 
-#include "math.hpp"
+#include "vec2.hpp"
+
+namespace doot{
 
 struct mat3x2;
 struct trans2d;
@@ -35,7 +37,6 @@ struct mat3x2{
 };
 
 
-
 //matrix of the form
 //	trans*rot*scl
 struct trans2d{
@@ -60,3 +61,5 @@ struct trans2d{
 		return mat3x2::inverse_trans_rot_scl(t,theta,s);
 	};
 };
+
+}

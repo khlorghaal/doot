@@ -49,16 +49,16 @@ void mat3x2::trans_rot_scl(float tx_, float ty_, float theta, float sx, float sy
 	ty= ty_;
 }
 vec2 mat3x2::operator*(vec2 const& p) const{
-	
-	float x= p.x*mxx + p.y*mxy + tx;
-	float y= p.x*myx + p.y*myy + ty;
-	return {x,y};
+	return {
+		p.x*mxx + p.y*mxy + tx,
+		p.x*myx + p.y*myy + ty
+	};
 }
 vec2 mat3x2::mul_atrans(vec2 const& p) const{
-	return vec2(
+	return {
 		p.x*mxx + p.y*mxy,
 		p.x*myx + p.y*myy
-	);
+	};
 }
 mat3x2 mat3x2::operator*(mat3x2 const& b) const{
 	mat3x2 ret;

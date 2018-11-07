@@ -101,6 +101,33 @@ inline T lerp(   	   T const c, T const d,
 	T ab= a+(b-a)*x;
 	return ab+(cd-ab)*y;
 }
+#define lerp_field(x_) ret.x_= lerp(t, a.x_, b.x_)
+inline mat3x2 lerp(float t, mat3x2 const& a, mat3x2 const& b){
+	mat3x2 ret;
+	lerp_field(mxx);
+	lerp_field(mxy);
+	lerp_field(myx);
+	lerp_field(myy);
+	lerp_field(tx);
+	lerp_field(ty);
+	return ret;
+}
+inline trans2d lerp(float t, trans2d const& a, trans2d const& b){
+	trans2d ret;
+	lerp_field(t);
+	lerp_field(s);
+	lerp_field(theta);
+	return ret;
+}
+
+template<typename T>
+inline float lerp(float t, gvec2<T> const& a, gvec2<T> const& b){
+	return {
+		lerp_field(x);
+		lerp_field(y);
+	};
+}
+
 template<typename T>
 inline T perp(float const x, T const a, T const b, T const c){
 	T ca;

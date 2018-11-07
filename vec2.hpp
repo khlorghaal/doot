@@ -1,5 +1,7 @@
 #pragma once
-#include "global.hpp"
+#include "primitives.hpp"
+
+namespace doot{
 
 template<typename T>
 struct gvec2{
@@ -47,3 +49,5 @@ typedef gvec2<int32>   ivec2;
 typedef gvec2<int64>   lvec2;
 typedef gvec2<uint32> uivec2;
 typedef gvec2<uint64> ulvec2;
+
+}
