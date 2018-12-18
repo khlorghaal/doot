@@ -112,8 +112,8 @@ inline mat3x2 lerp(float t, mat3x2 const& a, mat3x2 const& b){
 	lerp_field(ty);
 	return ret;
 }
-inline trans2d lerp(float t, trans2d const& a, trans2d const& b){
-	trans2d ret;
+inline trans2 lerp(float t, trans2 const& a, trans2 const& b){
+	trans2 ret;
 	lerp_field(t);
 	lerp_field(s);
 	lerp_field(theta);

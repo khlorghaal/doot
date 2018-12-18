@@ -7,7 +7,7 @@ namespace doot{
 
 template<typename T, size_t cap>
 struct ringbuffer{
-	T* arr;
+	T* arr= 0;
 	size_t p= 0;
 
 	arrayable( arr, arr+cap )
@@ -19,7 +19,8 @@ struct ringbuffer{
 		fill<T>(*this, 0);
 	}
 	~ringbuffer(){
-		::free(arr);
+		if(!!arr)
+			::free(arr);
 		arr= 0;
 	}
 

@@ -5,7 +5,7 @@
 namespace doot{
 
 struct mat3x2;
-struct trans2d;
+struct trans2;
 
 struct mat3x2{
 	float mxx, mxy, tx;
@@ -39,11 +39,11 @@ struct mat3x2{
 
 //matrix of the form
 //	trans*rot*scl
-struct trans2d{
+struct trans2{
 	vec2 t, s;
 	float theta;
 
-	inline trans2d(){//identity
+	inline trans2(){//identity
 		t= 0;
 		s= 1;
 		theta= 0;
@@ -59,6 +59,19 @@ struct trans2d{
 
 	inline mat3x2 mat_inverse() const{
 		return mat3x2::inverse_trans_rot_scl(t,theta,s);
+	};
+};
+
+//child transform
+//does not inherit scale
+struct trans2ch{
+	trans2 local;
+	trans2 global;
+	void update(trans2& parent){
+		mat3x2 p= parent.mat();
+		global.t= p*local.t;
+		global.s= local.s;
+		global.theta= local.theta+parent.theta;
 	};
 };
 

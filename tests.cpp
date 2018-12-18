@@ -59,6 +59,8 @@ void runTests(){
 		dangeq(    -PI/2, TAU+PI/2, PI );
 		dangeq(     PI/2, TAU-PI/2, PI );
 		dangeq(TAU+-PI/2, TAU+PI/2, PI );
+		dangeq( PI*3/4, -PI*3/4,  PI/2);
+		dangeq(-PI*3/4,  PI*3/4, -PI/2);
 
 		assert(hash(    0)==hash(    0));
 		assert(hash(0x100)==hash(0x100));

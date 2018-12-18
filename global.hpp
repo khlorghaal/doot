@@ -58,6 +58,7 @@ charstream& operator<<(charstream&, endl_t const&);
 extern charstream cnsl;
 #endif
 
+inline void nop(){}//for setting breakpoints
 
 #ifdef DEBUG
 	#define assert(b) {\
@@ -92,6 +93,8 @@ extern volatile bool __doot_badstate;
 
 #define SIZT sizeof(T)
 #define SIZEOFT SIZT
+
+#define lengthof(T) (sizeof(T)/sizeof(T[0]))
 
 struct no_copy{
 	no_copy()= default;
