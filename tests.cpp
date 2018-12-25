@@ -5,6 +5,8 @@
 #include "mapped_heap.hpp"
 #include "ringbuffer.hpp"
 
+using namespace doot;
+
 void runTests(){
 	profiler pf;
 	pf.start("math");
@@ -20,6 +22,12 @@ void runTests(){
 		assert( lerp(.5, 1., 2.)==1.5 );
 		assert( lerp(0, 1., 20000.)==1. );
 		assert( lerp(10000., 0.,0.)==0. );
+
+		#define angneq(a,b) assert( fabs(angn((a))-(b)) < 1.e-3 )
+		angneq( PI/3+TAU,  PI/3);
+		angneq( PI/3-TAU,  PI/3);
+		angneq(-PI/3+TAU, -PI/3);
+		angneq(-PI/3-TAU, -PI/3);
 
 		#define dangeq(a,b,c) assert( angn( angn((b)-(a))-(c) )<1.e-4f );
 		dangeq( 0, 0, 0);

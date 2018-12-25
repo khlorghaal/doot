@@ -172,7 +172,7 @@ inline double smod(double x, double m){
 }
 //angle normalize
 inline double angn(double t){
-	return fmod(t+PI,TAU)-PI;
+	return t-ceil(t/TAU-.5)*TAU;
 }
 
 //( -b +- sqrt(b^2-4ac) )/ 2a
