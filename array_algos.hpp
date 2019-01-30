@@ -5,23 +5,6 @@
 namespace doot{
 
 template<typename T>
-inline void fill(arr<T> a, T val){
-	for(auto& e : a)
-		e= val;
-}
-
-template<typename T>
-inline idx find(arr<T> a, T val){
-	idx i= 0;
-	for(auto& e : a){
-		if(e==val)
-			return i;
-		i++;
-	}
-	return NULLIDX;
-}
-
-template<typename T>
 inline void sort_bubble(arr<T> a){
 	if(a.size()<=1)
 		return;

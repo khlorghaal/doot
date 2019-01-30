@@ -93,6 +93,7 @@ uses element constructors
 */
 template<typename T, size_t CAP>
 struct dynarr: fixedarr<T,CAP>{
+	using fixedarr<T, CAP>::base;
 	size_t stop= 0;//copymove safe
 	arrayable(base, base+stop);
 
@@ -158,7 +159,7 @@ template<typename T>
 inline void copy(arr<T>& dst, arr<T>& src){
 	if(dst.size()!=src.size())
 		throw;
-	memcpy(dst.base,src.base, a.size()*SIZT)
+	memcpy(dst.base,src.base, src.size()*SIZT);
 }
 
 
@@ -168,4 +169,22 @@ arr<T>::operator arr_void(){
 	return {(void*)base,(void*)stop};
 }
 
+
+
+template<typename T>
+inline void fill(arr<T> a, T val){
+	for(auto& e : a)
+		e= val;
+}
+
+template<typename T>
+inline idx find(arr<T> a, T val){
+	idx i= 0;
+	for(auto& e : a){
+		if(e==val)
+			return i;
+		i++;
+	}
+	return NULLIDX;
+}
 }

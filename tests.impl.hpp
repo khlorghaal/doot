@@ -7,6 +7,7 @@
 
 using namespace doot;
 
+namespace doot{
 void runTests(){
 	profiler pf;
 	pf.start("math");
@@ -167,3 +168,4 @@ void runTests(){
 	*/
 	cnsl<<"tests completed"<<endl;
 };
+}

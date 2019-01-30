@@ -52,7 +52,7 @@ arr<T> slot_pull(mutex& mut, arr<T>& buf){
 template<typename T>
 struct slot_mut{
 	mutex* mut;
-	arr<T> buf= ARR_EMPTY;
+	arr<T> buf= EMPTY<T>;
 
 	slot_mut(mutex* mut_){ mut= mut_; }
 

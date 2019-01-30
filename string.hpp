@@ -1,5 +1,6 @@
 #pragma once
 namespace doot{
+struct rati;
 struct string{
 	char* cstr;
 	unsigned int len;
@@ -11,6 +12,7 @@ struct string{
 	string(double);
 	string(int v): string((long long) v){}
 	string(float v): string((double) v){}
+	string(rati);
 
 	~string();
 

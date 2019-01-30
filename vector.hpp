@@ -11,6 +11,8 @@ reallocation ignores move and copy constructors
 */
 template<typename T>
 struct vector: arr<T>, no_copy, no_assign{
+	using arr<T>::base;
+	using arr<T>::stop;
 	T* cap;
 
 	static constexpr size_t GROW_FACTOR= 4;
@@ -32,7 +34,7 @@ struct vector: arr<T>, no_copy, no_assign{
 	//sets capacity, copies elements
 	void realloc(size_t);
 	//will only grow and never shrink
-	void realloc_greed(size_t c){ if(l>capacity()) realloc(l); };
+	void realloc_greed(size_t c){ if(c>capacity()) realloc(c); };
 	//realloc capacity*grow_factor
 	void expand();
 
@@ -161,7 +163,7 @@ template<typename T>
 T vector<T>::pop_front(){
 	assert(size()>0);
 	T ret= base[0];
-	remove(0);
+	remove_idx(0);
 	return ret;
 }
 
@@ -174,7 +176,7 @@ void vector<T>::remove_idx(size_t i){
 //ret true if contained element
 template<typename T>
 bool vector<T>::remove_eq(T const& e){
-	size_t i= find(e);
+	size_t i= find<T>(*this, e);
 	if(i==NULLIDX)
 		return false;
 	remove_idx(i);
@@ -188,7 +190,7 @@ void vector<T>::clear(){
 
 template<typename T>
 void print(vector<T> const& v){
-	for(T const& t : v)
+	for(T const& i : v)
 		cnsl<<*i<<" ";
 	cnsl<<endl;
 }

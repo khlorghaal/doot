@@ -89,6 +89,7 @@ extern volatile bool __doot_badstate;
 	cnsl<<"FATAL ERROR:"<<__FILE__<<":"<<__LINE__ <<": "<<x<<endl;\
 	throw;\
 }
+void runTests();
 
 
 #define SIZT sizeof(T)

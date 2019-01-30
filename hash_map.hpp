@@ -196,7 +196,7 @@ template<typename K, typename V>
 void hash_map<K,V>::values_cpy(vector<V>& v){
 	for(auto& s: arr<slot>(begin(),end()))
 		if(!s.null)
-			r<<s.v;
+			v<<s.v;
 }
 
 }

@@ -1,12 +1,15 @@
 #pragma once
 #include "global.hpp"
-#include "vec2.hpp"
-#include "trans2d.hpp"
+#include "2d.hpp"
+#include "3d.hpp"
 #include "hash.hpp"
 #include <cmath>
+
+//windows.h
 #undef min
 #undef max
-#define NOMINMAX /*windows.h*/
+#undef NOMINMAX
+#define NOMINMAX 1
 
 namespace doot{
 using ::sqrt;
@@ -101,7 +104,7 @@ inline T lerp(   	   T const c, T const d,
 	T ab= a+(b-a)*x;
 	return ab+(cd-ab)*y;
 }
-#define lerp_field(x_) ret.x_= lerp(t, a.x_, b.x_)
+#define lerp_field(m) ret.m= lerp(t, a.m, b.m)
 inline mat3x2 lerp(float t, mat3x2 const& a, mat3x2 const& b){
 	mat3x2 ret;
 	lerp_field(mxx);
@@ -121,10 +124,10 @@ inline trans2 lerp(float t, trans2 const& a, trans2 const& b){
 }
 
 template<typename T>
-inline float lerp(float t, gvec2<T> const& a, gvec2<T> const& b){
+inline gvec2<T> lerp(float t, gvec2<T> const& a, gvec2<T> const& b){
 	return {
-		lerp_field(x);
-		lerp_field(y);
+		lerp(t, a.x, b.x),
+		lerp(t, a.y, b.y)
 	};
 }
 
@@ -232,12 +235,6 @@ template<typename T> inline gvec2<T> log2( gvec2<T> a){ T const& x= a.x, y= a.y;
 template<typename T> inline gvec2<T> pow(gvec2<T> a, T p){ T const& x= a.x, y= a.y; return gvec2<T>( pow(x,p),pow(y,p) ); }
 template<typename T> inline gvec2<T> mod(gvec2<T> a, T m){ T const& x= a.x, y= a.y; return gvec2<T>( mod(x,m),mod(y,m) ); }
 
-template<typename T>
-inline charstream& operator<<(charstream& c, gvec2<T> v){
-	c<<string::fmt("[%.4f,%.4f]",v.x,v.y);
-	return c;
-}
-
 struct rati{
 	int num, den;
 
@@ -271,11 +268,6 @@ struct rati{
 	rati operator/(int const& x) const{	return {num,den*x};	}
 };
 inline int trunc(rati const& r){ return (int)r; }
-template<typename T>
-inline charstream& operator<<(charstream& c, rati const& r){
-	c<<string::fmt("[%i/%i]",r.num,r.den);
-	return c;
-}
 
 struct fixed{
 	int64 n;
@@ -302,12 +294,12 @@ struct fixed{
 	fixed operator*(fixed x){
 		return 
 			 n*(x.n>>31)+//upper
-			(n*(x.n&ALMOST_ONE))>>31;//lower
+		   ((n*(x.n&ALMOST_ONE))>>31);//lower
 	}
 	fixed operator/(fixed x){
 		return 
 			 n/(x.n>>31)+
-			(n/(x.n&ALMOST_ONE))>>31;
+		   ((n/(x.n&ALMOST_ONE))>>31);
 	}
 };
 inline int32 trunc(fixed x){
