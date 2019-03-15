@@ -32,8 +32,9 @@ bool file_unlock(char const* fname){
 }
 
 char* file_dump(char const* name){
-	FILE* file= fopen(name,"r");
-	if(!file)
+	FILE* file;
+	errno_t ferr= fopen_s(&file, name,"r");
+	if(!ferr)
 		return 0;
 	
 	vector<char> vec(0x800);

@@ -302,12 +302,12 @@ struct fixed{
 	fixed operator*(fixed x){
 		return 
 			 n*(x.n>>31)+//upper
-			(n*(x.n&ALMOST_ONE))>>31;//lower
+		   ((n*(x.n&ALMOST_ONE))>>31);//lower
 	}
 	fixed operator/(fixed x){
 		return 
 			 n/(x.n>>31)+
-			(n/(x.n&ALMOST_ONE))>>31;
+		   ((n/(x.n&ALMOST_ONE))>>31);
 	}
 };
 inline int32 trunc(fixed x){

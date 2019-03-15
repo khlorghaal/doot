@@ -43,13 +43,13 @@ string strfmt(char const* fmt, ...){
 };
 
 string::~string(){
-	free(cstr);
+	::free(cstr);
 }
 
 
 void string::operator=(char const* c){
 	if(strlen(cstr)==len)
-		free(cstr);
+		::free(cstr);
 	len= strlen(c);
 	cstr= (char*)malloc(len+1);
 	memcpy(cstr, c, len+1);
@@ -105,7 +105,7 @@ unsigned int hash(char const* s){
 	//djb2
 	unsigned int x= 5381;
 	char c;
-	while(c=*s++)
+	while((c=*s++))
 		x= (x<<5)+x+c;
 	return x;
 }

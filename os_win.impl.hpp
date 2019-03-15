@@ -2,10 +2,13 @@ int main_(int argc, char** argv);
 
 #ifdef _WIN32
 
+namespace windows{
+
+#define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <cstdio>
-#include <cstring>
+#include <string.h>
 #include "vector.hpp"
 
 #ifndef DOOT_NO_MAIN
@@ -45,8 +48,10 @@ LRESULT CALLBACK WndProc(
 	return 0;
 }
 #endif
+}
 
 namespace doot{
+using namespace windows;
 typedef time_t int64_t;//ms
 time_t current_time(){
 	LARGE_INTEGER f;
