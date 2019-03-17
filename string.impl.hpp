@@ -33,6 +33,10 @@ string::string(double v){
 	snprintf(cstr, STRFMTMAX, "%4.4f", v);
 
 };
+string::string(rati r){
+	*this= strfmt("[%i/%i]",r.num,r.den);
+}
+
 string strfmt(char const* fmt, ...){
 	string ret;
 	strinit(ret, STRFMTMAX);

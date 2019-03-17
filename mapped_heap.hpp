@@ -269,7 +269,7 @@ void multimapped_heap<T,I>::killAll(eid eid){
 		return;
 	}
 	dynarr<CID,I> vc= *vp;//must copy because cmod
-	for(CID cid : v)
+	for(CID cid : vc)
 		kill(cid);
 }
 template<typename T, size_t I>

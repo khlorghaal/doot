@@ -1,6 +1,4 @@
-#include "trans2d.hpp"
 #include "math.hpp"
-
 
 void mat3x2::operator=(mat3x2 const& b){
 	mxx= b.mxx; mxy= b.mxy; tx= b.tx;
