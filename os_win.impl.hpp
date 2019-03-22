@@ -1,5 +1,3 @@
-int main_(int argc, char** argv);
-
 #ifdef _WIN32
 
 namespace windows{
@@ -12,6 +10,9 @@ namespace windows{
 #include "vector.hpp"
 
 #ifndef DOOT_NO_MAIN
+#ifndef __GNUC__
+#ifndef CLANG
+int main(int argc, char** argv);
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance, 
 	_In_ HINSTANCE hPrevInstance, 
@@ -29,16 +30,14 @@ int CALLBACK WinMain(
 	char** argv= args.base;
 
 	#ifdef DEBUG
-	AllocConsole();//VS has no console
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr); 
+	doot::create_console();
 	#elif
 	#error
 	freopen("log.txt", "w", stdout);
 	freopen("log.txt", "w", stderr);
 	#endif
 
-	return main_(argc, argv);
+	return main(argc, argv);
 }
 LRESULT CALLBACK WndProc(  
 	_In_ HWND   hwnd,
@@ -47,6 +46,8 @@ LRESULT CALLBACK WndProc(
 	_In_ LPARAM lParam){
 	return 0;
 }
+#endif
+#endif
 #endif
 }
 
@@ -66,6 +67,12 @@ int64 current_time_us(){
 	LARGE_INTEGER t;
 	QueryPerformanceCounter(&t);
 	return t.QuadPart/(f.QuadPart/1000000ll);
+}
+void create_console(){
+	FreeConsole();
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
 }
 }
 
