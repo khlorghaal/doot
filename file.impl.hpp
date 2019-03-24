@@ -33,7 +33,7 @@ bool file_dump(vector<byte>& ret, string name){
 	FILE* file;
 	errno_t ferr= fopen_s(&file, name.cstr,"r");
 	if(!ferr)
-		return false;
+		return true;
 	
 	ret.realloc_greed(0x1000);
 
@@ -47,10 +47,10 @@ bool file_dump(vector<byte>& ret, string name){
 	
 	if(ferror(file)){
 		fclose(file);
-		return false;
+		return true;
 	}
 	fclose(file);
-	return true;
+	return false;
 }
 
 struct fchgcall{
@@ -74,5 +74,5 @@ bool file_change_listen(string fname, void (*callback)(void*), void* callbackarg
 
 	#endif
 	*fchgmap.put(fname.cstr)= {callback,callbackarg};
-	return true;
+	return false;
 }
