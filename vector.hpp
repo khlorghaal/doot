@@ -60,16 +60,20 @@ struct vector: arr<T>, no_copy, no_assign{
 	bool remove_eq(T const& e);
 	
 	void clear();
+
+	operator string(){
+		string s;
+		s<<"[ ";
+		for(auto const& e : *this)
+			s<<e<<", ";
+		s<<" ]";
+		return s;
+	};
 };
 template<typename T>
 void free(vector<T>& v){
 	v.~vector<T>();
 }
-
-
-
-
-
 
 template<typename T>
 vector<T>::vector(size_t init_cap){
