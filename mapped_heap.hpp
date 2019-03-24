@@ -1,7 +1,5 @@
 #pragma once
-#include "global.hpp"
 #include "vector.hpp"
-#include "arr.hpp"
 #include "index_recycler.hpp"
 #include "array_algos.hpp"
 
