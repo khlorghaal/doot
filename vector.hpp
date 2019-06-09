@@ -1,6 +1,5 @@
 #pragma once
 #include "arr.hpp"
-#include <stdlib.h>
 
 namespace doot{
 /*
@@ -179,7 +178,7 @@ void vector<T>::remove_idx(size_t i){
 //ret true if contained element
 template<typename T>
 bool vector<T>::remove_eq(T const& e){
-	size_t i= find<T>(*this, e);
+	size_t i= find(e);
 	if(i==NULLIDX)
 		return false;
 	remove_idx(i);
