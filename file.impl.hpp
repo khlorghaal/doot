@@ -5,9 +5,8 @@
 #include "hash_map.hpp"
 
 #ifdef _WIN32
-namespace windows{
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-}
 #elif UNIX
 
 #endif
@@ -34,13 +33,13 @@ bool file_unlock(char const* fname){
 char* file_dump(char const* name){
 	FILE* file;
 	errno_t ferr= fopen_s(&file, name,"r");
-	if(!ferr)
+	char* errstr= strerror(ferr);
+	if(!!ferr)
 		return 0;
 	
 	vector<char> vec(0x800);
-	//SEEK_END doesnt always work
-	//preallocation is unpossible,
-	//but unnecessary
+	//SEEK_END doesnt always work, therefore
+	//preallocation is unpossible but unnecessary
 	char buf;
 	while(fread(&buf,1,1,file))
 		vec<<buf;

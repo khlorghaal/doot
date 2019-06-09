@@ -1,33 +1,11 @@
-int main_(int argc, char** argv);
+int dootmain(int argc, char** argv);
 
-#ifdef _WIN32
-
-namespace windows{
-
-#define _CRT_SECURE_NO_WARNINGS
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <cstdio>
-#include <string.h>
-#include "vector.hpp"
+using namespace doot;
 
 #ifndef DOOT_NO_MAIN
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance, 
-	_In_ HINSTANCE hPrevInstance, 
-	_In_ LPSTR pCmdLine, 
-	_In_ int nCmdShow){
-	vector<char*> args;
-
-	char* mark= strtok(pCmdLine," ");
-	while(!!mark){
-		mark= strtok(NULL," ");
-		args.push(mark);
-	}
-
-	int argc= args.size();
-	char** argv= args.base;
-
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+int main(int argc, char* argv[], char* envp[]){
 	#ifdef DEBUG
 	AllocConsole();//VS has no console
 	freopen("CONOUT$", "w", stdout);
@@ -38,20 +16,11 @@ int CALLBACK WinMain(
 	freopen("log.txt", "w", stderr);
 	#endif
 
-	return main_(argc, argv);
-}
-LRESULT CALLBACK WndProc(  
-	_In_ HWND   hwnd,
-	_In_ UINT   uMsg,
-	_In_ WPARAM wParam,
-	_In_ LPARAM lParam){
-	return 0;
+	return dootmain(argc, argv);
 }
 #endif
-}
 
 namespace doot{
-using namespace windows;
 typedef time_t int64_t;//ms
 time_t current_time(){
 	LARGE_INTEGER f;
@@ -68,5 +37,3 @@ int64 current_time_us(){
 	return t.QuadPart/(f.QuadPart/1000000ll);
 }
 }
-
-#endif

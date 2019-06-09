@@ -87,7 +87,7 @@ struct multimapped_heap: no_copy{
 //a type safeish way of storing ids
 template<typename T, mapped_heap<T>& h_T= T::heap>
 struct idref{
-	static constexpr mapped_heap<T>& h= h_T;
+	inline static auto& h= h_T;
 	id id;
 	idref(): id(NULLID){};
 	idref(::id id_): id(id_){};

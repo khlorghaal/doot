@@ -287,7 +287,7 @@ struct fixed{
 
 	constexpr fixed(int64 n_):  n( n_ ){}
 	constexpr fixed(uint64 n_): n( n_ ){}
-	constexpr fixed(int i):     n( i<<31 ){}
+	constexpr fixed(int i):     n( i ){}
 	constexpr fixed(double d):  n( d*ONE ){}
 	constexpr fixed(rati r):    n( (r.num<<31)/r.den ){}
 

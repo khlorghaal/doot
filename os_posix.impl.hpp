@@ -1,2 +1,0 @@
-#ifdef LINUX
-#endif
