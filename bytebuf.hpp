@@ -1,6 +1,5 @@
 #pragma once
 
-#include "global.hpp"
 #include "vector.hpp"
 
 class inbuf;

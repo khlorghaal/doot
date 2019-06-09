@@ -55,6 +55,8 @@ inline charstream& operator<<(charstream& c, uint32 x){ return c<<string((long l
 inline charstream& operator<<(charstream& c, uint64 x){ return c<<string((long long)x); };
 charstream& operator<<(charstream&, endl_t const&);
 
+void create_console();
+
 extern charstream cnsl;
 #endif
 

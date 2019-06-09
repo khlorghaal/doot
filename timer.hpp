@@ -1,14 +1,4 @@
-/* timer.hpp
- *
- *  Created on: Oct 14, 2015
- *  Author: Khlorghaal
- *	All Rights Reserved.
- *	Do not distribute.
- */
-
 #pragma once
-
-#include "global.hpp"
 #include "ringbuffer.hpp"
 
 namespace doot{

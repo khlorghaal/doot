@@ -1,7 +1,6 @@
-#include "file.h"
+#include "file.hpp"
 #include <stdlib.h>
 #include <stdio.h>
-#include "vector.hpp"
 #include "hash_map.hpp"
 
 #ifdef _WIN32
@@ -14,52 +13,49 @@ namespace windows{
 
 //LOTSA TODO
 
-bool file_lock(char const* fname){
+bool file_lock(string fname){
 	#ifdef _WIN32
-	//LockFile();
+
 	#elif UNIX
 
 	#endif
 	return false;
 }
-bool file_unlock(char const* fname){
+bool file_unlock(string fname){
 	#ifdef _WIN32
-	//LockFile();
+
 	#elif UNIX
 
 	#endif
 	return false;
 }
-
-char* file_dump(char const* name){
+bool file_dump(vector<byte>& ret, string name){
 	FILE* file;
-	errno_t ferr= fopen_s(&file, name,"r");
+	errno_t ferr= fopen_s(&file, name.cstr,"r");
 	if(!ferr)
-		return 0;
+		return true;
 	
-	vector<char> vec(0x800);
+	ret.realloc_greed(0x1000);
+
 	//SEEK_END doesnt always work
 	//preallocation is unpossible,
 	//but unnecessary
 	char buf;
 	while(fread(&buf,1,1,file))
-		vec<<buf;
-	vec<<0;//null terminator
+		ret<<buf;
+	ret<<0;//null terminator
 	
 	if(ferror(file)){
 		fclose(file);
-		return 0;
+		return true;
 	}
-
 	fclose(file);
-	void* ret= vec.base;
-	vec.base= 0;//dont free
-	return (char*)ret;
+	return false;
 }
 
 struct fchgcall{
-	void* obj;
 	void (*call)(void*);
+	void* obj;
 	void invoke(){
 		call(obj);
 	}
@@ -71,11 +67,12 @@ void fchg_(char const* fnam){
 	else
 		throw;
 }
-void file_change_listen(char const* fname, void* obj, void (*callback)(void*)){
+bool file_change_listen(string fname, void (*callback)(void*), void* callbackarg){
 	#ifdef _WIN32
 
 	#elif UNIX
 
 	#endif
-	*fchgmap.put(fname)= {obj,callback};
+	*fchgmap.put(fname.cstr)= {callback,callbackarg};
+	return false;
 }
