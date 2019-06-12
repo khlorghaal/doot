@@ -60,15 +60,9 @@ struct vector: arr<T>, no_copy, no_assign{
 	
 	void clear();
 
-	operator string(){
-		string s;
-		s<<"[ ";
-		for(auto const& e : *this)
-			s<<e<<", ";
-		s<<" ]";
-		return s;
-	};
+	operator string();
 };
+
 template<typename T>
 void free(vector<T>& v){
 	v.~vector<T>();
@@ -191,10 +185,29 @@ void vector<T>::clear(){
 }
 
 template<typename T>
-void print(vector<T> const& v){
-	for(T const& i : v)
-		cnsl<<*i<<" ";
-	cnsl<<endl;
+vector<T>::operator string(){
+	string ret;
+	ret<<"[ "
+	for(auto const& i: *this)
+		ret<<*i<<", ";
+	ret<<" ]";
+}
+template<>
+inline vector<char>::operator string(){
+	string ret;
+	bool hadnull= base[size()-1]==0;
+	size_t s= size();
+	if(!hadnull)
+		s++;
+
+	ret.cstr= ::alloc<char>(s).base;
+	memcpy(ret.cstr, base, s);
+	ret.len= s-1;
+
+	if(!hadnull)
+		ret.cstr[s-1]= 0;
+
+	return ret;
 }
 
 }

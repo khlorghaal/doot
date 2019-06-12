@@ -1,8 +1,9 @@
 #pragma once
+//TODO use vector so addition is less awful
 namespace doot{
 struct rati;
 struct string{
-	char* cstr;
+	char* cstr;//null terminated
 	unsigned int len;
 
 	string();

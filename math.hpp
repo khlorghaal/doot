@@ -5,7 +5,7 @@
 #include "hash.hpp"
 #include <cmath>
 
-//windows.h
+//windows.h hacks
 #undef min
 #undef max
 #undef NOMINMAX
@@ -173,7 +173,7 @@ template<typename A, typename T> struct perpolant{
 inline double smod(double x, double m){
 	return fmod(x+m,m*2)-m;
 }
-//angle normalize
+//angle normalize (-pi, pi]
 inline double angn(double t){
 	return t-ceil(t/TAU-.5)*TAU;
 }

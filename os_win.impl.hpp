@@ -39,7 +39,7 @@ int64 current_time_us(){
 }
 
 void create_console(){
-	FreeConsole();
+	//FreeConsole();
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);

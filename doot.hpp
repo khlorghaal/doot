@@ -178,6 +178,8 @@ struct bus{
 
 #ifndef DOOT_NOMACRO
 
+#define count(o,N) for(int o=0; o<N; o++)
+
 #define zip(a,b, la,lb) \
 for(int _i=0; _i!=la.size(); _i++){\
 	auto& a= la[_i];\

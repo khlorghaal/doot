@@ -1,11 +1,5 @@
-/* execq.hpp
- *
- *  Created on: Jul 28, 2015
- *  Author: Khlorghaal
- *	All Rights Reserved
- *	Do not distribute.
- */
 #pragma once
+//deprecated, use tasker instead
 
 #include "vector.hpp"
 #include <mutex>

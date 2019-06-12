@@ -1,6 +1,8 @@
 #pragma once
 #include "primitives.hpp"
 
+// 0 theta = {1,0}; CCW+
+
 namespace doot{
 
 template<typename T>
@@ -84,6 +86,11 @@ struct mat3x2{
 	void unit_box(vec2(&)[4]) const;//multiply by vec2 permutations [-1,1]
 };
 
+//convert angle to normal
+//eschew in favor of {m.xx,m.yx}
+inline vec2 rotnorm2(float theta){
+	return {cosf(theta),sinf(theta)};
+}
 
 //matrix of the form
 //	trans*rot*scl
