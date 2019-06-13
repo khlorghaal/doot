@@ -219,9 +219,15 @@ template<typename T> inline double angle(gvec2<T> const& a){  return atan2((doub
 template<typename T> inline T dot(  gvec2<T> const& a, gvec2<T> const& b){ return a.x*b.x + a.y*b.y; }
 template<typename T> inline gvec2<T> rot4(gvec2<T> const& a){ return { a.y,-a.x }; }
 
+template<typename T> inline T min(gvec2<T> a){ T const& x= a.x,y= a.y; return min(x,y); }
+template<typename T> inline T max(gvec2<T> a){ T const& x= a.x,y= a.y; return max(x,y); }
+template<typename T> inline gvec2<T> min(gvec2<T> a, gvec2<T> b){ return {min(a.x,b.x),min(a.y,b.y)}; }
+template<typename T> inline gvec2<T> max(gvec2<T> a, gvec2<T> b){ return {max(a.x,b.x),max(a.y,b.y)}; }
+
 inline float  fract(float x){  return x-(long)x; }
 inline double fract(double x){ return x-(long)x; }
 
+//scalars
 template<typename T> inline gvec2<T> sign( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( x>0?1:x<0?-1:0, y>0?1:y<0?-1:0); }
 template<typename T> inline gvec2<T> fract(gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( fract(x),fract(y) ); }
 template<typename T> inline gvec2<T> floor(gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( floor(x),floor(y) ); }
@@ -231,7 +237,6 @@ template<typename T> inline gvec2<T> cos(  gvec2<T> a){ T const& x= a.x, y= a.y;
 template<typename T> inline gvec2<T> sqrt( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( sqrt(x),sqrt(y) ); }
 template<typename T> inline gvec2<T> log(  gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( log(x),log(y) ); }
 template<typename T> inline gvec2<T> log2( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( log2(x),log2(y) ); }
-
 template<typename T> inline gvec2<T> pow(gvec2<T> a, T p){ T const& x= a.x, y= a.y; return gvec2<T>( pow(x,p),pow(y,p) ); }
 template<typename T> inline gvec2<T> mod(gvec2<T> a, T m){ T const& x= a.x, y= a.y; return gvec2<T>( mod(x,m),mod(y,m) ); }
 
