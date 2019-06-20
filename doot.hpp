@@ -13,7 +13,6 @@
 #endif
 #endif
 
-#define doot doot
 #define dooT doot
 #define doOt doot
 #define doOT doot
@@ -155,6 +154,29 @@ inline float rand(float in){
 	return (float)rand(*(uint32*)&in) / (float)RANDMAX;
 }
 
+//convenient, opaque, type-safe indirection
+template<typename T>
+struct idptr{
+	id i;
+	idptr(): i(NULLID){};
+	idptr(id i_): i(i_){};
+	operator id(){ return i; }
+	void operator=(id i_){ i= i_; }
+	T* operator->(){ return &operator*(); };
+	bool operator!(){ return i==NULLID; };
+	T& operator*();
+};
+template<typename T>
+struct ehidptr{
+	ehid i;
+	ehidptr(): i({NULLID,NULLID}){};
+	ehidptr(ehid i_): i(i_){};
+	operator ehid(){ return i; }
+	void operator=(ehid i_){ i= i_; }
+	T* operator->(){ return &operator*(); };
+	bool operator!(){ return i.e==NULLID || i.i==NULLID; };
+	T& operator*();
+};
 
 template<typename A, typename B=A>
 struct pair{
@@ -178,7 +200,8 @@ struct bus{
 
 #ifndef DOOT_NOMACRO
 
-#define count(o,N) for(int o=0; o<N; o++)
+//#define count(o,N) for(int o=0; o<N; o++)
+//namespace collision
 
 #define zip(a,b, la,lb) \
 for(int _i=0; _i!=la.size(); _i++){\

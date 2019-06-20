@@ -1,9 +1,7 @@
 #pragma once
 #include "doot.hpp"
-#include "2d.hpp"
-#include "3d.hpp"
 #include "hash.hpp"
-#include <cmath>
+#include "math.h"
 
 //windows.h hacks
 #undef min
@@ -13,8 +11,6 @@
 
 namespace doot{
 using ::sqrt;
-using ::sin;
-using ::cos;
 using ::tan;
 using ::atan2;
 using ::exp;
@@ -32,6 +28,23 @@ constexpr double PHI= 1.61803398874989484820;
 constexpr double ETA= 1.e-12;
 const double SRT2= sqrt(2.);
 const double SRT2INV= (1./SRT2);
+
+#define cppify_yf(y) \
+inline float y(float x){ return y##f(x); }
+#define cppify_fy(y) \
+inline double y(double x){ return f##y(x); }
+#define cppify_fyf(y) \
+inline float y(float x){ return f##y##f(x); }
+#define cppify_lly(y) \
+inline long long y(long long x){ return ll##y(x); }
+
+cppify_yf(sin)
+cppify_yf(cos)
+cppify_lly(abs) cppify_fy(abs)
+inline double mod(double x,double m){ return fmod(x,m); }
+inline float mod(float x,float m){ return fmodf(x,m); }
+
+
 
 template<typename T>
 inline T sign(T const x){
@@ -80,8 +93,6 @@ inline T smaxabssa(T const a, T const b){
 	return a_ge*a + b_gt*b;
 }
 
-inline double mod(double x, double m){ return fmod(x,m); }
-inline float mod(float x, float m){ return fmodf(x,m); }
 
 template<typename T>
 inline T clamp(T const x, T const a, T const b){
@@ -105,31 +116,6 @@ inline T lerp(   	   T const c, T const d,
 	return ab+(cd-ab)*y;
 }
 #define lerp_field(m) ret.m= lerp(t, a.m, b.m)
-inline mat3x2 lerp(float t, mat3x2 const& a, mat3x2 const& b){
-	mat3x2 ret;
-	lerp_field(mxx);
-	lerp_field(mxy);
-	lerp_field(myx);
-	lerp_field(myy);
-	lerp_field(tx);
-	lerp_field(ty);
-	return ret;
-}
-inline trans2 lerp(float t, trans2 const& a, trans2 const& b){
-	trans2 ret;
-	lerp_field(t);
-	lerp_field(s);
-	lerp_field(theta);
-	return ret;
-}
-
-template<typename T>
-inline gvec2<T> lerp(float t, gvec2<T> const& a, gvec2<T> const& b){
-	return {
-		lerp(t, a.x, b.x),
-		lerp(t, a.y, b.y)
-	};
-}
 
 template<typename T>
 inline T perp(float const x, T const a, T const b, T const c){
@@ -212,33 +198,8 @@ inline double sfrand(){
 	return frand()*2.f-1.f;
 }
 
-template<typename T> inline T len( gvec2<T> const& a){ return sqrt(a.x*a.x + a.y*a.y); }
-template<typename T> inline gvec2<T> norm(gvec2<T> const& a){ return a/len(a); }
-template<typename T> inline double angle(gvec2<T> const& a){  return atan2((double)a.y,(double)a.x); }
-
-template<typename T> inline T dot(  gvec2<T> const& a, gvec2<T> const& b){ return a.x*b.x + a.y*b.y; }
-template<typename T> inline gvec2<T> rot4(gvec2<T> const& a){ return { a.y,-a.x }; }
-
-template<typename T> inline T min(gvec2<T> a){ T const& x= a.x,y= a.y; return min(x,y); }
-template<typename T> inline T max(gvec2<T> a){ T const& x= a.x,y= a.y; return max(x,y); }
-template<typename T> inline gvec2<T> min(gvec2<T> a, gvec2<T> b){ return {min(a.x,b.x),min(a.y,b.y)}; }
-template<typename T> inline gvec2<T> max(gvec2<T> a, gvec2<T> b){ return {max(a.x,b.x),max(a.y,b.y)}; }
-
 inline float  fract(float x){  return x-(long)x; }
 inline double fract(double x){ return x-(long)x; }
-
-//scalars
-template<typename T> inline gvec2<T> sign( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( x>0?1:x<0?-1:0, y>0?1:y<0?-1:0); }
-template<typename T> inline gvec2<T> fract(gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( fract(x),fract(y) ); }
-template<typename T> inline gvec2<T> floor(gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( floor(x),floor(y) ); }
-template<typename T> inline gvec2<T> ciel( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( ciel(x),ciel(y) ); }
-template<typename T> inline gvec2<T> sin(  gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( sin(x),sin(y) ); }
-template<typename T> inline gvec2<T> cos(  gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( cos(x),cos(y) ); }
-template<typename T> inline gvec2<T> sqrt( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( sqrt(x),sqrt(y) ); }
-template<typename T> inline gvec2<T> log(  gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( log(x),log(y) ); }
-template<typename T> inline gvec2<T> log2( gvec2<T> a){ T const& x= a.x, y= a.y; return gvec2<T>( log2(x),log2(y) ); }
-template<typename T> inline gvec2<T> pow(gvec2<T> a, T p){ T const& x= a.x, y= a.y; return gvec2<T>( pow(x,p),pow(y,p) ); }
-template<typename T> inline gvec2<T> mod(gvec2<T> a, T m){ T const& x= a.x, y= a.y; return gvec2<T>( mod(x,m),mod(y,m) ); }
 
 struct rati{
 	int num, den;

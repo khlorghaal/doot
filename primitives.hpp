@@ -20,7 +20,8 @@ constexpr index NULLIDX= -1ul;
 
 typedef uint32 id;
 typedef id eid;//entity ID
-typedef id CID;//component ID
+typedef id cid;//component ID
+struct ehid{ eid e; id i; };//entity->element IDs
 id constexpr NULLID= -1ul;
 
 size_t constexpr TOO_BIG= 0x10000000ULL-1;

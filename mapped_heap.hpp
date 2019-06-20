@@ -36,7 +36,11 @@ struct mapped_heap: no_copy{
 	void kill(T* t){ kill(ptr_id(t)); };
 
 	size_t index(id) const;
-	id ptr_id(T* t) const{ return ids[heap.ptr_idx(t)]; }
+	id ptr_id(T* t) const{
+		size_t i= t-heap.base;
+		assert(i>=0&&i<heap.size());
+		return ids[i];
+	}
 	T* operator[](id) const;
 	T& getormake(id);
 	void getarr(arr<id>,arr<T*>);
@@ -64,42 +68,37 @@ struct multimapped_heap: no_copy{
 	arrayable( heap.begin(), heap.end() );
 	mapped_heap<T> heap;// component-id -> index -> &T
 	vector<eid> eids;// component-id -> index -> EID
-	mapped_heap<dynarr<CID,I>> map;// entity-id -> component-id[]
+	mapped_heap<dynarr<cid,I>> map;// entity-id -> component-id[]
 
 	index_recycler cidget;
 
 	multimapped_heap();
 	~multimapped_heap();
 	
-	T& make(eid eid, CID& cid);
+	T& make(eid eid, cid& cid);
 	T& make(eid eid);
 	void killAll(eid id);
-	void kill(CID id);
+	void kill(cid id);
 
-	eid cid2eid(CID cid) const;
-	T* cid2t(CID cid) const;
-	arr<CID> eid2cids(eid eid) const;
+	eid cid2eid(cid cid) const;
+	T* cid2t(cid cid) const;
+	arr<cid> eid2cids(eid eid) const;
 	dynarr<T*,I> operator[](eid cid) const;
 };
 
-//a type safeish way of storing ids
 template<typename T, mapped_heap<T>& h_T= T::heap>
-struct idref{
+struct idptr_heap{
 	inline static auto& h= h_T;
 	id id;
-	idref(): id(NULLID){};
-	idref(::id id_): id(id_){};
+	idptr_heap(): id(NULLID){};
+	idptr_heap(::id id_): id(id_){};
 
 	operator ::id(){ return id; }
 	void operator=(::id id_){ id= id_; }
-	void operator=(idref<T,h_T> const& id_){ id= id_.id; }
 	T& operator*(){	return *h[id]; }
 	T* operator->(){ return h[id]; }
 	bool operator!(){ return (id==NULLID)||(!h[id]); }
-	
-	void kill(){ h.kill(id); }
 };
-
 
 #define zip_heap(o,id,h) {\
 auto& _lh= h.heap;\
@@ -138,6 +137,7 @@ mapped_heap<T>::~mapped_heap(){
 
 template<typename T>
 T& mapped_heap<T>::make(id id){
+	assert(id!=NULLID);
 	size_t mapsiz= map.size();
 	if(id>=mapsiz){//expand map
 		if(id>TOO_BIG)
@@ -160,24 +160,24 @@ T& mapped_heap<T>::make(id id){
 }
 
 template<typename T>
-void mapped_heap<T>::kill(id id){
-	size_t idx= index(id);
-	if(idx==NULLIDX)
+void mapped_heap<T>::kill(id i){
+	size_t x= index(i);
+	if(x==NULLIDX)
 		return;
 
 	assert(ids.size()==heap.size());
-	::idx idx_end= heap.size()-1;
-	::id id_end= ids[idx_end];
+	idx idx_end= heap.size()-1;
+	id id_end= ids[idx_end];
 
-	heap[idx].~T();//dlet
-	map[id]= NULLIDX;//unmap id
+	heap[x].~T();//dlet
+	map[i]= NULLIDX;//unmap id
 
-	if(idx!=idx_end){
-		assert(id!=id_end);
+	if(x!=idx_end){
+		assert(i!=id_end);
 		//swap with end entry
-		heap[idx]= heap[idx_end];//object
-		 ids[idx]=  ids[idx_end];//id
-		map[id_end]= idx;//remap end index
+		heap[x]= heap[idx_end];//object
+		 ids[x]=  ids[idx_end];//id
+		map[id_end]= x;//remap end index
 	}
 	heap.stop--;
 	ids.stop--;
@@ -235,91 +235,91 @@ multimapped_heap<T,I>::~multimapped_heap(){
 }
 template<typename T, size_t I>
 T& multimapped_heap<T,I>::make(eid eid){
-	CID a;
+	cid a;
 	return make(eid,a);
 }
 template<typename T, size_t I>
-T& multimapped_heap<T,I>::make(eid id, CID& cid){
+T& multimapped_heap<T,I>::make(eid e, cid& c){
 	//allocate into heap
-	cid= cidget();
+	c= cidget();
 	idx idx= heap.heap.size();
-	T& r= heap.make(cid);
+	T& r= heap.make(c);
 
 	//idx -> eid map
 	assert(idx==eids.size());
-	eids<<id;
+	eids<<e;
 
 	//find or allocate eid -> arr<cid> map
-	dynarr<CID,I>* vp= map[id];
+	dynarr<cid,I>* vp= map[e];
 	if(!vp)
-		vp= &map.make(id);
+		vp= &map.make(e);
 	if(vp->size()==I)
 		throw;
-	vp->push(cid);
+	vp->push(c);
 
 	return r;
 }
 template<typename T, size_t I>
 void multimapped_heap<T,I>::killAll(eid eid){
-	dynarr<CID,I>* vp= map[eid];
+	dynarr<cid,I>* vp= map[eid];
 	if(!vp){
 		error("eid group "<<eid<<" unpresent");
 		return;
 	}
-	dynarr<CID,I> vc= *vp;//must copy because cmod
-	for(CID cid : vc)
+	dynarr<cid,I> vc= *vp;//must copy because cmod
+	for(cid cid : vc)
 		kill(cid);
 }
 template<typename T, size_t I>
-void multimapped_heap<T,I>::kill(CID cid){
-	assert(cid!=NULLID);
+void multimapped_heap<T,I>::kill(cid c){
+	assert(c!=NULLID);
 	
 	//remove from heap
-	idx hidx= heap.index(cid);
+	idx hidx= heap.index(c);
 	if(hidx==NULLIDX)
-		error("cid "<<cid<<" unpresent");
-	heap.kill(cid);
+		error("cid "<<c<<" unpresent");
+	heap.kill(c);
 
 	//remove from eidmap
-	eid eid= eids[hidx];
-	assert(eid!=NULLID);
+	eid e= eids[hidx];
+	assert(e!=NULLID);
 	eids.remove_idx(hidx);
 
 	//remove from map
-	dynarr<CID,I>* cidlist_p= map[eid];
+	dynarr<cid,I>* cidlist_p= map[e];
 	assert(!!cidlist_p);
-	dynarr<CID,I>& cidlist= *cidlist_p;
-	idx cidlist_idx= find<CID>(cidlist, cid);
+	dynarr<cid,I>& cidlist= *cidlist_p;
+	idx cidlist_idx= find<cid>(cidlist, c);
 	assert(cidlist_idx!=NULLIDX);
 	cidlist.rem(cidlist_idx);
 
 	//remove cidlist if empty
 	if(cidlist.size()==0)
-		map.kill(eid);
+		map.kill(e);
 }
 
 
 template<typename T, size_t I>
-eid multimapped_heap<T,I>::cid2eid(CID cid) const{
+eid multimapped_heap<T,I>::cid2eid(cid cid) const{
 	idx idx= heap.index(cid);
 	if(idx==NULLIDX)
 		return NULLIDX;
 	return eids[idx];
 };
 template<typename T, size_t I>
-T* multimapped_heap<T,I>::cid2t(CID cid) const{
+T* multimapped_heap<T,I>::cid2t(cid cid) const{
 	return heap[cid];
 };
 template<typename T, size_t I>
-arr<CID> multimapped_heap<T,I>::eid2cids(eid eid) const{
+arr<cid> multimapped_heap<T,I>::eid2cids(eid eid) const{
 	auto rp= map[eid];
 	if(!!rp)
 		assert(rp->size()<=I);
-	return !!rp? *rp : EMPTY<CID>;
+	return !!rp? *rp : EMPTY<cid>;
 };
 template<typename T, size_t I>
 dynarr<T*,I> multimapped_heap<T,I>::operator[](eid eid) const{
-	arr<CID> cids= eid2cids(eid);
+	arr<cid> cids= eid2cids(eid);
 	dynarr<T*,I> ret;
 	for(auto& cid : cids)
 		ret.push( cid2t(cid) );

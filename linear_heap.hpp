@@ -1,8 +1,8 @@
 #pragma once
-#include "global.hpp"
+#include "doot.hpp"
 #include "vector.hpp"
 
-//maintains order such that indices remain valid
+//maintains order such that indices (but not pointers) remain valid
 template<typename T>
 struct linear_heap{
 	vector<T> heap;
@@ -22,6 +22,7 @@ struct linear_heap{
 
 		freed<<i;
 	}
+	void free(T* t){ free(t-heap.base); }
 	T& operator[](size_t i){
 		assert(i>=0 && i<heap.size());
 		return heap.base[i];

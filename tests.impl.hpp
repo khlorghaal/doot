@@ -125,10 +125,10 @@ void runTests(){
 	pf.start("multimappedheap");
 	{
 		multimapped_heap<int,8> heap;
-		vector<triad<eid,CID,int>> vec;
+		vector<triad<eid,cid,int>> vec;
 		for(eid eid=0; eid!= 512; eid++){
 			for(int i=0; i!=8; i++){
-				CID cid;
+				cid cid;
 				int val= eid+i;
 				heap.make(eid,cid)= val;
 				vec.push({eid,cid,  val});

@@ -9,6 +9,8 @@ if none are free it makes a new one
 popped indices will have closely adjacent values,
 making them suited for associative arrays
 */
+namespace doot{
+
 struct index_recycler{
 	vector<idx> freed;
 	idx next= 0;
@@ -26,3 +28,5 @@ struct index_recycler{
 		freed<<i;
 	}
 };
+
+}

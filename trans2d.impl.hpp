@@ -1,4 +1,4 @@
-#include "math.hpp"
+#include "2d.hpp"
 
 void mat3x2::operator=(mat3x2 const& b){
 	mxx= b.mxx; mxy= b.mxy; tx= b.tx;
