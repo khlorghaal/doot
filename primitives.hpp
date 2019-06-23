@@ -21,8 +21,15 @@ constexpr index NULLIDX= -1ul;
 typedef uint32 id;
 typedef id eid;//entity ID
 typedef id cid;//component ID
-struct ehid{ eid e; id i; };//entity->element IDs
 id constexpr NULLID= -1ul;
+struct ehid{
+	eid e;
+	id i;
+	ehid(): e(NULLID),i(NULLID){};
+	ehid(eid e_, id i_): e(e_),i(i_){};
+	inline bool operator!(){ return e==NULLID || i==NULLID; };
+};//entity->element IDs
+const ehid NULLEHID= {NULLID,NULLID};
 
 size_t constexpr TOO_BIG= 0x10000000ULL-1;
 //no reasonable allocation allowed to excede

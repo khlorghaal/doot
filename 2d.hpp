@@ -189,12 +189,13 @@ struct trans2{
 	vec2 t, s;
 	float theta;
 
-	inline trans2(){//identity
+	trans2(){//identity
 		t= 0;
 		s= 1;
 		theta= 0;
 	};
-	inline mat3x2 mat() const{
+	trans2(vec2 t_, vec2 s_, float th_): t(t_), s(s_), theta(th_){}
+	mat3x2 mat() const{
 		mat3x2 ret;
 		ret.trans_rot_scl(t, theta, s);
 		return ret;	
@@ -221,7 +222,11 @@ inline trans2 lerp(float t,trans2 const& a,trans2 const& b){
 struct trans2ch{
 	trans2 local;
 	trans2 global;
-	void update(trans2& parent){
+	trans2ch(){}
+	trans2ch(trans2 l, trans2 p): local(l), global(){
+		update(p);
+	}
+	void update(trans2 const& parent){
 		mat3x2 p= parent.mat();
 		global.t= p*local.t;
 		global.s= local.s;

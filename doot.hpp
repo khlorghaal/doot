@@ -167,14 +167,9 @@ struct idptr{
 	T& operator*();
 };
 template<typename T>
-struct ehidptr{
-	ehid i;
-	ehidptr(): i({NULLID,NULLID}){};
-	ehidptr(ehid i_): i(i_){};
-	operator ehid(){ return i; }
-	void operator=(ehid i_){ i= i_; }
+struct ehidptr: ehid{
+	ehidptr(ehid a){ e=a.e; i=a.i; };
 	T* operator->(){ return &operator*(); };
-	bool operator!(){ return i.e==NULLID || i.i==NULLID; };
 	T& operator*();
 };
 
