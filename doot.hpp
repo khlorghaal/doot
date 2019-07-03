@@ -68,7 +68,7 @@ inline void nop(){}//for setting breakpoints
 			throw;\
 		}}
 #else
-	#define assert(b) ((void)0)
+	#define assert(b)
 #endif
 
 /*removed because bad feels bad

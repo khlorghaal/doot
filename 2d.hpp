@@ -226,6 +226,8 @@ struct trans2ch{
 	trans2ch(trans2 l, trans2 p): local(l), global(){
 		update(p);
 	}
+	//updates global from parameter
+	//does not mutate local
 	void update(trans2 const& parent){
 		mat3x2 p= parent.mat();
 		global.t= p*local.t;

@@ -40,6 +40,7 @@ struct hash_map{
 
 	//places a key without setting its value
 	V* put(K k);
+	void put(K k, V v){ *put(k)= v; }
 	//ret was contained
 	bool remove(K k);
 
