@@ -1,7 +1,6 @@
 #pragma once
 #include "arr.hpp"
-#include <mutex>
-using std::mutex;
+#include "thread.hpp"
 
 //consecutive pushes without a pull overwrite eachother
 template<typename T>

@@ -1,11 +1,3 @@
-/* iosbytestream.cpp
- *
- *  Created on: Jun 24, 2015
- *  Author: Khlorghaal
- *	All Rights Reserved
- *	Do not distribute.
- */
-
 #include "bytebuf.hpp"
 #include "string.hpp"
 

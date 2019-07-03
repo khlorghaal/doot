@@ -138,7 +138,7 @@ void segment(arr<T> jobs, arr<arr<T>>& res){
 	res[denom-1].stop+= rem;
 }
 
-void _invoke(fpvvp, void*);
+void _invoke(fpvvp, arr<void*>);
 
 //i can only concieve this being useful for threading
 template<typename T, void(*F)(T)>
@@ -161,7 +161,6 @@ inline void invoke(arr<T> jobs){
 		segs.push({0,0});
 	segment(jobs,segs);
 
-	voidwrapdel<arr<T>,task>(&jobs);
 	_invoke(&fpvvpwrap<arr<T>,task>, &segs);
 }
 

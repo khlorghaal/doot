@@ -1,7 +1,6 @@
 #pragma once
 #include "arr.hpp"
-#include <mutex>
-using std::mutex;
+#include "thread.hpp"
 
 /*
 a slot is a buffer which supports an unbalanced ratio of push:pull

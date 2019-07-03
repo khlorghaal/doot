@@ -105,7 +105,7 @@ void init(){
 		new (&thread) thread_persistent(string("tasker")<<string(i++));
 }
 
-void _invoke(vfv f, arr<arr_void> const& segs){
+void _invoke(fpvvp f, arr<void*> segs){
 	active= true;
 
 	int workers= segs.size();

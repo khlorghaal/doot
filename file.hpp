@@ -1,5 +1,6 @@
 #pragma once
 #include "vector.hpp"
+#include "string.hpp"
 
 bool file_lock(string fname);
 bool file_unlock(string fname);

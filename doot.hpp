@@ -1,6 +1,4 @@
 #pragma once
-#include <stdlib.h>
-#include <string.h>
 #include "string.hpp"
 #include "primitives.hpp"
 
@@ -32,10 +30,6 @@
 
 namespace doot{
 
-#ifndef DOOT_NO_COUT
-#ifdef _IOSTREAM_
-#error
-#endif
 struct endl_t{};
 constexpr endl_t endl;
 struct charstream{};
@@ -57,7 +51,6 @@ charstream& operator<<(charstream&, endl_t const&);
 void create_console();
 
 extern charstream cnsl;
-#endif
 
 inline void nop(){}//for setting breakpoints
 
@@ -185,18 +178,10 @@ struct triad{
 	C c;
 };
 
-/*This can and should be done with templates or macros,
-but the variadic syntax is so limited and hideous that
-ive condered the vcall overhead of a short list negligible*/
-template<typename... T>
-struct bus{
-
-};
-
 #ifndef DOOT_NOMACRO
 
-//#define count(o,N) for(int o=0; o<N; o++)
-//namespace collision
+#define cnt(o,N) for(int o=0; o<N; o++)
+//count causes namespace collision
 
 #define zip(a,b, la,lb) \
 for(int _i=0; _i!=la.size(); _i++){\
@@ -215,4 +200,3 @@ for(int _i=0; _i!=la.size(); _i++){ \
 #endif
 
 }//namespace end
-using namespace doot;
