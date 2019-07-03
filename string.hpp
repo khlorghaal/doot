@@ -1,15 +1,15 @@
 #pragma once
-//TODO use vector so addition is less awful
 namespace doot{
-
 struct rati;
+
+//null terminated for c friendness
 struct string{
-	char* cstr;//null terminated
-	unsigned int len;
+	vector<char> dat;
 
 	string();
 	string(char const*const);
-	string(string const&);
+	string(string&)= delete;
+	string(string&&);
 	string(long long);
 	string(double);
 	string(int v): string((long long) v){}
@@ -28,13 +28,17 @@ struct string{
 	string& operator<<(char const*);
 	string& operator<<(string const&);
 
-	inline bool operator!() const { return len==0; };
+	bool operator!() const { return dat.base==NULL || dat.size()==0; };
 	bool operator==(string const&) const;
+
+	operator char*(){ return dat.base; }
+
+	size_t size() const{ return dat.size()-1; }//because null terminator
 };
 
 string strfmt(char const* fmt, ...);
 
 unsigned int hash(char const*);
-inline unsigned int hash(string s){ return hash(s.cstr); }
+inline unsigned int hash(string s){ return hash(s.dat.base); }
 
 }

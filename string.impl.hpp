@@ -6,32 +6,32 @@
 #include "math.hpp"
 namespace doot{
 
-constexpr int STRFMTMAX= 1024;
+constexpr int STRFMTMAX= 0x10;//!! FIXME this is set low to test failures
 
-void strinit(string& s, int len_){
-	s.cstr= (char*)malloc(len_+1);
-	s.cstr[len_]= 0;
-	s.len= len_;
-}
-string::string(){ strinit(*this, 0); }
+string::string()= default;
+string::~string()= default;
+
 string::string(char const*const c){
-	len= strlen(c);
+	size_t len= strlen(c);
 	if(len==-1)
 		throw;
-	cstr= (char*)malloc(len+1);
-	memcpy(cstr, c, len+1);
+	forcount(i,len){
+		dat.push(c[i]);
+	}
+	dat.push(0);
 }
-string::string(string const& c): string(c.cstr){}
+string::string(string&& c){
+	dat.base= c.dat.base;
+	dat.end= c.dat.end;
+	c.dat.base= c.dat.end= NULL;
+}
 
 
 string::string(long long v){
-	strinit(*this, STRFMTMAX);
-	snprintf(cstr, STRFMTMAX, "%8lli", v);
+	*this= strfmt("%8lli", v);
 };
 string::string(double v){
-	strinit(*this, STRFMTMAX);
-	snprintf(cstr, STRFMTMAX, "%4.4f", v);
-
+	*this= strfmt("%4.4f", v);
 };
 string::string(rati r){
 	*this= strfmt("[%i/%i]",r.num,r.den);
@@ -39,78 +39,82 @@ string::string(rati r){
 
 string strfmt(char const* fmt, ...){
 	string ret;
-	strinit(ret, STRFMTMAX);
+	ret.dat.alloc(STRFMTMAX);
 	va_list vargs;
 	va_start(vargs, fmt);
-	vsnprintf(ret.cstr, STRFMTMAX, fmt, vargs);
+	vsnprintf(ret.dat.base, STRFMTMAX, fmt, vargs);
 	return ret;
 };
 
-string::~string(){
-	::free(cstr);
-}
 
 
 void string::operator=(char const* c){
-	if(strlen(cstr)==len)
-		::free(cstr);
-	len= strlen(c);
-	cstr= (char*)malloc(len+1);
-	memcpy(cstr, c, len+1);
+	dat.clear();
+	size_t l= strlen(c);
+	forcount(i,l){
+		dat.push(c[i]);
+	}
+	dat.push(0);
 }
 void string::operator=(string const& c){
-	operator=(c.cstr);
+	operator=(c.dat.base);
 }
 
 
 string string::operator+(char const* that) const{
 	string ret;
-	size_t lthis= strlen(cstr);
-	size_t lthat= strlen(that);
-	ret.len= lthis + lthat;
-	ret.cstr= (char*)malloc(ret.len+1);
+	size_t const lthis= size();
+	size_t const lthat= strlen(that);
+	size_t const lnew= lthis+lthat;
+	ret.dat.alloc(lnew+1);
+	assert(ret.dat.size()==0);
 
-	memcpy(ret.cstr,       cstr, lthis);
-	memcpy(ret.cstr+lthis, that, lthat+1);
+	forcount(i,lthis)
+		ret.dat.push(dat.base[i]);
+	forcount(i,lthat)
+		ret.dat.push(that[i]);
+	ret.dat.push(0);
 
 	return ret;
 }
-string string::operator+(string const& s) const{
-	return operator+(s.cstr);
+bool string::operator==(string const& that) const{
+	if(dat.base==that.dat.base)
+		return true;
+	if(size()!=that.size())
+		return false;
+
+	char const* a= dat.base;
+	char const* b= that.dat.base;
+	forcount(i, size()){
+		if(a[i]!=b[i])
+			return false;
+	}
+	return true;
 }
 
-
+string string::operator+(string const& s) const{
+	return operator+(s.dat.base);
+}
 string& string::operator<<(char const* s){
 	*this= *this+s;
 	return *this;
 }
 string& string::operator<<(string const& s){
-	return operator<<(s.cstr);
+	return operator<<(s.dat.base);
 }
 
-bool string::operator==(string const& that) const{
-	if(cstr==that.cstr)
-		return true;
-	if(len!=that.len)
-		return false;
 
-	char const* ia=      cstr;
-	char const* ib= that.cstr;
-	while(*ia){
-		if(*ia!=*ib)
-			return false;
-		ia++;
-		ib++;
-	}
-	return true;
-}
 
-unsigned int hash(char const* s){
+
+hash_t hash(char const* s){
 	//djb2
 	unsigned int x= 5381;
 	char c;
-	while((c=*s++))
+	while(!!(c=*s++))
 		x= (x<<5)+x+c;
 	return x;
+}
+hash_t hash(string const& s){
+	return hash(s.dat.base);
 }
 }
