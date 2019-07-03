@@ -1,5 +1,7 @@
 #pragma once
 
+namespace doot{
+
 //domain[0,1]
 //lerps between entries
 //default fits into a cache line
@@ -26,3 +28,5 @@ float lerplut<float, s, false>::operator[](float x){
 	float t= (x*slots)-i;//floor
 	return (b-a)*t + a;//lerp
 };
+
+}

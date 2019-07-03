@@ -1,6 +1,8 @@
 #pragma once
 #include "vector.hpp"
 
+namespace doot{
+
 class inbuf;
 class outbuf;
 
@@ -86,3 +88,5 @@ protected:
 class filebuf : public outbuf, public inbuf{
 
 };
+
+}

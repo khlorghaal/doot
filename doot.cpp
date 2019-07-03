@@ -16,3 +16,17 @@
 #elif _WIN32
 #include "os_win.impl.hpp"
 #endif
+
+namespace doot{
+
+void* _malloc(size_t s){
+	return ::malloc(s);
+};
+void  _free(void* p){
+	::free(p);
+};
+void* _realloc(void* p, size_t s){
+	return ::realloc(p,s);
+};
+
+}

@@ -1,6 +1,8 @@
 #pragma once
 #include "doot.hpp"
 
+namespace doot{
+
 struct bitpacker{
 	size_t* word;
 	char bit;
@@ -75,3 +77,5 @@ struct bitarr{
 		
 	}
 };
+
+}

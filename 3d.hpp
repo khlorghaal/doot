@@ -4,6 +4,8 @@ basis vectors: x horizon-right, y up, z forward
 #pragma once
 #include "math.hpp"
 
+namespace doot{
+
 struct vec3{
 	float x,y,z;
 };
@@ -37,3 +39,5 @@ struct cam{
 	mat4 view();
 	mat4 viewprojection();
 };
+
+}

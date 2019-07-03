@@ -180,8 +180,8 @@ struct triad{
 
 #ifndef DOOT_NOMACRO
 
-#define cnt(o,N) for(int o=0; o<N; o++)
-//count causes namespace collision
+#define forcount(o,N) for(int o=0; o<N; o++)
+//"count" causes terrible base namespace collisions
 
 #define zip(a,b, la,lb) \
 for(int _i=0; _i!=la.size(); _i++){\

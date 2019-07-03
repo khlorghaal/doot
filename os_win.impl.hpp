@@ -1,8 +1,6 @@
 #ifdef _WIN32
 int dootmain(int argc, char** argv);
 
-using namespace doot;
-
 #ifndef DOOT_NO_MAIN
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -22,6 +20,7 @@ int main(int argc, char* argv[], char* envp[]){
 
 
 namespace doot{
+
 typedef time_t int64_t;//ms
 time_t current_time(){
 	LARGE_INTEGER f;
@@ -44,6 +43,7 @@ void create_console(){
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
 }
+
 }
 
 #endif

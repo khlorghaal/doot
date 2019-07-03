@@ -1,5 +1,7 @@
 #include "2d.hpp"
 
+namespace doot{
+
 void mat3x2::operator=(mat3x2 const& b){
 	mxx= b.mxx; mxy= b.mxy; tx= b.tx;
 	myx= b.myx; myy= b.myy; ty= b.ty;
@@ -112,3 +114,5 @@ void mat3x2::unit_box(vec2(&r)[4]) const{
 	r[3].x= +mxx+mxy+tx;//pp
 	r[3].y= +myx+myy+ty;
 };
+
+}

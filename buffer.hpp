@@ -2,6 +2,8 @@
 #include "arr.hpp"
 #include "thread.hpp"
 
+namespace doot{
+
 //consecutive pushes without a pull overwrite eachother
 template<typename T>
 struct buffer_overflowy{
@@ -24,3 +26,5 @@ struct buffer_overflowy{
 };
 
 //i cannot figure out how to get a nice variadic impl of this
+
+}

@@ -12,7 +12,8 @@
 #include <iostream>
 using namespace std::this_thread;
 using namespace std::chrono;
-using namespace doot;
+
+namespace doot{
 
 Timer::Timer(float fps){
 	setMaxUpdatesPerSecond(fps);
@@ -76,3 +77,5 @@ void profiler::stop(){
 	end= current_time();
 	cnsl<<strfmt("profiler: %20s: %5lli ms", name.cstr, end-beg)<<endl;
 };
+
+}

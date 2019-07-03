@@ -2,6 +2,8 @@
 #include "arr.hpp"
 #include "thread.hpp"
 
+namespace doot{
+
 /*
 a slot is a buffer which supports an unbalanced ratio of push:pull
 overpushing: frees then overwrites the buffer
@@ -58,3 +60,5 @@ struct slot_mut{
 	void push(arr<T> neu){ slot_push_mut(*mut, buf, neu); }
 	arr<T> pull(){  return slot_pull_mut(*mut, buf); }
 };
+
+}

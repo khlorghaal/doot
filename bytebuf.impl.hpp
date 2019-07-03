@@ -1,6 +1,8 @@
 #include "bytebuf.hpp"
 #include "string.hpp"
 
+namespace doot{
+
 bytebuf::bytebuf(uint8* ptr, size_t cap) : start(ptr), pos(0), size(0), cap(cap){}
 
 void bytebuf::clear(){
@@ -52,4 +54,6 @@ void vecbuf::read(void* ptr, size_t len){
 	size_t npos= pos+len;
 	memcpy(ptr, &v[0]+pos, len);
 	pos= npos;
+}
+
 }

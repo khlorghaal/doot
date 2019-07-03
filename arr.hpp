@@ -3,13 +3,6 @@
 
 namespace doot{
 
-struct arr_void;
-
-template<typename T>
-size_t size(T& a){
-	return a.end()-a.begin();
-}
-
 /*a typed interval of memory*/
 template<typename T>
 struct arr{
@@ -55,17 +48,8 @@ const arr<T> EMPTY= arr<T>(NULL, NULL);
 T* begin(){ return b; }\
 T* end(){ return e; }\
 size_t size(){ return end()-begin(); }\
-operator doot::arr<T>(){ return doot::arr<T>{begin(),end()}; }
+operator arr<T>(){ return arr<T>{begin(),end()}; }
 
-struct arr_void{
-	void* base;
-	void* stop;
-	
-	template<typename T>
-	arr<T> cast(){ return {(T*)base, (T*)stop}; }
-};
-//disallow arr<void>
-template<> struct arr<void>{ arr()= delete; };
 
 
 //c's fixed arrays result in ugly, these are somewhat better
@@ -130,14 +114,17 @@ struct dynarr: fixedarr<T,CAP>{
 
 
 
+//probably the dootest 3 lines of doot
+void* _malloc(size_t);
+void  _free(void*);
+void* _realloc(void*,size_t);
 
-
-
-//eschew using these in favor of passing a vector& or stackarr
+//eschew using these in favor of containers
+//containers use these
 template<typename T>
 inline arr<T> alloc(size_t n){
 	arr<T> ret;
-	ret.base= (T*)malloc(n*sizeof(T));
+	ret.base= (T*)doot::_malloc(n*SIZT);
 	ret.stop= ret.base+n;
 	assert(!!ret.base);
 	return ret;
@@ -145,14 +132,11 @@ inline arr<T> alloc(size_t n){
 template<typename T>
 inline void free(arr<T>& a){
 	if(!!a.base)
-		::free(a.base);
-	a.clear();
-}
-inline void free(arr_void& a){
-	if(!!a.base)
-		::free(a.base);
+		doot::_free(a.base);
 	a.base= a.stop= NULL;
 }
+
+
 
 template<typename T>
 inline void copy(arr<T>& dst, arr<T>& src){
@@ -160,15 +144,6 @@ inline void copy(arr<T>& dst, arr<T>& src){
 		throw;
 	memcpy(dst.base,src.base, src.size()*SIZT);
 }
-
-
-
-template<typename T>
-arr<T>::operator arr_void(){
-	return {(void*)base,(void*)stop};
-}
-
-
 
 template<typename T>
 inline void fill(arr<T> a, T val){

@@ -5,8 +5,6 @@
 #include "mapped_heap.hpp"
 #include "ringbuffer.hpp"
 
-using namespace doot;
-
 namespace doot{
 void runTests(){
 	profiler pf;

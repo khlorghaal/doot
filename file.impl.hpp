@@ -10,6 +10,8 @@
 
 #endif
 
+namespace doot{
+
 //LOTSA TODO
 
 bool file_lock(string fname){
@@ -81,4 +83,6 @@ bool file_change_listen(string fname, void (*callback)(void*), void* callbackarg
 	#endif
 	*fchgmap.put(fname.cstr)= {callback,callbackarg};
 	return false;
+}
+
 }

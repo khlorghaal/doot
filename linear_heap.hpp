@@ -2,6 +2,10 @@
 #include "doot.hpp"
 #include "vector.hpp"
 
+//DEPRECATED - the presence of deleted elements makes this much less useful than mapped_heap
+
+namespace doot{
+
 //maintains order such that indices (but not pointers) remain valid
 template<typename T>
 struct linear_heap{
@@ -28,3 +32,5 @@ struct linear_heap{
 		return heap.base[i];
 	}
 };
+
+}

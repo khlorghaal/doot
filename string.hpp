@@ -1,6 +1,7 @@
 #pragma once
 //TODO use vector so addition is less awful
 namespace doot{
+
 struct rati;
 struct string{
 	char* cstr;//null terminated
@@ -35,4 +36,5 @@ string strfmt(char const* fmt, ...);
 
 unsigned int hash(char const*);
 inline unsigned int hash(string s){ return hash(s.cstr); }
+
 }
