@@ -38,8 +38,6 @@ struct arr{
 
 	void clear(){ base= stop= NULL; }
 	bool operator!(){ return !base; }
-
-	explicit operator arr_void();
 };
 template<typename T>
 const arr<T> EMPTY= arr<T>(NULL, NULL);

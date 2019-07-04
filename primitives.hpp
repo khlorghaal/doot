@@ -2,7 +2,8 @@
 
 namespace doot{
 
-struct voidstruct{};
+struct voidstruct{};//i dont remember what this is useful for
+
 typedef char      int8;
 typedef short     int16;
 typedef int       int32;
@@ -13,6 +14,9 @@ typedef unsigned int        uint32;
 typedef unsigned long long  uint64;
 typedef int8 byte;
 typedef uint8 ubyte;
+
+#define NULL 0
+#define null NULL
 
 typedef uint32 index;
 typedef index idx;

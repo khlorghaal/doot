@@ -1,4 +1,6 @@
 #pragma once
+#include "vector.hpp"
+
 namespace doot{
 struct rati;
 
@@ -38,7 +40,31 @@ struct string{
 
 string strfmt(char const* fmt, ...);
 
+
+
 unsigned int hash(char const*);
 inline unsigned int hash(string s){ return hash(s.dat.base); }
 
+
+
+template<typename T>
+vector<T>::operator string(){
+	string ret;
+	ret<<"[ "
+		for(auto const& i: *this)
+			ret<<*i<<", ";
+	ret<<" ]";
+}
+template<>
+inline vector<char>::operator string(){
+	string ret;
+	bool hadnull= base[size()-1]==0;
+
+	for(auto& e : *this)
+		ret.dat.push(e);
+	if(!hadnull)
+		ret.dat.push(0);
+
+	return ret;
+}
 }

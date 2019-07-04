@@ -1,6 +1,6 @@
 #pragma once
-#include "string.hpp"
 #include "primitives.hpp"
+#include "string.hpp"
 
 #ifndef DOOT_NOMACRO
 #ifndef NDEBUG

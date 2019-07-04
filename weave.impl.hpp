@@ -14,7 +14,7 @@ int vcore_count(){
 #elif LINUX
 #endif
 
-void thread(string name_,vfv f,void* arg){
+void thread(string name_, fpvvp f, void* arg){
 	new std::thread(name_,f,arg);
 }
 
@@ -82,6 +82,7 @@ void latch::await(){ _->await(); }
 
 
 namespace tasker{
+using namespace doot;
 
 int poolsize;//excludes invoking worker
 volatile bool active= false;
@@ -102,7 +103,7 @@ void init(){
 
 	int i=0;
 	for(auto& thread : threads)
-		new (&thread) thread_persistent(string("tasker")<<string(i++));
+		new (&thread) executor(string("tasker")<<string(i++));
 }
 
 void _invoke(fpvvp f, arr<void*> segs){
@@ -113,8 +114,8 @@ void _invoke(fpvvp f, arr<void*> segs){
 	latch.set(workers);
 	int i=1;
 	for(auto& thread : threads)
-		thread.order(task, &segs[i++], &latch);
-	task(&segs[0]);//run task on invoking thread
+		thread.order(f, &segs[i++], &latch);
+	f(&segs[0]);//run task on invoking thread
 	latch.tick();
 	latch.await();
 

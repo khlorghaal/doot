@@ -1,6 +1,6 @@
-//#include ".impl.hpp"
-
 #include "doot.hpp"
+using namespace doot;
+
 #include "bytebuf.impl.hpp"
 #include "console.impl.hpp"
 #include "gvars.impl.hpp"

@@ -2,6 +2,7 @@
 #include "arr.hpp"
 
 namespace doot{
+struct string;
 /*
 all pointers to elements are invalidated upon nonconst method invocation
 does not use construct or destructors
@@ -22,8 +23,8 @@ struct vector: arr<T>, no_copy, no_assign{
 	~vector();
 	
 	//release data from this's ownership by nulling this
-	void release(T*& ret_base, T*& ret_stop);
 	arr<T> release();
+	void release(vector<T>& acquire);
 	
 	size_t size() const{     return stop-base;  }
 	size_t capacity() const{ return cap-base;   }
@@ -182,32 +183,6 @@ bool vector<T>::remove_eq(T const& e){
 template<typename T>
 void vector<T>::clear(){
 	stop= base;
-}
-
-template<typename T>
-vector<T>::operator string(){
-	string ret;
-	ret<<"[ "
-	for(auto const& i: *this)
-		ret<<*i<<", ";
-	ret<<" ]";
-}
-template<>
-inline vector<char>::operator string(){
-	string ret;
-	bool hadnull= base[size()-1]==0;
-	size_t s= size();
-	if(!hadnull)
-		s++;
-
-	ret.cstr= ::alloc<char>(s).base;
-	memcpy(ret.cstr, base, s);
-	ret.len= s-1;
-
-	if(!hadnull)
-		ret.cstr[s-1]= 0;
-
-	return ret;
 }
 
 }
