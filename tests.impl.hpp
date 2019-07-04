@@ -110,7 +110,7 @@ void runTests(){
 			auto& e= *heap[i];
 			assert(e==i);
 			assert(heap.ptr_id(&e)==i);
-			assert(heap.index(i)==i)
+			assert(heap.index(i)==i);
 		}
 		for(int i=0; i!= 512; i++)
 			heap.kill(i);

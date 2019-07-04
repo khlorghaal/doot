@@ -10,7 +10,7 @@ charstream cnsl;
 
 charstream& operator<<(charstream& s, string const& x){
 	mut.lock();
-	std::cout<<x.cstr;
+	std::cout<<x.cstr();
 	mut.unlock();
 	return s;
 };

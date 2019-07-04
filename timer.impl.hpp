@@ -36,7 +36,8 @@ void Timer::invoke(){
 	time_t tProcess= tInvoke-tBegin;
 	time_t dt= tBegin-tBeginp;
 	spf= (dt+1e-16f)/1000.f;
-	prevspf<<spf;
+
+	spf_avg= spf_avg*.8 + spf*.2;
 
 	int64 wait= targetTimeus-tProcess*1000;
 	waiting= true;
@@ -52,16 +53,6 @@ void Timer::invoke(){
 	tick++;
 }
 
-float Timer::getAverageSpf(){
-	float a= 0;
-	for(auto& t : prevspf)
-		a+=t;
-	a/= prevspf.capacity;
-	return a;
-}
-int Timer::getAverageFps(){
-	return int(1.f/getAverageSpf());
-}
 
 /**thisrate * k = thatrate*/
 float Timer::getRelativeRate(Timer& that){
@@ -75,7 +66,7 @@ void profiler::start(string name_){
 };
 void profiler::stop(){
 	end= current_time();
-	cnsl<<strfmt("profiler: %20s: %5lli ms", name.cstr, end-beg)<<endl;
+	cnsl<<strfmt("profiler: %20s: %5lli ms", (char*)name, end-beg)<<endl;
 };
 
 }

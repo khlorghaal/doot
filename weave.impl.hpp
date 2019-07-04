@@ -1,8 +1,10 @@
 #include <cstring>
-#include "thread.hpp"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
+
+#include "thread.hpp"
 
 namespace doot{
 
@@ -14,8 +16,12 @@ int vcore_count(){
 #elif LINUX
 #endif
 
-void thread(string name_, fpvvp f, void* arg){
-	new std::thread(name_,f,arg);
+vector<std::thread*> threads;
+void thread(string& name_, fpvvp f, void* arg){
+	threads<<new std::thread(f,arg);
+	//FIXME leak
+	//TODO make warps into objects which can be properly lifetimed
+	//low priority because rarely will warps need destruction other than termination
 }
 
 struct _mutex{ std::mutex _; };
@@ -45,9 +51,9 @@ struct _lock{
 	}
 };
 lock::lock(){ _= new _lock(); }
-~lock::lock(){ delete _; }
-void lock::await( _->await(); );
-void lock::wake( _->wake(); );
+lock::~lock(){ delete _; }
+void lock::await(){ _->await(); };
+void lock::wake(){ _->wake(); };
 
 
 struct _latch{
@@ -75,19 +81,18 @@ struct _latch{
 };
 latch::latch(){ _= new _latch(); }
 latch::~latch(){ delete _; }
-void latch::set(int count){ _->set(); }
+void latch::set(int count){ _->set(count); }
 void latch::tick(){ _->tick(); }
 void latch::await(){ _->await(); }
 
 
 
 namespace tasker{
-using namespace doot;
 
 int poolsize;//excludes invoking worker
 volatile bool active= false;
 
-latch latch;
+latch ltch;
 vector<executor> threads;
 
 void init(){
@@ -111,15 +116,17 @@ void _invoke(fpvvp f, arr<void*> segs){
 
 	int workers= segs.size();
 
-	latch.set(workers);
+	ltch.set(workers);
 	int i=1;
 	for(auto& thread : threads)
-		thread.order(f, &segs[i++], &latch);
+		thread.order(f, &segs[i++], &ltch);
 	f(&segs[0]);//run task on invoking thread
-	latch.tick();
-	latch.await();
+	ltch.tick();
+	ltch.await();
 
 	active= false;
+}
+
 }
 
 }

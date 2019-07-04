@@ -1,6 +1,5 @@
 #pragma once
 #include "primitives.hpp"
-#include "string.hpp"
 
 #ifndef DOOT_NOMACRO
 #ifndef NDEBUG
@@ -30,60 +29,20 @@
 
 namespace doot{
 
-struct endl_t{};
-constexpr endl_t endl;
-struct charstream{};
-
-charstream& operator<<(charstream&, string const&);
-inline charstream& operator<<(charstream& c, char const*const x){	return c<<string(x); };
-inline charstream& operator<<(charstream& c, double x){ return c<<string((double)x); };
-inline charstream& operator<<(charstream& c, float  x){ return c<<string((double)x); };
-inline charstream& operator<<(charstream& c, int8  x){  return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int16 x){  return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int32 x){  return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int64 x){  return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, uint8  x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, uint16 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, uint32 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, uint64 x){ return c<<string((long long)x); };
-charstream& operator<<(charstream&, endl_t const&);
-
+void run_tests();
 void create_console();
 
-extern charstream cnsl;
+//warn the user the application errored
+void bad();
+//crash this program with no survivors
+void error();
+void error(char const*);
+
 
 inline void nop(){}//for setting breakpoints
 
-#ifdef DEBUG
-	#define assert(b) {\
-		if(!(b)){\
-			error("Failed Assertion");\
-			throw;\
-		}}
-#else
-	#define assert(b)
-#endif
+void assert(bool);
 
-/*removed because bad feels bad
-extern volatile bool __doot_badstate;
-#define badstate (!!__dootbadstate)
-#ifdef DEBUG
-#define badthrow throw;
-#endif
-//something happened which left the program in an undefined state
-//such as writing/reading outside of allocated space
-//logs the badness and sets a flag which things like save functions can check
-#define bad(x) cnsl<<"WARNING:"<<__FILE__<<":"<<__LINE__ <<": "<<x<<endl;\
-	__doot_badstate= true;\
-	badcall();\
-	badthrow;
-*/
-//crash this program with no survivors
-#define error(x) {\
-	cnsl<<"FATAL ERROR:"<<__FILE__<<":"<<__LINE__ <<": "<<x<<endl;\
-	throw;\
-}
-void runTests();
 
 
 #define SIZT sizeof(T)

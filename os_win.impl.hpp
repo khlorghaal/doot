@@ -1,3 +1,6 @@
+#include "doot.hpp"
+using namespace doot;
+
 #ifdef _WIN32
 int dootmain(int argc, char** argv);
 

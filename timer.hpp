@@ -1,5 +1,5 @@
 #pragma once
-#include "ringbuffer.hpp"
+#include "doot.hpp"
 
 namespace doot{
 
@@ -14,7 +14,7 @@ class Timer{
 
 	volatile bool waiting= false;
 
-	ringbuffer<float, 60> prevspf;
+	float spf_avg;//lerped average
 
 public:
 	time_t total_time=0;//ms since start

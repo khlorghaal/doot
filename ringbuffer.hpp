@@ -6,27 +6,26 @@ namespace doot{
 
 template<typename T, size_t cap>
 struct ringbuffer{
-	T* arr= 0;
+	static constexpr size_t capacity= cap;
+
+	arr<T> arr= alloc<T>(cap);
 	size_t p= 0;
-
-	arrayable( arr, arr+cap )
-
-	static size_t constexpr capacity= cap;
-
+	size_t l= 0;
+	
 	ringbuffer(){
-		arr= alloc<T>(cap).base;
-		fill<T>(*this, 0);
+		fill<T>(arr, 0);
 	}
 	~ringbuffer(){
 		if(!!arr)
-			::free(arr);
-		arr= 0;
+			free(arr);
 	}
 
 	void operator<<(T t){ push(t); }
 	void push(T t){
 		arr[p++]= t;
 		p%=cap;
+		if(l++>cap)
+			l= cap;
 	}
 	T& operator[](size_t i){
 		return arr[i%cap];

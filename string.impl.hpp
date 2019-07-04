@@ -22,8 +22,8 @@ string::string(char const*const c){
 }
 string::string(string&& c){
 	dat.base= c.dat.base;
-	dat.end= c.dat.end;
-	c.dat.base= c.dat.end= NULL;
+	dat.stop= c.dat.stop;
+	c.dat.base= c.dat.stop= NULL;
 }
 
 
@@ -39,7 +39,7 @@ string::string(rati r){
 
 string strfmt(char const* fmt, ...){
 	string ret;
-	ret.dat.alloc(STRFMTMAX);
+	ret.dat.realloc(STRFMTMAX);
 	va_list vargs;
 	va_start(vargs, fmt);
 	vsnprintf(ret.dat.base, STRFMTMAX, fmt, vargs);
@@ -59,14 +59,22 @@ void string::operator=(char const* c){
 void string::operator=(string const& c){
 	operator=(c.dat.base);
 }
+void string::operator=(vector<char> const& v){
+	bool hadnull= v.base[v.size()-1]==0;
+
+	for(auto& e : v)
+		dat.push(e);
+	if(!hadnull)
+		dat.push(0);
+}
 
 
 string string::operator+(char const* that) const{
-	string ret;
 	size_t const lthis= size();
 	size_t const lthat= strlen(that);
 	size_t const lnew= lthis+lthat;
-	ret.dat.alloc(lnew+1);
+	string ret;
+	ret.dat.realloc(lnew+1);
 	assert(ret.dat.size()==0);
 
 	forcount(i,lthis)

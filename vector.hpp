@@ -2,7 +2,6 @@
 #include "arr.hpp"
 
 namespace doot{
-struct string;
 /*
 all pointers to elements are invalidated upon nonconst method invocation
 does not use construct or destructors
@@ -60,8 +59,6 @@ struct vector: arr<T>, no_copy, no_assign{
 	bool remove_eq(T const& e);
 	
 	void clear();
-
-	operator string();
 };
 
 template<typename T>

@@ -32,7 +32,7 @@ bool file_unlock(string fname){
 }
 bool file_dump(vector<byte>& ret, string name){
 	FILE* file= 0;
-	errno_t ferr= fopen_s(&file, name.cstr, "r");
+	errno_t ferr= fopen_s(&file, name, "r");
 	char* errstr= strerror(ferr);
 	if(!!ferr)
 		return true;
@@ -81,7 +81,7 @@ bool file_change_listen(string fname, void (*callback)(void*), void* callbackarg
 	#elif UNIX
 
 	#endif
-	*fchgmap.put(fname.cstr)= {callback,callbackarg};
+	*fchgmap.put(fname)= {callback,callbackarg};
 	return false;
 }
 

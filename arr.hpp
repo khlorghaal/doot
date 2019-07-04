@@ -22,7 +22,8 @@ struct arr{
 
 	idx ptr_idx(T* t) const{
 		idx idx= t-base;
-		assert(idx>=0 & idx<size());
+		if(idx<0 || idx>=size());
+			return NULLIDX;
 		return idx;
 	}
 
@@ -159,4 +160,5 @@ inline idx find(arr<T> a, T val){
 	}
 	return NULLIDX;
 }
+
 }

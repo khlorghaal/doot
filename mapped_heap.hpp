@@ -89,15 +89,15 @@ struct multimapped_heap: no_copy{
 template<typename T, mapped_heap<T>& h_T= T::heap>
 struct idptr_heap{
 	inline static auto& h= h_T;
-	id id;
+	id _;
 	idptr_heap(): id(NULLID){};
-	idptr_heap(::id id_): id(id_){};
+	idptr_heap(id id): _(id){};
 
-	operator ::id(){ return id; }
-	void operator=(::id id_){ id= id_; }
-	T& operator*(){	return *h[id]; }
-	T* operator->(){ return h[id]; }
-	bool operator!(){ return (id==NULLID)||(!h[id]); }
+	operator id(){ return _; }
+	void operator=(id id){ _= id; }
+	T& operator*(){	return *h[_]; }
+	T* operator->(){ return h[_]; }
+	bool operator!(){ return (_==NULLID)||(!h[_]); }
 };
 
 #define zip_heap(o,id,h) {\
@@ -148,7 +148,7 @@ T& mapped_heap<T>::make(id id){
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		error("entry already present "<<id<<" "<<map[id]);
+		error(strfmt("entry already present %i - %i",id,map[id]));
 
 	assert(ids.size()==heap.size());
 	size_t idx= heap.size();
@@ -277,7 +277,7 @@ void multimapped_heap<T,I>::kill(cid c){
 	//remove from heap
 	idx hidx= heap.index(c);
 	if(hidx==NULLIDX)
-		error("cid "<<c<<" unpresent");
+		error(strfmt("cid %i unpresent",c));
 	heap.kill(c);
 
 	//remove from eidmap

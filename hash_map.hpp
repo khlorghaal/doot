@@ -5,9 +5,7 @@
 #include "hash.hpp"
 
 namespace doot{
-
-struct void_struct{};//for void value
-
+	
 //all pointers returned are invalidated upon next nonconst method invocation
 //buckets of fixed depth, expands once a bucket overflows
 template<typename K, typename V>
@@ -15,7 +13,7 @@ struct hash_map{
 	struct slot{
 		V v;
 		K k;
-		bool null;
+		bool empty;
 	};
 	#define SLOT_SIZE sizeof(slot)
 	static constexpr size_t INIT_LEN= 0x20;
@@ -74,7 +72,7 @@ void hash_map<K,V>::expand(){
 	vector<slot> entries(len*DEPTH);
 	for(size_t i=0; i!=len*DEPTH; i++){
 		slot& slot= heap[i];
-		if(!slot.null)
+		if(!slot.empty)
 			entries<<slot;
 	}
 	::free(heap);
@@ -105,7 +103,7 @@ check_depth:
 	if(!heap)
 		throw;
 	for(int i=0; i!=len*DEPTH; i++)
-		heap[i].null= true;
+		heap[i].empty= true;
 
 	//repopulate
 	for(auto& entry: entries)
@@ -119,7 +117,7 @@ V* hash_map<K,V>::operator[](K k) const{
 	size_t b= 0;
 	while(b!=DEPTH){
 		slot* at= heap+i+b++;
-		if(at->null)//not contained
+		if(at->empty)//not contained
 			return (V*)0;
 		if(at->k==k)
 			return &at->v;
@@ -137,9 +135,9 @@ V* hash_map<K,V>::put(K k){
 	size_t b= 0;
 	while(b!=DEPTH){
 		slot& at= heap[i+b++];
-		if(at.null){//empty slot found
+		if(at.empty){//empty slot found
 			at.k= k;
-			at.null= false;
+			at.empty= false;
 			entry_count++;
 			return &at.v;
 		}
@@ -156,7 +154,7 @@ bool hash_map<K,V>::remove(K k){
 	size_t b= 0;
 	while(b<DEPTH){
 		slot& at= heap[i+b++];
-		if(at.null)//not contained; !nulls are always precede nulls
+		if(at.empty)//not contained; !nulls are always precede nulls
 			return false;
 		if(at.k==k){//match
 			size_t b2= DEPTH-1;
@@ -164,13 +162,13 @@ bool hash_map<K,V>::remove(K k){
 			//a bucket that is non null. may be self
 			slot* swap;
 			do swap= heap+i+b2--;
-			while(swap->null);
+			while(swap->empty);
 			//there will not be a scenario where
 			//b2<b; as at must be non null
 			at.k= swap->k;
 			at.v= swap->v;
-			at.null= swap->null;
-			swap->null= true;
+			at.empty= swap->empty;
+			swap->empty= true;
 			entry_count--;
 			return true;
 		}
@@ -182,20 +180,20 @@ bool hash_map<K,V>::remove(K k){
 template<typename K, typename V> 
 void hash_map<K,V>::clear(){
 	for(slot* i= heap; i!=heap+(len*DEPTH); i++)
-		i->null= true;
+		i->empty= true;
 	entry_count= 0;
 }
 
 template<typename K, typename V> 
 void hash_map<K,V>::keys_cpy(vector<K>& r){
 	for(auto& s: arr<slot>(begin(),end()))
-		if(!s.null)
+		if(!s.empty)
 			r<<s.k;
 }
 template<typename K, typename V> 
 void hash_map<K,V>::values_cpy(vector<V>& v){
 	for(auto& s: arr<slot>(begin(),end()))
-		if(!s.null)
+		if(!s.empty)
 			v<<s.v;
 }
 

@@ -5,7 +5,7 @@
 namespace doot{
 
 typedef void (*fpvvp)(void*);
-void thread(string name,fpvvp,void* param);
+void thread(string& name, fpvvp, void* param);
 
 //this is an uncomfy pattern, but it meets my goal
 struct _mutex;
@@ -84,7 +84,7 @@ class executor{
 	}
 
 public:
-	executor(string name){
+	executor(string& name){
 		thread(name,loop_static,this);
 	}
 	~executor(){
@@ -163,7 +163,6 @@ inline void invoke(arr<T> jobs){
 
 	_invoke(&fpvvpwrap<arr<T>,task>, &segs);
 }
-
 
 }
 
