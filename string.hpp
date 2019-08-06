@@ -35,7 +35,7 @@ struct string{
 	bool operator!() const { return dat.base==NULL || dat.size()==0; };
 	bool operator==(string const&) const;
 
-	operator char*(){ return dat.base; }
+	operator char const*(){ return dat.base; }
 
 	size_t size() const{ return dat.size()-1; }//because null terminator
 };
@@ -59,10 +59,10 @@ charstream& operator<<(charstream&,string const&);
 inline charstream& operator<<(charstream& c,char const*const x){ return c<<string(x); };
 inline charstream& operator<<(charstream& c,double x){ return c<<string((double)x); };
 inline charstream& operator<<(charstream& c,float  x){ return c<<string((double)x); };
-inline charstream& operator<<(charstream& c,int8  x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,int16 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,int32 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,int64 x){ return c<<string((long long)x); };
+inline charstream& operator<<(charstream& c, int8  x){ return c<<string((long long)x); };
+inline charstream& operator<<(charstream& c, int16 x){ return c<<string((long long)x); };
+inline charstream& operator<<(charstream& c, int32 x){ return c<<string((long long)x); };
+inline charstream& operator<<(charstream& c, int64 x){ return c<<string((long long)x); };
 inline charstream& operator<<(charstream& c,uint8  x){ return c<<string((long long)x); };
 inline charstream& operator<<(charstream& c,uint16 x){ return c<<string((long long)x); };
 inline charstream& operator<<(charstream& c,uint32 x){ return c<<string((long long)x); };

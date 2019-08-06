@@ -16,7 +16,8 @@ string::string(char const*const c){
 	if(len==-1)
 		throw;
 	forcount(i,len){
-		dat.push(c[i]);
+		char ci= c[i];//unconstify
+		dat.push(ci);
 	}
 	dat.push(0);
 }
@@ -52,7 +53,8 @@ void string::operator=(char const* c){
 	dat.clear();
 	size_t l= strlen(c);
 	forcount(i,l){
-		dat.push(c[i]);
+		char ci= c[i];
+		dat.push(ci);
 	}
 	dat.push(0);
 }
@@ -79,8 +81,10 @@ string string::operator+(char const* that) const{
 
 	forcount(i,lthis)
 		ret.dat.push(dat.base[i]);
-	forcount(i,lthat)
-		ret.dat.push(that[i]);
+	forcount(i,lthat){
+		char ti= that[i];
+		ret.dat.push(ti);
+	}
 	ret.dat.push(0);
 
 	return ret;

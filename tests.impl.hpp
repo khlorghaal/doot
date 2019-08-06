@@ -71,9 +71,13 @@ void runTests(){
 
 		assert(hash(    0)==hash(    0));
 		assert(hash(0x100)==hash(0x100));
-
+		
+	}
+	pf.stop();
+	pf.start("rng");
+	{
 		float racc= 0;
-		for(int i=0; i!=1024; i++)
+		forcount(i,1024)
 			racc+= sfrand();
 		racc/=1024;
 		assert(abs(racc)<.01);
@@ -82,54 +86,55 @@ void runTests(){
 	pf.start("vector");
 	{
 		vector<int> vec(1);
-		for(int i=0; i!= 1024; i++)
+		forcount(i,512)
 			vec<<i;
-		for(int i=0; i!= 1024; i++){
+		forcount(i,512){
 			assert(vec[i]==i);
 			assert(vec.ptr_idx(vec.base+i)==i);
 		}
-		for(int i=1023; i>=0; i--)
+		forcountdown(i,511)
 			assert(vec.remove_eq(i));
 	}
 	pf.stop();
 	pf.start("hashmap");
 	{
 		hash_map<int, int> map;
-		for(int i=0; i!= 512; i++)
+		forcount(i,512)
 			*map.put(i)= i;
-		for(int i=0; i!= 512; i++)
+		forcount(i,512)
 			assert(*map[i]==i);
 	}
 	pf.stop();
 	pf.start("mappedheap");
 	{
 		mapped_heap<int> heap;
-		for(int i=0; i!= 512; i++)
-			heap.make(i)= i;
-		for(int i=0; i!= 512; i++){
+		forcount(i,512)
+			heap.put(i,i);
+		forcount(i,512){
 			auto& e= *heap[i];
 			assert(e==i);
 			assert(heap.ptr_id(&e)==i);
 			assert(heap.index(i)==i);
 		}
-		for(int i=0; i!= 512; i++)
+		forcount(i,512)
 			heap.kill(i);
-		for(int i=0; i!= 512; i++)
+		forcount(i,512)
 			assert(heap.map[i]==NULLIDX);
-		for(int i=511; i!=-1; i--)
-			heap.make(i);
+		forcountdown(i,511)
+			heap.put(i,0);//???
 	}
 	pf.stop();
+	/*
 	pf.start("multimappedheap");
 	{
 		multimapped_heap<int,8> heap;
 		vector<triad<eid,cid,int>> vec;
-		for(eid eid=0; eid!= 512; eid++){
-			for(int i=0; i!=8; i++){
-				cid cid;
-				int val= eid+i;
-				heap.make(eid,cid)= val;
-				vec.push({eid,cid,  val});
+		forcount(e,512){
+			forcount(i,8){
+				cid c;
+				int val= e+i;
+				heap.make(e,c)= val;
+				vec.push({(eid)e,c,val});
 			}
 		}
 		assert(heap.cidget.next==512*8);
@@ -148,10 +153,11 @@ void runTests(){
 			heap.kill(v.b);
 	}
 	pf.stop();
+	*/
 	pf.start("ringbuffer");
 	{
 		ringbuffer<int, 512> rb;
-		for(int i=0; i!= 1024; i++)
+		forcount(i,1024)
 			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			assert(rb[i]==i);

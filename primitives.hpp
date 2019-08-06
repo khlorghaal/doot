@@ -2,7 +2,7 @@
 
 namespace doot{
 
-struct voidstruct{};//i dont remember what this is useful for
+struct voidstruct{};//used for changing hashmaps into hashsets, etc
 
 typedef char      int8;
 typedef short     int16;
@@ -14,6 +14,10 @@ typedef unsigned int        uint32;
 typedef unsigned long long  uint64;
 typedef int8 byte;
 typedef uint8 ubyte;
+
+typedef int64 sec;
+typedef int64 ms;
+typedef int64 us;
 
 #define NULL 0
 #define null NULL

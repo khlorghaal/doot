@@ -17,7 +17,7 @@ to map into an unsorted gapless heap of T.
 ID's are allocated externally, ideally by an index_recycler
 */
 template<typename T>
-struct mapped_heap: no_copy{
+struct mapped_heap: container{
 	static constexpr size_t INIT_CAP= 0x20;
 	static constexpr size_t GROW_FACTOR= 4;
 
@@ -30,8 +30,13 @@ struct mapped_heap: no_copy{
 
 	mapped_heap<T>();
 	~mapped_heap<T>();
+	mapped_heap& operator=(mapped_heap&& b)= default;//i have no idea why this isnt inherited
 
-	T& make(id);//calls default ctor
+	template<typename E>
+	T& put(id,E);
+	T& put(id i, T&& e){ return put<T&&>(i,(T&&)e); }
+	T& make(id i){ return put(i,T()); }
+
 	void kill(id);//calls dtor
 	void kill(T* t){ kill(ptr_id(t)); };
 
@@ -46,44 +51,6 @@ struct mapped_heap: no_copy{
 	void getarr(arr<id>,arr<T*>);
 
 	void purge();
-};
-
-/*
-maps from entity-id into an array of
-component-id pointers, which map onto T.
-
-generally you will just want a component with an array instead,
-as a group will generally have some data which needs forwarded,
-and update the elements when forwarding
-
-never store the index of a component within its group,
-instead use CIDs, as the group's dynarr swaps upon removals
-
-stores a relation of cid->eid, mainly for use in destruction.
-a T may not have its entity changed,
-however T& s may have their data swapped
-*/
-template<typename T, size_t I>
-struct multimapped_heap: no_copy{
-	arrayable( heap.begin(), heap.end() );
-	mapped_heap<T> heap;// component-id -> index -> &T
-	vector<eid> eids;// component-id -> index -> EID
-	mapped_heap<dynarr<cid,I>> map;// entity-id -> component-id[]
-
-	index_recycler cidget;
-
-	multimapped_heap();
-	~multimapped_heap();
-	
-	T& make(eid eid, cid& cid);
-	T& make(eid eid);
-	void killAll(eid id);
-	void kill(cid id);
-
-	eid cid2eid(cid cid) const;
-	T* cid2t(cid cid) const;
-	arr<cid> eid2cids(eid eid) const;
-	dynarr<T*,I> operator[](eid cid) const;
 };
 
 template<typename T, mapped_heap<T>& h_T= T::heap>
@@ -136,7 +103,8 @@ mapped_heap<T>::~mapped_heap(){
 }
 
 template<typename T>
-T& mapped_heap<T>::make(id id){
+template<typename E>
+T& mapped_heap<T>::put(id id, E n){
 	assert(id!=NULLID);
 	size_t mapsiz= map.size();
 	if(id>=mapsiz){//expand map
@@ -152,7 +120,7 @@ T& mapped_heap<T>::make(id id){
 
 	assert(ids.size()==heap.size());
 	size_t idx= heap.size();
-	T& e= *new(heap.alloc()) T();
+	T& e= heap.push(static_cast<E>(n));//cast for xvalue fuckery
 	ids<<id;
 	map[id]= idx;
 
@@ -175,8 +143,10 @@ void mapped_heap<T>::kill(id i){
 	if(x!=idx_end){
 		assert(i!=id_end);
 		//swap with end entry
-		heap[x]= heap[idx_end];//object
-		 ids[x]=  ids[idx_end];//id
+		//!!heap[x]= (T&&)heap[idx_end];//object
+		T& h__= heap[x];//!!
+		h__= (T&&)(T{});
+		 ids[x]= ids[idx_end];//id
 		map[id_end]= x;//remap end index
 	}
 	heap.stop--;
@@ -223,6 +193,46 @@ void mapped_heap<T>::purge(){
 
 
 
+/*
+REMOVED in favor of references of {eid,index}
+
+maps from entity-id into an array of
+component-id pointers, which map onto T.
+
+generally you will just want a component with an array instead,
+as a group will generally have some data which needs forwarded,
+and update the elements when forwarding
+
+never store the index of a component within its group,
+instead use CIDs, as the group's dynarr swaps upon removals
+
+stores a relation of cid->eid, mainly for use in destruction.
+a T may not have its entity changed,
+however T& s may have their data swapped
+*/
+/*
+template<typename T,size_t I>
+struct multimapped_heap: container{
+	arrayable(heap.begin(),heap.end());
+	mapped_heap<T> heap;// component-id -> index -> &T
+	vector<eid> eids;// component-id -> index -> EID
+	mapped_heap<dynarr<cid,I>> map;// entity-id -> component-id[]
+
+	index_recycler cidget;
+
+	multimapped_heap();
+	~multimapped_heap();
+
+	T& make(eid eid,cid& cid);
+	T& make(eid eid);
+	void killAll(eid id);
+	void kill(cid id);
+
+	eid cid2eid(cid cid) const;
+	T* cid2t(cid cid) const;
+	arr<cid> eid2cids(eid eid) const;
+	dynarr<T*,I> operator[](eid cid) const;
+};
 template<typename T, size_t I>
 multimapped_heap<T,I>::multimapped_heap(){
 	constexpr size_t init_cap= 0x20;
@@ -325,5 +335,6 @@ dynarr<T*,I> multimapped_heap<T,I>::operator[](eid eid) const{
 		ret.push( cid2t(cid) );
 	return ret;
 };
+*/
 
 }

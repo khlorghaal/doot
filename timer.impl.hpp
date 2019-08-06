@@ -33,8 +33,8 @@ void Timer::invoke(){
 	^tbegp     ^tinvk   ^tbeg
 	*/
 	tInvoke= current_time();
-	time_t tProcess= tInvoke-tBegin;
-	time_t dt= tBegin-tBeginp;
+	ms tProcess= tInvoke-tBegin;
+	ms dt= tBegin-tBeginp;
 	spf= (dt+1e-16f)/1000.f;
 
 	spf_avg= spf_avg*.8 + spf*.2;
@@ -66,7 +66,7 @@ void profiler::start(string name_){
 };
 void profiler::stop(){
 	end= current_time();
-	cnsl<<strfmt("profiler: %20s: %5lli ms", (char*)name, end-beg)<<endl;
+	cnsl<<strfmt("profiler: %20s: %5lli ms", name.cstr(), end-beg)<<endl;
 };
 
 }

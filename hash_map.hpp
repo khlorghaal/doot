@@ -20,11 +20,10 @@ struct hash_map{
 	static constexpr size_t GROW_FACTOR= 4;
 	static constexpr size_t DEPTH= 4;
 
-	size_t len;//number of buckets
-	slot* heap;
+	arr<slot> heap;
 	size_t entry_count=0;//only for debug and profiling
-	slot* begin(){ return heap; };
-	slot* end(){ return heap+(len*DEPTH); };
+	slot* begin(){ return heap.base; };
+	slot* end(){ return heap.stop; };
 
 	hash_map(size_t init_len);
 	hash_map();
@@ -32,6 +31,7 @@ struct hash_map{
 
 	void expand();
 
+	size_t bucket(K k) const{ return hash(k)%(heap.size()/DEPTH); };
 	//returns null if not contained
 	V* operator[](K k) const;
 
@@ -53,57 +53,46 @@ struct hash_map{
 template<typename K, typename V>
 hash_map<K,V>::hash_map(size_t init_len){
 	assert(DEPTH>=2);
-	len= init_len;
-	size_t memsiz= len*DEPTH*SLOT_SIZE;
-	heap= (slot*)malloc(memsiz);
-	memset(heap,1,memsiz);
+	heap= alloc<slot>(init_len*DEPTH);
+	for(auto& e : heap)
+		e.empty= true;
 }
 template<typename K, typename V>
 hash_map<K,V>::hash_map(): hash_map(INIT_LEN){};
 template<typename K, typename V>
 hash_map<K,V>::~hash_map(){
-	if(heap)
-		::free(heap);
+	free(heap);
 }
 
 template<typename K, typename V> 
 void hash_map<K,V>::expand(){
 	//copy all !null slots
-	vector<slot> entries(len*DEPTH);
-	for(size_t i=0; i!=len*DEPTH; i++){
-		slot& slot= heap[i];
-		if(!slot.empty)
-			entries<<slot;
+	vector<slot> entries(heap.size());
+	for(auto& e: heap){
+		if(!e.empty)
+			entries<<e;
 	}
-	::free(heap);
+	free(heap);
 
 	//grow until < DEPTH collisions occur on any bucket
 	//< opposed to <= , aggressively ensures free slots
-	size_t nlen= len;
+	size_t nbucks= heap.size()/DEPTH;
 check_depth:
-	nlen*= GROW_FACTOR;
-	if(nlen*DEPTH*SLOT_SIZE>TOO_BIG)
-		throw;
-	arr<char> bcounts= alloc<char>(nlen);
+	nbucks*= GROW_FACTOR;
+	arr<char> bcounts= alloc<char>(nbucks);
 	fill<char>(bcounts, 0);
 	for(auto& entry: entries){
-		hash_t hashv= hash(entry.k);
-		size_t hashm= hashv%nlen;
-		if(++bcounts[hashm]==DEPTH){
+		if(++bcounts[bucket(entry.k)]==DEPTH){
 			free(bcounts);
 			goto check_depth;
 		}
 	}
 	free(bcounts);
-	len= nlen;
 
 	//reallocate and set nulls
-	size_t size= len*DEPTH*SLOT_SIZE;
-	heap= (slot*)malloc(size);
-	if(!heap)
-		throw;
-	for(int i=0; i!=len*DEPTH; i++)
-		heap[i].empty= true;
+	heap= alloc<slot>(nbucks*DEPTH);
+	for(auto& e: heap)
+		e.empty= true;
 
 	//repopulate
 	for(auto& entry: entries)
@@ -112,26 +101,22 @@ check_depth:
 
 template<typename K, typename V> 
 V* hash_map<K,V>::operator[](K k) const{
-	hash_t h= hash(k);
-	size_t i= (h%len)*DEPTH;
+	size_t i= bucket(k)*DEPTH;
 	size_t b= 0;
 	while(b!=DEPTH){
-		slot* at= heap+i+b++;
-		if(at->empty)//not contained
+		slot& at= heap[i+b++];
+		if(at.empty)//not contained
 			return (V*)0;
-		if(at->k==k)
-			return &at->v;
+		if(at.k==k)
+			return &at.v;
 	}
 	//not contained
 	return (V*)0;
 }
 
 template<typename K, typename V> 
-//places a key without setting its value
 V* hash_map<K,V>::put(K k){
-	assert(!operator[](k));//must not be contained
-	hash_t h= hash(k);
-	size_t i= (h%len)*DEPTH;
+	size_t i= bucket(k)*DEPTH;
 	size_t b= 0;
 	while(b!=DEPTH){
 		slot& at= heap[i+b++];
@@ -141,16 +126,18 @@ V* hash_map<K,V>::put(K k){
 			entry_count++;
 			return &at.v;
 		}
+		else if(at.k==k)//entry with key already present
+			return NULL;
 	}
 	//could not fit in bucket
 	expand();
 	return put(k);//expand leaves >=1 free slot,
 		          //thus will not recurse more than once
 }
+
 template<typename K, typename V> 
 bool hash_map<K,V>::remove(K k){
-	hash_t h= hash(k);
-	size_t i= (h%len)*DEPTH;
+	size_t i= bucket(k)*DEPTH;
 	size_t b= 0;
 	while(b<DEPTH){
 		slot& at= heap[i+b++];
@@ -161,7 +148,7 @@ bool hash_map<K,V>::remove(K k){
 			//start at end, walking back until finding
 			//a bucket that is non null. may be self
 			slot* swap;
-			do swap= heap+i+b2--;
+			do swap= &heap[i+b2--];
 			while(swap->empty);
 			//there will not be a scenario where
 			//b2<b; as at must be non null
@@ -179,14 +166,14 @@ bool hash_map<K,V>::remove(K k){
 
 template<typename K, typename V> 
 void hash_map<K,V>::clear(){
-	for(slot* i= heap; i!=heap+(len*DEPTH); i++)
-		i->empty= true;
+	for(auto& e: heap)
+		e.empty= true;
 	entry_count= 0;
 }
 
 template<typename K, typename V> 
 void hash_map<K,V>::keys_cpy(vector<K>& r){
-	for(auto& s: arr<slot>(begin(),end()))
+	for(auto& s: heap)
 		if(!s.empty)
 			r<<s.k;
 }

@@ -3,7 +3,11 @@
 
 namespace doot{
 
-/*a typed interval of memory*/
+/*a typed interval of memory
+arrays are not a container
+ they do not have ownership of their data
+ a derived superclass may, and often does, express ownership
+*/
 template<typename T>
 struct arr{
 	T* base= NULL;
@@ -75,7 +79,7 @@ uses element constructors
 */
 template<typename T, size_t CAP>
 struct dynarr: fixedarr<T,CAP>{
-	using fixedarr<T, CAP>::base;
+	using fixedarr<T,CAP>::base;
 	size_t stop= 0;//copymove safe
 	arrayable(base, base+stop);
 
@@ -88,14 +92,15 @@ struct dynarr: fixedarr<T,CAP>{
 		stop= 0;
 	}
 
-	T* alloc(){
+	template<typename E>
+	bool push(E e){
 		if(stop>=CAP)
-			return 0;
-		return new (base+stop++) T();
+			return false;
+		T* a= base+stop++;
+		*a= e;
+		return true;
 	}
-	void push(T e){
-		*alloc()= e;
-	}
+	void push(T e){ push<T>(e); }
 
 	void rem(size_t idx){
 		T& e= operator[](idx);
@@ -123,16 +128,25 @@ void* _realloc(void*,size_t);
 template<typename T>
 inline arr<T> alloc(size_t n){
 	arr<T> ret;
+	if(n>TOO_BIG)
+		error("unreasonably large allocation");
 	ret.base= (T*)doot::_malloc(n*SIZT);
 	ret.stop= ret.base+n;
 	assert(!!ret.base);
 	return ret;
 }
 template<typename T>
+inline T* realloc(T* p, size_t s){
+	return (T*)_realloc(p,s);
+}
+template<typename T>
 inline void free(arr<T>& a){
 	if(!!a.base)
 		doot::_free(a.base);
 	a.base= a.stop= NULL;
+}
+inline void free(void* p){
+	doot::_free(p);
 }
 
 

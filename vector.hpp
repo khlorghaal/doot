@@ -4,11 +4,11 @@
 namespace doot{
 /*
 all pointers to elements are invalidated upon nonconst method invocation
-does not use construct or destructors
 reallocation ignores move and copy constructors
+template checks if object has init function or not, calls upon allocation
 */
 template<typename T>
-struct vector: arr<T>, no_copy, no_assign{
+struct vector: arr<T>, container{
 	using arr<T>::base;
 	using arr<T>::stop;
 	T* cap;
@@ -17,13 +17,18 @@ struct vector: arr<T>, no_copy, no_assign{
 	static constexpr size_t CAP_DEFAULT= 16;//8*16=128
 
 	vector(size_t init_cap);
-	vector(): vector(CAP_DEFAULT){}
-	void copy(vector const& that);//that into this
+	vector(): vector(CAP_DEFAULT){};
+	void operator=(vector<T>&& m){
+		base= m.base;
+		stop= m.stop;
+		cap=  m.cap;
+		m.release();
+	}
 	~vector();
+	void copy(vector const& that);//that into this
 	
 	//release data from this's ownership by nulling this
 	arr<T> release();
-	void release(vector<T>& acquire);
 	
 	size_t size() const{     return stop-base;  }
 	size_t capacity() const{ return cap-base;   }
@@ -36,9 +41,13 @@ struct vector: arr<T>, no_copy, no_assign{
 	//realloc capacity*grow_factor
 	void expand();
 
-	T* alloc();
-	void push(T const& e){ *alloc()= e; }
-	vector<T>& operator<<(T const& e){ push(e); return *this; }
+	T& alloc();//no ctor
+	T& push(T const& e);//copy assign
+	T& push(T&&);//move assign
+	T& push(){ return push(T{}); };
+
+	template<typename E>
+	vector<T>& operator<<(E e){ push(e); return *this; }
 	void push(vector<T>& that){	for(auto& e:that) push(e); }
 	
 	//pushes if element is not contained
@@ -54,10 +63,8 @@ struct vector: arr<T>, no_copy, no_assign{
 
 	//swaps element with last and shortens
 	void remove_idx(size_t i);
-
 	//ret true if contained element
-	bool remove_eq(T const& e);
-	
+	bool remove_eq(T const& e);	
 	void clear();
 };
 
@@ -69,7 +76,7 @@ void free(vector<T>& v){
 template<typename T>
 vector<T>::vector(size_t init_cap){
 	if(init_cap!=0){
-		base= (T*)malloc(init_cap*SIZT);
+		base= doot::alloc<T>(init_cap*SIZT).base;
 		assert(!!base);
 	}
 	else
@@ -81,26 +88,22 @@ vector<T>::vector(size_t init_cap){
 
 template<typename T>
 void vector<T>::copy(vector const& that){
-	this->clear();
-	this->realloc(that.capacity());
-	for(T* i=that.base; i!=that.stop; i++)
-		this->push(*i);
+	for(auto& e: *this)
+		this->push(e);
 }
 
 template<typename T>
 vector<T>::~vector(){
 	clear();
 	if(!!base)
-		::free(base);
+		doot::free(base);
 	base= stop= cap= 0;
 }
 
 //release data from this's ownership by nulling this
 template<typename T>
 arr<T> vector<T>::release(){
-	arr<T> ret;
-	ret.base= base;
-	ret.stop= stop;
+	arr<T> ret= {base,stop};
 	base= stop= cap= 0;
 	return ret;
 }
@@ -113,11 +116,11 @@ void vector<T>::realloc(size_t l){
 	}
 
 	size_t siz= size();
-	assert(l*SIZT<0x1000000);
+	assert(l<TOO_BIG);
 	if(!!base)
-		base= (T*)::realloc(base, l*SIZT);
+		base= doot::realloc<T>(base, l);
 	else
-		base= (T*)::malloc(l*SIZT);
+		base= doot::alloc<T>(l).base;
 	assert(!!base);
 
 	cap= base+l;
@@ -135,12 +138,26 @@ void vector<T>::expand(){
 }
 
 template<typename T>
-T* vector<T>::alloc(){
+T& vector<T>::alloc(){
 	if(stop==cap)
 		expand();
 	assert(stop<cap);
-	return stop++;
+	return *stop++;
 }
+template<typename T>
+T& vector<T>::push(T&& t){
+	T& a= alloc();
+	a= static_cast<T&&>(t);
+	//xval params are implicitly converted to rval; yes that is unsane
+	return a;
+}
+template<typename T>
+T& vector<T>::push(T const& t){
+	T& a= alloc();
+	a= t;
+	return a;
+}
+
 
 //pushes if element is not contained
 template<typename T>
@@ -165,6 +182,7 @@ T vector<T>::pop_front(){
 template<typename T>
 void vector<T>::remove_idx(size_t i){
 	assert(i>=0&i<size());
+	base[i].~T();
 	base[i]= *--stop;
 }
 //ret true if contained element
@@ -179,6 +197,8 @@ bool vector<T>::remove_eq(T const& e){
 
 template<typename T>
 void vector<T>::clear(){
+	for(auto& e: *this)
+		e.~T();
 	stop= base;
 }
 

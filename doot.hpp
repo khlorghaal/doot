@@ -51,9 +51,12 @@ void assert(bool);
 #define lengthof(T) (sizeof(T)/sizeof(T[0]))
 
 struct no_copy{
-	no_copy()= default;
-	no_copy(no_copy &&)=     delete;
 	no_copy(no_copy const&)= delete;
+	void operator=(no_copy const&)= delete;
+};
+struct no_move{
+	no_move(no_move const&&)= delete;
+	void operator=(no_move const&&)= delete;
 };
 struct no_new{
 	static void* operator new  (size_t)= delete;
@@ -67,15 +70,34 @@ struct no_default_ctor{
 	no_default_ctor()= delete;
 };
 
+/*containers
+may never have their heap owned by two objects
+ owner being the object which destructs the heap upon its destruction
+element type must be movable, otherwise placement new and thus STL is required
+container itself must be movable, for constructing nested containers
+move-returning is possible but should be avoided*/
+struct container{
+	container()= default;
+	//move assign
+	container& operator=(container&&)= default;//only direct allocators need overload this
+	//move ctor
+	container(container&& m){ operator=((container&&)m); };//for returning a local
+	//copy assign
+	container& operator=(container const&)= delete;
+	//copy ctor
+	container(container const& m)= delete;
+};
+
+void _memcpy(void* dst, void* src, size_t len);
 
 //on raw memory, bypassing any construction or destruction
 template<typename T>
 void swap(T& a, T& b){
 	constexpr int s= SIZEOFT;
 	ubyte c[s];
-	memcpy(&c,&a,s);
-	memcpy(&a,&b,s);
-	memcpy(&b,&c,s);
+	_memcpy(&c,&a,s);
+	_memcpy(&a,&b,s);
+	_memcpy(&b,&c,s);
 }
 
 template<typename T>
@@ -139,7 +161,8 @@ struct triad{
 
 #ifndef DOOT_NOMACRO
 
-#define forcount(o,N) for(int o=0; o<N; o++)
+#define forcount(o,N) for(long long o=0; o<N; o++)
+#define forcountdown(o,N) for(long long o=N; o>-1; o--)
 //"count" causes terrible base namespace collisions
 
 #define zip(a,b, la,lb) \

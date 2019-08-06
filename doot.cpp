@@ -28,6 +28,10 @@ void* _realloc(void* p, size_t s){
 	return ::realloc(p,s);
 };
 
+void _memcpy(void* dst, void* src, size_t len){
+	::memcpy(dst,src,len);
+}
+
 void bad(){
 	throw;
 }

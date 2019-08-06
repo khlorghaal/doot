@@ -1,14 +1,14 @@
 #pragma once
 #include "doot.hpp"
+#include "string.hpp"
 
 namespace doot{
 
-typedef time_t int64;//ms
-time_t current_time();//os.cpp
-int64 current_time_us();
+ms current_time();//os.cpp
+us current_time_us();
 
 class Timer{
-	time_t tInvoke, tBegin, tBeginp;
+	ms tInvoke, tBegin, tBeginp;
 
 	int targetTimeus;
 
@@ -17,7 +17,7 @@ class Timer{
 	float spf_avg;//lerped average
 
 public:
-	time_t total_time=0;//ms since start
+	ms total_time=0;//ms since start
 	uint64 tick=0;//number of invocations
 	float spf=0;//seconds per frame
 
@@ -39,8 +39,8 @@ public:
 
 struct profiler{
 	string name;
-	time_t beg;
-	time_t end;
+	us beg;
+	us end;
 
 	void start(string);
 	void stop();

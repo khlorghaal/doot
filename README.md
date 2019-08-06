@@ -22,9 +22,14 @@ Keep headers as minimal as plausible.
 Inversion of control is evil.  
 Assume the programmer is not an ambiguously competent child laborer locked in a cage.  
 
+No exceptions. No exception.  
+
 Allocations should be done as high on the stack as sensible.  
 Freeing must always be done within the same scope as its matching allocation.  
 Memory ownership transfers may only be done for thread communication.  
+
+Don't use nondefault copy or move constructors.  
+ Containers are the exception, as a move ctor of a stack object is the only way for them to invoke a constructor without placement new.  
 
 Raw memory reallocs of an object must always be valid.  
  Pointer field assignments must not be relative to this.  
