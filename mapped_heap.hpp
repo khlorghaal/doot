@@ -1,5 +1,5 @@
 #pragma once
-#include "vector.hpp"
+#include "doot.hpp"
 #include "index_recycler.hpp"
 #include "array_algos.hpp"
 
@@ -28,22 +28,23 @@ struct mapped_heap: container{
 	arrayable( heap.base, heap.stop );
 	arr<id> id_iter(){ return ids; };
 
-	mapped_heap<T>();
-	~mapped_heap<T>();
-	mapped_heap& operator=(mapped_heap&& b)= default;//i have no idea why this isnt inherited
+	mapped_heap(size_t init_cap);
+	mapped_heap(): mapped_heap(8){};
+	~mapped_heap()= default;
+	mapped_heap(mapped_heap&& b)= default;//vector move ctor invoked
 
-	template<typename E>
-	T& put(id,E);
-	T& put(id i, T&& e){ return put<T&&>(i,(T&&)e); }
-	T& make(id i){ return put(i,T()); }
+	template<typename... E>//e includes value category
+	T& make(id,E...);
+	//T& put(id i, T&& e){ return put<T&&>(i,(T&&)e); }
+	//T& make(id i){ return put<T&&>(i,T()); }
 
 	void kill(id);//calls dtor
 	void kill(T* t){ kill(ptr_id(t)); };
 
-	size_t index(id) const;
+	idx index(id) const;
 	id ptr_id(T* t) const{
 		size_t i= t-heap.base;
-		assert(i>=0&&i<heap.size());
+		ass(i>=0&&i<heap.size());
 		return ids[i];
 	}
 	T* operator[](id) const;
@@ -87,41 +88,34 @@ for(int _i=0; _i!=_lh.size(); _i++){\
 
 
 template<typename T>
-mapped_heap<T>::mapped_heap(){
-	constexpr size_t init_cap= 0x20;
-
+mapped_heap<T>::mapped_heap(size_t init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
 	 map.realloc(init_cap);
 	map.stop= map.cap;
 	fill(map, NULLIDX);
 }
-template<typename T>
-mapped_heap<T>::~mapped_heap(){
-	for(auto& o : *this)
-		o.~T();
-}
 
 template<typename T>
-template<typename E>
-T& mapped_heap<T>::put(id id, E n){
-	assert(id!=NULLID);
+template<typename... E>
+T& mapped_heap<T>::make(id id, E... n){
+	ass(id!=NULLID);
 	size_t mapsiz= map.size();
 	if(id>=mapsiz){//expand map
 		if(id>TOO_BIG)
-			error("max id exceded");
+			err("max id exceded");
 		size_t nmapsiz= (id*vector<T>::GROW_FACTOR);
 		map.realloc(nmapsiz);
 		map.stop= map.cap;
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		error(strfmt("entry already present %i - %i",id,map[id]));
+		err(str().fmt("entry already present %i - %i",id,map[id]).cstr());
 
-	assert(ids.size()==heap.size());
+	ass(ids.size()==heap.size());
 	size_t idx= heap.size();
-	T& e= heap.push(static_cast<E>(n));//cast for xvalue fuckery
-	ids<<id;
+	T& e= heap.make((E...)n...);//cast for xvalue fuckery
+	ids.make(id);
 	map[id]= idx;
 
 	return e;
@@ -129,11 +123,11 @@ T& mapped_heap<T>::put(id id, E n){
 
 template<typename T>
 void mapped_heap<T>::kill(id i){
-	size_t x= index(i);
+	idx x= index(i);
 	if(x==NULLIDX)
 		return;
 
-	assert(ids.size()==heap.size());
+	ass(ids.size()==heap.size());
 	idx idx_end= heap.size()-1;
 	id id_end= ids[idx_end];
 
@@ -141,11 +135,10 @@ void mapped_heap<T>::kill(id i){
 	map[i]= NULLIDX;//unmap id
 
 	if(x!=idx_end){
-		assert(i!=id_end);
 		//swap with end entry
-		//!!heap[x]= (T&&)heap[idx_end];//object
-		T& h__= heap[x];//!!
-		h__= (T&&)(T{});
+		//heap[x]= (T&&)heap[idx_end];//object
+		__memcpy(&heap[x], &heap[idx_end],TSIZ);
+
 		 ids[x]= ids[idx_end];//id
 		map[id_end]= x;//remap end index
 	}
@@ -154,7 +147,7 @@ void mapped_heap<T>::kill(id i){
 }
 
 template<typename T>
-size_t mapped_heap<T>::index(id id) const{
+idx mapped_heap<T>::index(id id) const{
 	if(id<0)
 		throw;
 	if(id>=map.size())
@@ -194,7 +187,8 @@ void mapped_heap<T>::purge(){
 
 
 /*
-REMOVED in favor of references of {eid,index}
+REMOVED in favor of references of {eid,cid}
+where each entity has its own mapped_heap
 
 maps from entity-id into an array of
 component-id pointers, which map onto T.
@@ -256,7 +250,7 @@ T& multimapped_heap<T,I>::make(eid e, cid& c){
 	T& r= heap.make(c);
 
 	//idx -> eid map
-	assert(idx==eids.size());
+	ass(idx==eids.size());
 	eids<<e;
 
 	//find or allocate eid -> arr<cid> map
@@ -265,7 +259,7 @@ T& multimapped_heap<T,I>::make(eid e, cid& c){
 		vp= &map.make(e);
 	if(vp->size()==I)
 		throw;
-	vp->push(c);
+	vp->make(c);
 
 	return r;
 }
@@ -282,7 +276,7 @@ void multimapped_heap<T,I>::killAll(eid eid){
 }
 template<typename T, size_t I>
 void multimapped_heap<T,I>::kill(cid c){
-	assert(c!=NULLID);
+	ass(c!=NULLID);
 	
 	//remove from heap
 	idx hidx= heap.index(c);
@@ -292,15 +286,15 @@ void multimapped_heap<T,I>::kill(cid c){
 
 	//remove from eidmap
 	eid e= eids[hidx];
-	assert(e!=NULLID);
+	ass(e!=NULLID);
 	eids.remove_idx(hidx);
 
 	//remove from map
 	dynarr<cid,I>* cidlist_p= map[e];
-	assert(!!cidlist_p);
+	ass(!!cidlist_p);
 	dynarr<cid,I>& cidlist= *cidlist_p;
 	idx cidlist_idx= find<cid>(cidlist, c);
-	assert(cidlist_idx!=NULLIDX);
+	ass(cidlist_idx!=NULLIDX);
 	cidlist.rem(cidlist_idx);
 
 	//remove cidlist if empty
@@ -324,7 +318,7 @@ template<typename T, size_t I>
 arr<cid> multimapped_heap<T,I>::eid2cids(eid eid) const{
 	auto rp= map[eid];
 	if(!!rp)
-		assert(rp->size()<=I);
+		ass(rp->size()<=I);
 	return !!rp? *rp : EMPTY<cid>;
 };
 template<typename T, size_t I>
@@ -332,7 +326,7 @@ dynarr<T*,I> multimapped_heap<T,I>::operator[](eid eid) const{
 	arr<cid> cids= eid2cids(eid);
 	dynarr<T*,I> ret;
 	for(auto& cid : cids)
-		ret.push( cid2t(cid) );
+		ret.make( cid2t(cid) );
 	return ret;
 };
 */

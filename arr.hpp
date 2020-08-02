@@ -1,17 +1,18 @@
 #pragma once
 #include "doot.hpp"
+#include <new>
 
 namespace doot{
 
 /*a typed interval of memory
 arrays are not a container
  they do not have ownership of their data
- a derived superclass may, and often does, express ownership
+ ownership is often implemented by subclasses
 */
 template<typename T>
 struct arr{
-	T* base= NULL;
-	T* stop= NULL;
+	T* base= null;
+	T* stop= null;
 	T* begin() const { return base; }
 	T* end()   const { return stop; }
 	size_t size() const { return stop-base; }
@@ -20,13 +21,13 @@ struct arr{
 	arr(T* a, T* b){ base= a; stop= b; }
 
 	T& operator[](size_t i) const{
-		assert( i>=0 & i<size() );
+		ass( i>=0 & i<size() );
 		return base[i];
 	}
 
 	idx ptr_idx(T* t) const{
 		idx idx= t-base;
-		if(idx<0 || idx>=size());
+		if(idx<0 || idx>=size() || !base )
 			return NULLIDX;
 		return idx;
 	}
@@ -47,12 +48,14 @@ struct arr{
 template<typename T>
 const arr<T> EMPTY= arr<T>(NULL, NULL);
 
+//useful when
+// something doesnt want to inherit arr's pointers
+// something has multiple arrays and only wants to iterate one
 #define arrayable(b,e) \
 T* begin(){ return b; }\
 T* end(){ return e; }\
 size_t size(){ return end()-begin(); }\
 operator arr<T>(){ return arr<T>{begin(),end()}; }
-
 
 
 //c's fixed arrays result in ugly, these are somewhat better
@@ -61,10 +64,10 @@ operator arr<T>(){ return arr<T>{begin(),end()}; }
 template<typename T, size_t CAP>
 struct fixedarr{
 	T base[CAP];
-	arrayable(base,base+CAP)//cant inherit arr because arr is pointers
+	arrayable(base,base+CAP)
 
 	T& operator[](size_t i){
-		assert(i>=0 & i<CAP);
+		ass(i>=0 & i<CAP);
 		return base[i];
 	}
 };
@@ -93,25 +96,25 @@ struct dynarr: fixedarr<T,CAP>{
 	}
 
 	template<typename E>
-	bool push(E e){
+	bool make(E e){
 		if(stop>=CAP)
 			return false;
 		T* a= base+stop++;
 		*a= e;
 		return true;
 	}
-	void push(T e){ push<T>(e); }
+	void make(T e){ make<T>(e); }
 
 	void rem(size_t idx){
 		T& e= operator[](idx);
 		e.~T();
-		assert(stop>0);
+		ass(stop>0);
 		base[idx]= base[--stop];
 	}
 
 
 	T& operator[](size_t i){
-		assert(i>=0 & i<stop);
+		ass(i>=0 & i<stop);
 		return base[i];
 	}
 };
@@ -119,34 +122,40 @@ struct dynarr: fixedarr<T,CAP>{
 
 
 //probably the dootest 3 lines of doot
-void* _malloc(size_t);
-void  _free(void*);
-void* _realloc(void*,size_t);
+//may only be used by templates below
+void* __malloc(size_t);
+void  __free(void*);
+void* __realloc(void*,size_t);
 
-//eschew using these in favor of containers
+//eschew these for containers
 //containers use these
 template<typename T>
 inline arr<T> alloc(size_t n){
 	arr<T> ret;
 	if(n>TOO_BIG)
-		error("unreasonably large allocation");
-	ret.base= (T*)doot::_malloc(n*SIZT);
+		err("allocation TOO_BIG");
+	ret.base= (T*)doot::__malloc(n*TSIZ);
 	ret.stop= ret.base+n;
-	assert(!!ret.base);
+	if(!ret.base)
+		err("OOM");
 	return ret;
 }
 template<typename T>
 inline T* realloc(T* p, size_t s){
-	return (T*)_realloc(p,s);
+	ass(!!p);
+	if(s>TOO_BIG)
+		err("allocation TOO_BIG");
+	auto res= (T*)doot::__realloc(p,s*TSIZ);
+	if(!res)
+		err("OOM");
+	return res;
 }
 template<typename T>
 inline void free(arr<T>& a){
-	if(!!a.base)
-		doot::_free(a.base);
-	a.base= a.stop= NULL;
-}
-inline void free(void* p){
-	doot::_free(p);
+	if(!a.base)
+		return;
+	doot::__free(a.base);
+	a= EMPTY<T>;
 }
 
 
@@ -154,8 +163,8 @@ inline void free(void* p){
 template<typename T>
 inline void copy(arr<T>& dst, arr<T>& src){
 	if(dst.size()!=src.size())
-		throw;
-	memcpy(dst.base,src.base, src.size()*SIZT);
+		err("array copy size mismatch");
+	_memcpy(dst.base,src.base, src.size()*TSIZ);
 }
 
 template<typename T>

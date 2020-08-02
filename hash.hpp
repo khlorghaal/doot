@@ -1,16 +1,10 @@
 #pragma once
-
+#include "primitives.hpp"
 namespace doot{
-
-typedef unsigned int hash_t;
-#define HASH_MAX 0xFFFFFFFFUL
-
 //TODO crc intrinsics
 
 inline hash_t hash(unsigned int x){
-	x= ((x>>16)^x)*0x45d9f3bul;
-	x= ((x>>16)^x)*0x45d9f3bul;
-	x=  (x>>16)^x;
+	x= (x<<8)*0x6487d51ul-x*0x45d9f3bul;
 	return x;
 }
 inline hash_t hash(unsigned long long x){
@@ -22,6 +16,5 @@ inline hash_t hash(unsigned long long x){
 inline hash_t hash(void* x){     return hash((unsigned long long) x); };
 inline hash_t hash(int   x){     return hash((unsigned int)       x); };
 inline hash_t hash(long long x){ return hash((unsigned long long) x); };
-extern hash_t hash(char const*);//string.cpp
 
 }

@@ -16,7 +16,7 @@ struct gather{
 
 	//adds to the thread_local accumulator
 	void push(T t){
-		arrays[thread_gatherer_idx].push(t);
+		arrays[thread_gatherer_idx].make(t);
 	}
 };
 

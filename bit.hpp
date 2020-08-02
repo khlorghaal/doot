@@ -20,7 +20,7 @@ struct bitptr{
 
 	//relative to beginning
 	inline void seekabs(size_t p){
-		assert(p>=0 && p<range.size()*8);
+		ass(p>=0 && p<range.size()*8);
 		b= p;
 	}
 	//relative to current position

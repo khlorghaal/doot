@@ -14,7 +14,7 @@ namespace doot{
 
 //LOTSA TODO
 
-bool file_lock(string fname){
+bool file_lock(str& fname){
 	#ifdef _WIN32
 
 	#elif UNIX
@@ -22,7 +22,7 @@ bool file_lock(string fname){
 	#endif
 	return false;
 }
-bool file_unlock(string fname){
+bool file_unlock(str& fname){
 	#ifdef _WIN32
 
 	#elif UNIX
@@ -30,9 +30,9 @@ bool file_unlock(string fname){
 	#endif
 	return false;
 }
-bool file_dump(vector<byte>& ret, string name){
+bool file_dump(vector<byte>& ret, str& name){
 	FILE* file= 0;
-	errno_t ferr= fopen_s(&file, name, "r");
+	errno_t ferr= fopen_s(&file, name.cstr(), "r");
 	char* errstr= strerror(ferr);
 	if(!!ferr)
 		return true;
@@ -43,8 +43,8 @@ bool file_dump(vector<byte>& ret, string name){
 	//preallocation is unpossible but unnecessary
 	char buf;
 	while(fread(&buf,1,1,file))
-		ret<<buf;
-	ret<<0;//null terminator
+		ret.make(buf);
+	ret.make(0);//null terminator
 	
 	if(ferror(file)){
 		fclose(file);
@@ -53,7 +53,7 @@ bool file_dump(vector<byte>& ret, string name){
 	fclose(file);
 	return false;
 }
-bool file_dump(string& ret, string name){
+bool file_dump(str& ret, str& name){
 	vector<char> res;
 	if(file_dump(res,name))
 		return true;
@@ -75,13 +75,13 @@ void fchg_(char const* fnam){
 	else
 		throw;
 }
-bool file_change_listen(string fname, void (*callback)(void*), void* callbackarg){
+bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
 	#ifdef _WIN32
 
 	#elif UNIX
 
 	#endif
-	*fchgmap.put(fname)= {callback,callbackarg};
+	fchgmap.make<fchgcall&&>(fname.cstr(), {callback,callbackarg});
 	return false;
 }
 

@@ -2,72 +2,69 @@
 #include "vector.hpp"
 
 namespace doot{
-struct rati;
 
 //null terminated for c friendness
-struct string{
+struct str{
 	vector<char> dat;
 	char const* cstr() const{ return dat.base; }
 
-	string();
-	string(char const*const);
-	string(string&);
-	string(string&&);
-	string(long long);
-	string(double);
-	string(int v): string((long long) v){}
-	string(float v): string((double) v){}
-	string(rati);
+	str(){ dat.make(0); };
+	str(str const& b){ dat.make(b.dat); };
+	str(str&&      b){ dat.make(b.dat); };//opt 
+	TPLE str(E const& b):str(){ op+=(b); }
+	~str()= default;
 
-	~string();
+	void clear(){
+		dat.clear();
+		dat.make(0);
+	}
 
-	string cpy();
-	void operator=(char const*);
-	void operator=(string const&);
-	void operator=(vector<char> const&);
+	str& op= (str const& b){ clear(); return op+=(b);}
+	str& op= (str&&      b){ clear(); return op+=((str&&)b);}
 
-	string operator+(char const*) const;
-	string operator+(string const&) const;
+	str& op+=(char const*);
+	str& op+=(str const&);
+	str& op+=(str&& b){ return op+=((str const&)b); };
+	#define L(T, x) \
+	str& op+=(T b){ fmt(x,b); retthis; }
+	L(i32,"%d");
+	L(ui32,"%u");
+	L(i64,"%dll");
+	L(ui64,"%ull");
+	L(f32,"%3.4f");
+	L(f64,"%6.4f");
+	#define L(A,B) \
+	str& op+=(A b){ return op+=((B)b); }
+	//L(f32,f64);
+	//L(i32,i64);
+	//L(ui32,ui64);
+	#undef L
+	//str& op+=(rati b){fmt(*this,"[%i/%i]",b.num,b.den);}
 
-	string& operator<<(char const*);
-	string& operator<<(string const&);
 
-	bool operator!() const { return dat.base==NULL || dat.size()==0; };
-	bool operator==(string const&) const;
+	str& op+=(arr<char> a){ dat.make(a); retthis; }
 
-	operator char const*(){ return dat.base; }
+	bool op!() const { return !dat.base || dat.size()<=1; };
+	bool op==(str const&) const;
+	bool op==(char const* b) const{ return op==(str(b)); };
+
+	op char const*(){ return cstr(); }
 
 	size_t size() const{ return dat.size()-1; }//because null terminator
+
+	str& fmt(char const* fmt,...);//adds
 };
 
-string strfmt(char const* fmt, ...);
-
-
-
-unsigned int hash(char const*);
-inline unsigned int hash(string s){ return hash(s.dat.base); }
+unsigned int hash(str const& s);
 
 
 
 
-struct endl_t{};
-constexpr endl_t endl;
-struct charstream{};
-extern charstream cnsl;
-
-charstream& operator<<(charstream&,string const&);
-inline charstream& operator<<(charstream& c,char const*const x){ return c<<string(x); };
-inline charstream& operator<<(charstream& c,double x){ return c<<string((double)x); };
-inline charstream& operator<<(charstream& c,float  x){ return c<<string((double)x); };
-inline charstream& operator<<(charstream& c, int8  x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int16 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int32 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c, int64 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,uint8  x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,uint16 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,uint32 x){ return c<<string((long long)x); };
-inline charstream& operator<<(charstream& c,uint64 x){ return c<<string((long long)x); };
-charstream& operator<<(charstream&,endl_t const&);
-
+struct console{
+	console& op()(str const&);
+	TPLE console& op()(E e){ op()(str((E)e)); retthis; };
+};
+extern console cout;
+extern console cerr;
 
 }

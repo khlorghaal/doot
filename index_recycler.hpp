@@ -24,8 +24,8 @@ struct index_recycler{
 	inline idx operator()(){ return pop(); }
 
 	void free(idx i){
-		assert(i<next);
-		freed<<i;
+		ass(i<next);
+		freed.make(i);
 	}
 };
 

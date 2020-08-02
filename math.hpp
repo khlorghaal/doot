@@ -25,7 +25,8 @@ constexpr double PI=  3.14159265358979323846;
 constexpr double TAU= 6.28318530717958647692;
 constexpr double ELR= 2.71828182845904523536;
 constexpr double PHI= 1.61803398874989484820;
-constexpr double ETA= 1.e-12;
+constexpr double BIG= 1ll<<31;
+constexpr double SMALL= 1./BIG;
 const double SRT2= sqrt(2.);
 const double SRT2INV= (1./SRT2);
 
@@ -122,7 +123,7 @@ inline T perp(float const x, T const a, T const b, T const c){
 	T ca;
 	T cb;
 	T cc;
-	assert(false);
+	ass(false);
 }
 template<typename A, typename T> struct lerpolant{
 	A a0, a1;
@@ -185,7 +186,7 @@ inline double quadratic_ab(double a, double b){
 }
 
 inline float invsqrt(){
-	assert(false);
+	ass(false);
 	return 0;
 }
 

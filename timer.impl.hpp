@@ -60,13 +60,13 @@ float Timer::getRelativeRate(Timer& that){
 }
 
 
-void profiler::start(string name_){
+void profiler::start(str const& name_){
 	name= name_;
 	beg= current_time();
 };
 void profiler::stop(){
 	end= current_time();
-	cnsl<<strfmt("profiler: %20s: %5lli ms", name.cstr(), end-beg)<<endl;
+	cout(str().fmt("profiler: %20s: %5lli ms", name.cstr(), end-beg));
 };
 
 }

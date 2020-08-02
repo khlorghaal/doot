@@ -5,7 +5,7 @@
 namespace doot{
 
 typedef void (*fpvvp)(void*);
-void thread(string& name, fpvvp, void* param);
+void thread(str& name, fpvvp, void* param);
 
 //this is an uncomfy pattern, but it meets my goal
 struct _mutex;
@@ -84,13 +84,13 @@ class executor{
 	}
 
 public:
-	executor(string& name){
+	executor(str& name){
 		thread(name,loop_static,this);
 	}
 	~executor(){
 		mut.lock();
 		alive= false;
-		assert(orders.empty());
+		ass(orders.empty());
 		mut.locknt();
 		lock.wake();
 	}
@@ -124,10 +124,10 @@ template<typename T>
 void segment(arr<T> jobs, arr<arr<T>>& res){
 	size_t total= jobs.size();
 	size_t denom= res.size();
-	assert(denom>0);
+	ass(denom>0);
 	size_t span= total/denom;
 	size_t rem= total - span*denom;
-	assert(rem>=0);
+	ass(rem>=0);
 
 	for(int i=0; i!=denom; i++){
 		arr<T>& s= ret[i];
@@ -158,7 +158,7 @@ inline void invoke(arr<T> jobs){
 	int workers= poolsize+1;
 	vector<arr<T>> segs(workers);
 	count(i,workers)
-		segs.push({0,0});
+		segs.make({0,0});
 	segment(jobs,segs);
 
 	_invoke(&fpvvpwrap<arr<T>,task>, &segs);

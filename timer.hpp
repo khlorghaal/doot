@@ -38,11 +38,11 @@ public:
 };
 
 struct profiler{
-	string name;
+	str name;
 	us beg;
 	us end;
 
-	void start(string);
+	void start(str const&);
 	void stop();
 };
 

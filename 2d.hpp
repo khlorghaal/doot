@@ -119,7 +119,7 @@ struct line{
 	}
 	inline line(float a_,float b_,float c_){ a= a_; b= b_; c= c_; };
 	inline line(ray r){
-		assert(false);//TODO
+		ass(false);//TODO
 	}
 	//distance to origin
 	inline float dist0(){

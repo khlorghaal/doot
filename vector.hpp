@@ -6,6 +6,8 @@ namespace doot{
 all pointers to elements are invalidated upon nonconst method invocation
 reallocation ignores move and copy constructors
 template checks if object has init function or not, calls upon allocation
+
+TODO heap container that is a generic allocation owner as a superclass of vector
 */
 template<typename T>
 struct vector: arr<T>, container{
@@ -18,17 +20,8 @@ struct vector: arr<T>, container{
 
 	vector(size_t init_cap);
 	vector(): vector(CAP_DEFAULT){};
-	void operator=(vector<T>&& m){
-		base= m.base;
-		stop= m.stop;
-		cap=  m.cap;
-		m.release();
-	}
+	vector(vector&& b){ waive(*this, b);}
 	~vector();
-	void copy(vector const& that);//that into this
-	
-	//release data from this's ownership by nulling this
-	arr<T> release();
 	
 	size_t size() const{     return stop-base;  }
 	size_t capacity() const{ return cap-base;   }
@@ -41,14 +34,18 @@ struct vector: arr<T>, container{
 	//realloc capacity*grow_factor
 	void expand();
 
-	T& alloc();//no ctor
-	T& push(T const& e);//copy assign
-	T& push(T&&);//move assign
-	T& push(){ return push(T{}); };
+	//args forward to ctor
+	template<typename... E>
+	T& make(E const&... e);
 
-	template<typename E>
-	vector<T>& operator<<(E e){ push(e); return *this; }
-	void push(vector<T>& that){	for(auto& e:that) push(e); }
+	//appends b to this
+	void make(arr<T> const& b){
+		for(auto const& e: b)
+			make<T const&>(e);
+	}
+	void make(vector<T> const& b){
+		make((arr<T> const&)b);
+	}
 	
 	//pushes if element is not contained
 	void push_nodup(T const& e);
@@ -57,10 +54,10 @@ struct vector: arr<T>, container{
 	void push_front(T const& e){ insert(0,e); }
 
 	//remove and return last element
-	T pop(){ assert(size()>0); return *--stop; }
+	T pop(){ ass(size()>0); return *--stop; }
 	//remove and return first element, swaps with end
 	T pop_front();
-
+	
 	//swaps element with last and shortens
 	void remove_idx(size_t i);
 	//ret true if contained element
@@ -68,60 +65,46 @@ struct vector: arr<T>, container{
 	void clear();
 };
 
+//s relinquishes its allocation, bestowing it onto d
+//d MUST NOT be initialized, as it will not be destructed
 template<typename T>
-void free(vector<T>& v){
-	v.~vector<T>();
-}
+void waive(vector<T>& d, vector<T>& s){
+	d.base= s.base;
+	d.stop= s.stop;
+	d.cap=  s.cap;
+	s.base= s.stop= s.cap= 0;
+};
+
 
 template<typename T>
 vector<T>::vector(size_t init_cap){
 	if(init_cap!=0){
-		base= doot::alloc<T>(init_cap*SIZT).base;
-		assert(!!base);
+		auto a= doot::alloc<T>(init_cap);
+		base= a.base;
+		stop= base;
+		cap= a.stop;
 	}
 	else
-		base= 0;
-
-	stop= base;
-	cap= base+init_cap;
-}
-
-template<typename T>
-void vector<T>::copy(vector const& that){
-	for(auto& e: *this)
-		this->push(e);
+		base= stop= cap= 0;
 }
 
 template<typename T>
 vector<T>::~vector(){
-	clear();
-	if(!!base)
-		doot::free(base);
-	base= stop= cap= 0;
-}
-
-//release data from this's ownership by nulling this
-template<typename T>
-arr<T> vector<T>::release(){
-	arr<T> ret= {base,stop};
-	base= stop= cap= 0;
-	return ret;
+	ass(!!base);//temporary for detecting freed vectors
+	if(!!base)//MUST NOT be invoked on uninitialized memory
+		clear();
+	doot::free(*this);
 }
 
 template<typename T>
 void vector<T>::realloc(size_t l){
-	if(l==0){
-		this->~vector<T>();
-		return;
-	}
-
 	size_t siz= size();
-	assert(l<TOO_BIG);
+	ass(l>=siz);
+
 	if(!!base)
 		base= doot::realloc<T>(base, l);
 	else
 		base= doot::alloc<T>(l).base;
-	assert(!!base);
 
 	cap= base+l;
 	stop= base+siz;
@@ -134,28 +117,16 @@ void vector<T>::expand(){
 	if(c==0)
 		c= CAP_DEFAULT;
 	realloc(c);
-	assert(cap>stop);
+	ass(cap>stop);
 }
 
 template<typename T>
-T& vector<T>::alloc(){
+template<typename... E>
+T& vector<T>::make(E const&... args){
 	if(stop==cap)
 		expand();
-	assert(stop<cap);
-	return *stop++;
-}
-template<typename T>
-T& vector<T>::push(T&& t){
-	T& a= alloc();
-	a= static_cast<T&&>(t);
-	//xval params are implicitly converted to rval; yes that is unsane
-	return a;
-}
-template<typename T>
-T& vector<T>::push(T const& t){
-	T& a= alloc();
-	a= t;
-	return a;
+	ass(stop<cap);
+	return *new(stop++)T((E const&...)args...);
 }
 
 
@@ -163,16 +134,16 @@ T& vector<T>::push(T const& t){
 template<typename T>
 void vector<T>::push_nodup(T const& e){
 	if(find(*this,e)==NULLIDX)
-		push(e);
+		make(e);
 }
 
 template<typename T>
 void vector<T>::insert(size_t i, T const& e){
-	assert(false);//lol
+	ass(false);//lol
 }
 template<typename T>
 T vector<T>::pop_front(){
-	assert(size()>0);
+	ass(size()>0);
 	T ret= base[0];
 	remove_idx(0);
 	return ret;
@@ -181,7 +152,7 @@ T vector<T>::pop_front(){
 //swaps element with last and shortens
 template<typename T>
 void vector<T>::remove_idx(size_t i){
-	assert(i>=0&i<size());
+	ass(i>=0&i<size());
 	base[i].~T();
 	base[i]= *--stop;
 }

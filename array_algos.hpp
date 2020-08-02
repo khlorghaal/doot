@@ -34,7 +34,7 @@ T average(arr<T> a){
 //a+adds-rems = b
 template<typename T>
 inline void difference(arr<T> a, arr<T> b, vector<T> adds, vector<T> rems){
-	assert(false);
+	ass(false);
 }
 
 }

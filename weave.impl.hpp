@@ -17,8 +17,8 @@ int vcore_count(){
 #endif
 
 vector<std::thread*> threads;
-void thread(string& name_, fpvvp f, void* arg){
-	threads<<new std::thread(f,arg);
+void thread(str& name_, fpvvp f, void* arg){
+	threads.make( new std::thread(f,arg) );
 	//FIXME leak
 	//TODO make warps into objects which can be properly lifetimed
 	//low priority because rarely will warps need destruction other than termination
@@ -63,7 +63,7 @@ struct _latch{
 
 	void set(int count_){
 		mut.lock();
-		assert(count==0);
+		ass(count==0);
 		count= count_;
 		mut.locknt();
 	}
@@ -102,13 +102,13 @@ void init(){
 		poolsize--;//leave one free
 	if(poolsize>0)
 		poolsize--;//invoker runs a task on itself
-	assert(poolsize>=0);
+	ass(poolsize>=0);
 
 	threads.realloc(poolsize);
 
 	int i=0;
 	for(auto& thread : threads)
-		new (&thread) executor(string("tasker")<<string(i++));
+		new (&thread) executor(str("tasker")+=i++);
 }
 
 void _invoke(fpvvp f, arr<void*> segs){

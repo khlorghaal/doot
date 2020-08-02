@@ -6,19 +6,14 @@ namespace doot{
 
 static std::mutex mut;
 
-charstream cnsl;
+console cout;
+console cerr;
 
-charstream& operator<<(charstream& s, string const& x){
+console& console::op()(str const& x){
 	mut.lock();
-	std::cout<<x.cstr();
+	std::cout<<x.cstr()<<std::endl;
 	mut.unlock();
-	return s;
-};
-charstream& operator<<(charstream& s, endl_t const&){
-	mut.lock();
-	std::cout<<std::endl;
-	mut.unlock();
-	return s;
+	retthis;
 };
 
 }

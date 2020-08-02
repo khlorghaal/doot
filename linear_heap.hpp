@@ -20,7 +20,7 @@ struct linear_heap{
 	}
 	void free(size_t i){
 		#ifdef DEBUG
-		assert(i>=0 && i<heap.size());
+		ass(i>=0 && i<heap.size());
 		memset(heap.base+i,0xFE,SIZEOFT);
 		#endif
 
@@ -28,7 +28,7 @@ struct linear_heap{
 	}
 	void free(T* t){ free(t-heap.base); }
 	T& operator[](size_t i){
-		assert(i>=0 && i<heap.size());
+		ass(i>=0 && i<heap.size());
 		return heap.base[i];
 	}
 };

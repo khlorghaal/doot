@@ -6,90 +6,52 @@
 #include "math.hpp"
 namespace doot{
 
-constexpr int STRFMTMAX= 0x10;//!! FIXME this is set low to test failures
+constexpr int STRMAX= 0x100;
 
-string::string()= default;
-string::~string()= default;
 
-string::string(char const*const c){
-	size_t len= strlen(c);
-	if(len==-1)
-		throw;
-	forcount(i,len){
-		char ci= c[i];//unconstify
-		dat.push(ci);
+str& str::fmt(char const* fmt, ...){
+	va_list vargs0;
+	va_start(vargs0,fmt);
+	va_list vargs1;
+	va_copy(vargs1,vargs0);
+	//these are mutated by printf
+
+	size_t l= vsnprintf(0,0,fmt,vargs0)+1;
+	size_t c= dat.capacity();
+	size_t s= dat.size();
+	size_t n= s+l;
+	if(n>c)
+		dat.realloc(n);
+	dat.stop--;
+	vsnprintf(dat.stop,l,fmt,vargs1);
+	dat.stop+= l;
+
+	retthis;
+};
+
+
+
+str& str::operator+=(char const* c){
+	size_t l= strnlen_s(c,STRMAX);
+	if(l>=STRMAX){
+		bad("str::operator=(char const* c) aborting null-terminator search, enormous str, probably corrupt");
+		retthis;
 	}
-	dat.push(0);
-}
-string::string(string&& c){
-	dat.base= c.dat.base;
-	dat.stop= c.dat.stop;
-	c.dat.base= c.dat.stop= NULL;
-}
-
-
-string::string(long long v){
-	*this= strfmt("%8lli", v);
-};
-string::string(double v){
-	*this= strfmt("%4.4f", v);
-};
-string::string(rati r){
-	*this= strfmt("[%i/%i]",r.num,r.den);
-}
-
-string strfmt(char const* fmt, ...){
-	string ret;
-	ret.dat.realloc(STRFMTMAX);
-	va_list vargs;
-	va_start(vargs, fmt);
-	vsnprintf(ret.dat.base, STRFMTMAX, fmt, vargs);
-	return ret;
-};
-
-
-
-void string::operator=(char const* c){
-	dat.clear();
-	size_t l= strlen(c);
+	dat.stop--;//remove terminator
 	forcount(i,l){
 		char ci= c[i];
-		dat.push(ci);
+		dat.make(ci);
 	}
-	dat.push(0);
+	dat.make(0);//readd terminator
+	retthis;
 }
-void string::operator=(string const& c){
-	operator=(c.dat.base);
-}
-void string::operator=(vector<char> const& v){
-	bool hadnull= v.base[v.size()-1]==0;
-
-	for(auto& e : v)
-		dat.push(e);
-	if(!hadnull)
-		dat.push(0);
+str& str::operator+=(str const& that){
+	dat.stop--;//remove terminator
+	dat.make(that.dat);
+	retthis;
 }
 
-
-string string::operator+(char const* that) const{
-	size_t const lthis= size();
-	size_t const lthat= strlen(that);
-	size_t const lnew= lthis+lthat;
-	string ret;
-	ret.dat.realloc(lnew+1);
-	assert(ret.dat.size()==0);
-
-	forcount(i,lthis)
-		ret.dat.push(dat.base[i]);
-	forcount(i,lthat){
-		char ti= that[i];
-		ret.dat.push(ti);
-	}
-	ret.dat.push(0);
-
-	return ret;
-}
-bool string::operator==(string const& that) const{
+bool str::operator==(str const& that) const{
 	if(dat.base==that.dat.base)
 		return true;
 	if(size()!=that.size())
@@ -101,24 +63,13 @@ bool string::operator==(string const& that) const{
 		if(a[i]!=b[i])
 			return false;
 	}
+
 	return true;
 }
 
-string string::operator+(string const& s) const{
-	return operator+(s.dat.base);
-}
-string& string::operator<<(char const* s){
-	*this= *this+s;
-	return *this;
-}
-string& string::operator<<(string const& s){
-	return operator<<(s.dat.base);
-}
 
-
-
-
-hash_t hash(char const* s){
+hash_t hash(str const& str){
+	auto s= str.cstr();
 	//djb2
 	unsigned int x= 5381;
 	char c;
@@ -126,7 +77,5 @@ hash_t hash(char const* s){
 		x= (x<<5)+x+c;
 	return x;
 }
-hash_t hash(string const& s){
-	return hash(s.dat.base);
-}
+
 }
