@@ -108,8 +108,7 @@ void vector<T>::realloc(size_t l){
 
 	cap= base+l;
 	stop= base+siz;
-	if(cap<stop)
-		stop=cap;
+	ass(stop<=cap);
 }
 template<typename T>
 void vector<T>::expand(){

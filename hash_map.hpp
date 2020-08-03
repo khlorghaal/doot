@@ -156,6 +156,7 @@ put_again:
 			return &at.v;
 		}
 		else if(at.k==k){//entry with key already present
+			ass(false);//i just want to see when this happens
 			at.v.~V();
 			return &at.v;
 		}

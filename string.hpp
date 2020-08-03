@@ -33,6 +33,7 @@ struct str{
 	L(ui64,"%ull");
 	L(f32,"%3.4f");
 	L(f64,"%6.4f");
+	#undef L
 	#define L(A,B) \
 	str& op+=(A b){ return op+=((B)b); }
 	//L(f32,f64);
@@ -40,9 +41,7 @@ struct str{
 	//L(ui32,ui64);
 	#undef L
 	//str& op+=(rati b){fmt(*this,"[%i/%i]",b.num,b.den);}
-
-
-	str& op+=(arr<char> a){ dat.make(a); retthis; }
+	str& op+=(arr<char> a){ fmt("%s",a.base); retthis; }
 
 	bool op!() const { return !dat.base || dat.size()<=1; };
 	bool op==(str const&) const;
