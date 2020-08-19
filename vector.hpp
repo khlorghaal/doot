@@ -67,14 +67,17 @@ struct vector: arr<T>, container{
 
 //s relinquishes its allocation, bestowing it onto d
 //d MUST NOT be initialized, as it will not be destructed
-template<typename T>
-void waive(vector<T>& d, vector<T>& s){
+TPLT void waive(vector<T>& d, vector<T>& s){
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;
 	s.base= s.stop= s.cap= 0;
 };
-
+TPLT void waive(arr<T>& d,vector<T>& s){
+	d.base= s.base;
+	d.stop= s.stop;
+	s.base= s.stop= s.cap= 0;
+};
 
 template<typename T>
 vector<T>::vector(size_t init_cap){

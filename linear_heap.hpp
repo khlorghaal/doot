@@ -2,7 +2,7 @@
 #include "doot.hpp"
 #include "vector.hpp"
 
-//DEPRECATED - the presence of deleted elements makes this much less useful than mapped_heap
+//DEPRECATED - the presence of deleted elements makes this much less useful than idheap
 
 namespace doot{
 

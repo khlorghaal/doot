@@ -16,8 +16,8 @@ to map into an unsorted gapless heap of T.
 
 ID's are allocated externally, ideally by an index_recycler
 */
-template<typename T>
-struct mapped_heap: container{
+TPLT
+struct idheap: container{
 	static constexpr size_t INIT_CAP= 0x20;
 	static constexpr size_t GROW_FACTOR= 4;
 
@@ -28,10 +28,10 @@ struct mapped_heap: container{
 	arrayable( heap.base, heap.stop );
 	arr<id> id_iter(){ return ids; };
 
-	mapped_heap(size_t init_cap);
-	mapped_heap(): mapped_heap(8){};
-	~mapped_heap()= default;
-	mapped_heap(mapped_heap&& b)= default;//vector move ctor invoked
+	idheap(size_t init_cap);
+	idheap(): idheap(8){};
+	~idheap()= default;
+	idheap(idheap&& b)= default;//vector move ctor invoked
 
 	template<typename... E>//e includes value category
 	T& make(id,E...);
@@ -54,7 +54,7 @@ struct mapped_heap: container{
 	void purge();
 };
 
-template<typename T, mapped_heap<T>& h_T= T::heap>
+template<typename T, idheap<T>& h_T= T::heap>
 struct idptr_heap{
 	inline static auto& h= h_T;
 	id _;
@@ -88,7 +88,7 @@ for(int _i=0; _i!=_lh.size(); _i++){\
 
 
 template<typename T>
-mapped_heap<T>::mapped_heap(size_t init_cap){
+idheap<T>::idheap(size_t init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
 	 map.realloc(init_cap);
@@ -98,7 +98,7 @@ mapped_heap<T>::mapped_heap(size_t init_cap){
 
 template<typename T>
 template<typename... E>
-T& mapped_heap<T>::make(id id, E... n){
+T& idheap<T>::make(id id, E... n){
 	ass(id!=NULLID);
 	size_t mapsiz= map.size();
 	if(id>=mapsiz){//expand map
@@ -122,7 +122,7 @@ T& mapped_heap<T>::make(id id, E... n){
 }
 
 template<typename T>
-void mapped_heap<T>::kill(id i){
+void idheap<T>::kill(id i){
 	idx x= index(i);
 	if(x==NULLIDX)
 		return;
@@ -147,7 +147,7 @@ void mapped_heap<T>::kill(id i){
 }
 
 template<typename T>
-idx mapped_heap<T>::index(id id) const{
+idx idheap<T>::index(id id) const{
 	if(id<0)
 		throw;
 	if(id>=map.size())
@@ -155,25 +155,25 @@ idx mapped_heap<T>::index(id id) const{
 	return map[id];
 }
 template<typename T>
-T* mapped_heap<T>::operator[](id id) const{
+T* idheap<T>::operator[](id id) const{
 	size_t idx= index(id);
 	if(idx==NULLIDX)
 		return (T*)0;
 	return &heap[idx];
 }
 template<typename T>
-T& mapped_heap<T>::getormake(id id){
+T& idheap<T>::getormake(id id){
 	idx idx= index(id);
 	return idx==NULLIDX? make(id):heap[idx];
 }
 template<typename T>
-void mapped_heap<T>::getarr(arr<id> in, arr<T*> out){
+void idheap<T>::getarr(arr<id> in, arr<T*> out){
 	zip(i,o,in,out){
 		o= operator[](i);
 	}}
 }
 template<typename T>
-void mapped_heap<T>::purge(){
+void idheap<T>::purge(){
 	heap.clear();
 	ids.clear();
 	fill(map, NULLIDX);
@@ -188,7 +188,7 @@ void mapped_heap<T>::purge(){
 
 /*
 REMOVED in favor of references of {eid,cid}
-where each entity has its own mapped_heap
+where each entity has its own idheap
 
 maps from entity-id into an array of
 component-id pointers, which map onto T.
@@ -208,9 +208,9 @@ however T& s may have their data swapped
 template<typename T,size_t I>
 struct multimapped_heap: container{
 	arrayable(heap.begin(),heap.end());
-	mapped_heap<T> heap;// component-id -> index -> &T
+	idheap<T> heap;// component-id -> index -> &T
 	vector<eid> eids;// component-id -> index -> EID
-	mapped_heap<dynarr<cid,I>> map;// entity-id -> component-id[]
+	idheap<dynarr<cid,I>> map;// entity-id -> component-id[]
 
 	index_recycler cidget;
 

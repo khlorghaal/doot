@@ -3,7 +3,7 @@
 #include "math.hpp"
 #include "vector.hpp"
 #include "hash_map.hpp"
-#include "mapped_heap.hpp"
+#include "idheap.hpp"
 #include "ringbuffer.hpp"
 
 #ifdef DEBUG
@@ -137,7 +137,7 @@ void run_tests(){
 	pf.stop();
 	pf.start("mappedheap");
 	{
-		mapped_heap<int> heap;
+		idheap<int> heap;
 		forcount(i,512)
 			heap.make(i,i);
 		forcount(i,512){
@@ -157,7 +157,7 @@ void run_tests(){
 
 	pf.start("kitchen sink container");
 	{
-		mapped_heap<hash_map<str,vector<str>>> wew;
+		idheap<hash_map<str,vector<str>>> wew;
 		auto& a= wew.make(0);
 		auto& b= a.make("a");
 		auto& c= b.make("b");
