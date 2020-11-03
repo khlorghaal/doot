@@ -22,11 +22,11 @@ void run_tests(){
 		ass(c=="asdfzxcv");
 		str d= c; d.clear(); d+= "qwer";
 		ass(d=="qwer");
-		str g= str().fmt("%sasdf","zxcv");
-		ass(g=="zxcvasdf");
-		str f= str().fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,1.f);
+		str g= str::fmt("a%s","b").fmtcat("%s","c");
+		ass(g=="abc");
+		str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,1.f);
 		ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
-		str e= d; e.fmt("%s%i",d.cstr(),0);
+		str e= d; e.fmtcat("%s%i",d.cstr(),0);
 		ass(e=="qwerqwer0");
 	}
 

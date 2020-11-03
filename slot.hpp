@@ -18,23 +18,23 @@ states:
 		pull -> consume empty set -> empty set cant/neednt be freed
 		
 */
-TPLT struct slot{
+tplt struct slot{
 	T* buf;
 	mutex mut;
 
 	void push(T* neu){
 		mut.lock();
-		free(buf);//overwrite previous if present
-		buf= *neu;
-		*neu= null;//acquire ownership
+		if(buf!=null)
+			delete buf;//overwrite previous if present
+		buf= neu;
 		mut.locknt();
 	}
 	T* pull(){
 		mut.lock();
 		T* ret= buf;
 		buf= null;//release ownership
-		return ret;//caller becomes owner
 		mut.locknt();
+		return ret;//caller becomes owner
 	}
 };
 

@@ -10,13 +10,13 @@ TODO use table instead of vector
 */
 
 /*
-ID->idx_t->T
-Uses an associative array of ID->idx_t
+id->idx->T
+Uses an associative array of id->idx
 to map into an unsorted gapless heap of T.
 
 ID's are allocated externally, ideally by an index_recycler
 */
-TPLT
+tplt
 struct idheap: container{
 	static constexpr size_t INIT_CAP= 0x20;
 	static constexpr size_t GROW_FACTOR= 4;
@@ -26,7 +26,7 @@ struct idheap: container{
 	vector<idx> map;//id->index. associative array.
 
 	arrayable( heap.base, heap.stop );
-	arr<id> id_iter(){ return ids; };
+	//arr<id> id_iter(){ return ids; };
 
 	idheap(size_t init_cap);
 	idheap(): idheap(8){};
@@ -110,7 +110,7 @@ T& idheap<T>::make(id id, E... n){
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		err(str().fmt("entry already present %i - %i",id,map[id]).cstr());
+		err(str::fmt("entry already present %i - %i",id,map[id]).cstr());
 
 	ass(ids.size()==heap.size());
 	size_t idx= heap.size();

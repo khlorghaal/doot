@@ -60,8 +60,10 @@ inline void ass(bool x) {
 #define retthis return *this
 
 #define op operator
-#define TPLT template<typename T>
-#define TPLE template<typename E>
+#define tpl  template
+#define typn typename
+#define tplt template<typename T>
+#define tple template<typename E>
 
 #define lengthof(T) (sizeof(T)/sizeof(T[0]))
 
@@ -188,7 +190,8 @@ struct triad{
 
 #ifndef DOOT_NOMACRO
 
-#define forcount(o,N) for(int64 o=0; o<N; o++)
+#define forcount(o,N) for(int64 o=0; o<(N); o++)
+#define forct(N) forcount(i,(N))
 #define forcountdown(o,N) for(int64 o=N-1; o>-1; o--)
 //"count" causes terrible base namespace collisions
 
@@ -209,8 +212,13 @@ for(int _i=0; _i!=la.size(); _i++){ \
 i chose macros over templates for functors.
 macros allow simple declarative lambdas, while templates quickly become arcane.
 macros ultimately expand to strong types, making explicit type redundant.
-and frankly i find template syntax incomprehensible.
+and frankly i find template syntax arbitrary and incomprehensible.
 */
+
+
+#define BIND(o,m) auto& m= (o).m;
+
+#define FWD_CAST(R,M,A,B) R M(A a){ return M((B)a); }
 
 #define _CURRY2_h(F) F(y)
 #define _CURRY2_g(F) F(x)

@@ -6,48 +6,69 @@
 #include "math.hpp"
 namespace doot{
 
-constexpr int STRMAX= 0x100;
+constexpr int STRMAX= 0x1000;
 
+str str::fmt(char const* fmt, ...){
+	str ret;
+	BIND(ret,dat);
 
-str& str::fmt(char const* fmt, ...){
-	va_list vargs0;
-	va_start(vargs0,fmt);
-	va_list vargs1;
-	va_copy(vargs1,vargs0);
-	//these are mutated by printf
+	va_list vargs;
+	va_start(vargs,fmt);
+	va_list vargc;
+	va_copy(vargc,vargs);
+	//these are rudely mutated by printf
 
-	size_t l= vsnprintf(0,0,fmt,vargs0)+1;
+	size_t l= vsnprintf(0,0,fmt,vargs)+1;
 	size_t c= dat.capacity();
 	size_t s= dat.size();
 	size_t n= s+l;
 	if(n>c)
 		dat.realloc(n);
 	dat.stop--;
-	vsnprintf(dat.stop,l,fmt,vargs1);
+	vsnprintf(dat.stop,l,fmt,vargc);
 	dat.stop+= l;
 
-	retthis;
+	va_end(vargs);
+	va_end(vargc);
+
+	return ret;
 };
+str& str::fmtcat(char const* fmt,...){
+	va_list vargs;
+	va_start(vargs,fmt);
+	va_list vargc;
+	va_copy(vargc,vargs);
+	//these are rudely mutated by printf
+
+	size_t l= vsnprintf(0,0,fmt,vargs)+1;
+	size_t c= dat.capacity();
+	size_t s= dat.size();
+	size_t n= s+l;
+	if(n>c)
+		dat.realloc(n);
+	dat.stop--;
+	vsnprintf(dat.stop,l,fmt,vargc);
+	dat.stop+= l;
+
+	va_end(vargs);
+	va_end(vargc);
+
+	retthis;
+}
 
 
-
-str& str::operator+=(char const* c){
+str& str::cat(char const* c){
 	size_t l= strnlen_s(c,STRMAX);
 	if(l>=STRMAX){
 		bad("str::operator=(char const* c) aborting null-terminator search, enormous str, probably corrupt");
 		retthis;
 	}
 	dat.stop--;//remove terminator
-	forcount(i,l){
+	forct(l){
 		char ci= c[i];
 		dat.make(ci);
 	}
-	dat.make(0);//readd terminator
-	retthis;
-}
-str& str::operator+=(str const& that){
-	dat.stop--;//remove terminator
-	dat.make(that.dat);
+	dat.make(0);
 	retthis;
 }
 
@@ -59,7 +80,7 @@ bool str::operator==(str const& that) const{
 
 	char const* a= dat.base;
 	char const* b= that.dat.base;
-	forcount(i, size()){
+	forct(size()){
 		if(a[i]!=b[i])
 			return false;
 	}

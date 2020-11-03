@@ -29,7 +29,6 @@ void __memcpy(void* dst, void* src, size_t len){
 
 void bad(char const* m){
 	cout(m);
-	throw;
 }
 void err(char const* m){
 	cout(m);

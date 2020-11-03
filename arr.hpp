@@ -133,7 +133,7 @@ template<typename T>
 inline arr<T> alloc(size_t n){
 	arr<T> ret;
 	if(n>TOO_BIG)
-		err("allocation TOO_BIG");
+		err("alloc TOO_BIG");
 	ret.base= (T*)doot::__malloc(n*TSIZ);
 	ret.stop= ret.base+n;
 	if(!ret.base)
@@ -144,7 +144,7 @@ template<typename T>
 inline T* realloc(T* p, size_t s){
 	ass(!!p);
 	if(s>TOO_BIG)
-		err("allocation TOO_BIG");
+		err("alloc TOO_BIG");
 	auto res= (T*)doot::__realloc(p,s*TSIZ);
 	if(!res)
 		err("OOM");

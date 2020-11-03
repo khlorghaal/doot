@@ -66,7 +66,7 @@ void profiler::start(str const& name_){
 };
 void profiler::stop(){
 	end= current_time();
-	cout(str().fmt("profiler: %20s: %5lli ms", name.cstr(), end-beg));
+	cout(str::fmt("profiler: %20s: %5lli ms", name.cstr(), end-beg));
 };
 
 }
