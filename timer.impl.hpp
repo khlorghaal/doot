@@ -39,7 +39,7 @@ void Timer::invoke(){
 
 	spf_avg= spf_avg*.8 + spf*.2;
 
-	int64 wait= targetTimeus-tProcess*1000;
+	i64 wait= targetTimeus-tProcess*1000;
 	waiting= true;
 	if(wait>250)
 		sleep_for(microseconds(wait));

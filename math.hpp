@@ -237,23 +237,23 @@ struct rati{
 inline int trunc(rati const& r){ return (int)r; }
 
 struct fixed{
-	int64 n;
-	static constexpr int64 ZERO= 0ull;
-	static constexpr int64 ONE= 1ull<<31;
-	static constexpr int64 ALMOST_ONE= ONE-1;
-	static constexpr int64 MINVAL= (1ull<<63)+1;
-	static constexpr int64 MAXVAL= MINVAL-1;
+	i64 n;
+	static constexpr i64 ZERO= 0ull;
+	static constexpr i64 ONE= 1ull<<31;
+	static constexpr i64 ALMOST_ONE= ONE-1;
+	static constexpr i64 MINVAL= (1ull<<63)+1;
+	static constexpr i64 MAXVAL= MINVAL-1;
 
-	constexpr fixed(int64 n_):  n( n_ ){}
-	constexpr fixed(uint64 n_): n( n_ ){}
+	constexpr fixed(i64 n_):  n( n_ ){}
+	constexpr fixed(ui64 n_): n( n_ ){}
 	constexpr fixed(int i):     n( i ){}
 	constexpr fixed(double d):  n( d*ONE ){}
 	constexpr fixed(rati r):    n( (r.num<<31)/r.den ){}
 
-	fixed operator+(int64 x){ return n+(x<<31); }
-	fixed operator-(int64 x){ return n-(x<<31); }
-	fixed operator*(int64 x){ return n*x; }
-	fixed operator/(int64 x){ return n/x; }
+	fixed operator+(i64 x){ return n+(x<<31); }
+	fixed operator-(i64 x){ return n-(x<<31); }
+	fixed operator*(i64 x){ return n*x; }
+	fixed operator/(i64 x){ return n/x; }
 
 	fixed operator+(fixed x){ return n+x.n; }
 	fixed operator-(fixed x){ return n-x.n; }
@@ -269,10 +269,10 @@ struct fixed{
 		   ((n/(x.n&ALMOST_ONE))>>31);
 	}
 };
-inline int32 trunc(fixed x){
+inline i32 trunc(fixed x){
 	return x.n>>31;
 }
-inline int32 fract(fixed x){
+inline i32 fract(fixed x){
 	return x.n&fixed::ALMOST_ONE;
 }
 

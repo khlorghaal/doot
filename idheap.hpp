@@ -18,8 +18,8 @@ ID's are allocated externally, ideally by an index_recycler
 */
 tplt
 struct idheap: container{
-	static constexpr size_t INIT_CAP= 0x20;
-	static constexpr size_t GROW_FACTOR= 4;
+	static constexpr sizt INIT_CAP= 0x20;
+	static constexpr sizt GROW_FACTOR= 4;
 
 	vector<T> heap;
 	vector<id> ids;//index->id. element-aligned with heap
@@ -28,7 +28,7 @@ struct idheap: container{
 	arrayable( heap.base, heap.stop );
 	//arr<id> id_iter(){ return ids; };
 
-	idheap(size_t init_cap);
+	idheap(sizt init_cap);
 	idheap(): idheap(8){};
 	~idheap()= default;
 	idheap(idheap&& b)= default;//vector move ctor invoked
@@ -43,7 +43,7 @@ struct idheap: container{
 
 	idx index(id) const;
 	id ptr_id(T* t) const{
-		size_t i= t-heap.base;
+		sizt i= t-heap.base;
 		ass(i>=0&&i<heap.size());
 		return ids[i];
 	}
@@ -88,7 +88,7 @@ for(int _i=0; _i!=_lh.size(); _i++){\
 
 
 template<typename T>
-idheap<T>::idheap(size_t init_cap){
+idheap<T>::idheap(sizt init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
 	 map.realloc(init_cap);
@@ -100,11 +100,11 @@ template<typename T>
 template<typename... E>
 T& idheap<T>::make(id id, E... n){
 	ass(id!=NULLID);
-	size_t mapsiz= map.size();
+	sizt mapsiz= map.size();
 	if(id>=mapsiz){//expand map
 		if(id>TOO_BIG)
 			err("max id exceded");
-		size_t nmapsiz= (id*vector<T>::GROW_FACTOR);
+		sizt nmapsiz= (id*vector<T>::GROW_FACTOR);
 		map.realloc(nmapsiz);
 		map.stop= map.cap;
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
@@ -113,7 +113,7 @@ T& idheap<T>::make(id id, E... n){
 		err(str::fmt("entry already present %i - %i",id,map[id]).cstr());
 
 	ass(ids.size()==heap.size());
-	size_t idx= heap.size();
+	sizt idx= heap.size();
 	T& e= heap.make((E...)n...);//cast for xvalue fuckery
 	ids.make(id);
 	map[id]= idx;
@@ -156,7 +156,7 @@ idx idheap<T>::index(id id) const{
 }
 template<typename T>
 T* idheap<T>::operator[](id id) const{
-	size_t idx= index(id);
+	sizt idx= index(id);
 	if(idx==NULLIDX)
 		return (T*)0;
 	return &heap[idx];
@@ -205,7 +205,7 @@ a T may not have its entity changed,
 however T& s may have their data swapped
 */
 /*
-template<typename T,size_t I>
+template<typename T,sizt I>
 struct multimapped_heap: container{
 	arrayable(heap.begin(),heap.end());
 	idheap<T> heap;// component-id -> index -> &T
@@ -227,22 +227,22 @@ struct multimapped_heap: container{
 	arr<cid> eid2cids(eid eid) const;
 	dynarr<T*,I> operator[](eid cid) const;
 };
-template<typename T, size_t I>
+template<typename T, sizt I>
 multimapped_heap<T,I>::multimapped_heap(){
-	constexpr size_t init_cap= 0x20;
+	constexpr sizt init_cap= 0x20;
 	eids.realloc(init_cap);
 }
-template<typename T, size_t I>
+template<typename T, sizt I>
 multimapped_heap<T,I>::~multimapped_heap(){
 	for(auto& o : *this)
 		o.~T();
 }
-template<typename T, size_t I>
+template<typename T, sizt I>
 T& multimapped_heap<T,I>::make(eid eid){
 	cid a;
 	return make(eid,a);
 }
-template<typename T, size_t I>
+template<typename T, sizt I>
 T& multimapped_heap<T,I>::make(eid e, cid& c){
 	//allocate into heap
 	c= cidget();
@@ -263,7 +263,7 @@ T& multimapped_heap<T,I>::make(eid e, cid& c){
 
 	return r;
 }
-template<typename T, size_t I>
+template<typename T, sizt I>
 void multimapped_heap<T,I>::killAll(eid eid){
 	dynarr<cid,I>* vp= map[eid];
 	if(!vp){
@@ -274,7 +274,7 @@ void multimapped_heap<T,I>::killAll(eid eid){
 	for(cid cid : vc)
 		kill(cid);
 }
-template<typename T, size_t I>
+template<typename T, sizt I>
 void multimapped_heap<T,I>::kill(cid c){
 	ass(c!=NULLID);
 	
@@ -303,25 +303,25 @@ void multimapped_heap<T,I>::kill(cid c){
 }
 
 
-template<typename T, size_t I>
+template<typename T, sizt I>
 eid multimapped_heap<T,I>::cid2eid(cid cid) const{
 	idx idx= heap.index(cid);
 	if(idx==NULLIDX)
 		return NULLIDX;
 	return eids[idx];
 };
-template<typename T, size_t I>
+template<typename T, sizt I>
 T* multimapped_heap<T,I>::cid2t(cid cid) const{
 	return heap[cid];
 };
-template<typename T, size_t I>
+template<typename T, sizt I>
 arr<cid> multimapped_heap<T,I>::eid2cids(eid eid) const{
 	auto rp= map[eid];
 	if(!!rp)
 		ass(rp->size()<=I);
 	return !!rp? *rp : EMPTY<cid>;
 };
-template<typename T, size_t I>
+template<typename T, sizt I>
 dynarr<T*,I> multimapped_heap<T,I>::operator[](eid eid) const{
 	arr<cid> cids= eid2cids(eid);
 	dynarr<T*,I> ret;

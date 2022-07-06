@@ -78,8 +78,8 @@ struct no_move{
 	void operator=(no_move const&&)= delete;
 };
 struct no_new{
-	static void* operator new  (size_t)= delete;
-	static void* operator new[](size_t)= delete;
+	static void* operator new  (sizt)= delete;
+	static void* operator new[](sizt)= delete;
 };
 struct no_assign{
 	void operator=(no_assign const&)= delete;
@@ -111,7 +111,7 @@ struct container{
 //on raw memory, bypassing any construction or destruction
 //should only be used by containers
 //dont use unless you know what youre doing
-extern void __memcpy(void* dst,void* src,size_t len);
+extern void __memcpy(void* dst,void* src,sizt len);
 template<typename T>
 inline void copy(T& to,T& from){
 	__memcpy(&to,&from,SIZEOFT);
@@ -120,7 +120,7 @@ inline void copy(T& to,T& from){
 template<typename T>
 void swap(T& a, T& b){//args must be constructed
 	constexpr int s= TSIZ;
-	ubyte c[s];
+	ui8 c[s];
 	__memcpy(&c,&a,s);
 	__memcpy(&a,&b,s);
 	__memcpy(&b,&c,s);
@@ -140,19 +140,19 @@ inline void bump(T& t0, T& t1, T& t2, T& t){
 }
 
 
-uint64 unendian(uint64);
-uint32 unendian(uint32);
-uint16 unendian(uint16);
+ui64 unendian(ui64);
+ui32 unendian(ui32);
+ui16 unendian(ui16);
 
-constexpr uint32 RANDMAX= uint32(-1);
-inline uint32 rand(uint32 x){
+constexpr ui32 RANDMAX= ui32(-1);
+inline ui32 rand(ui32 x){
 	x= ((x>>16)^x)*0x7FFFFFFFU;
 	x= ((x>>16)^x)*0x7FFFFFFFU;
 	x=  (x>>16)^x;
 	return x;
 }
 inline float rand(float in){
-	return (float)rand(*(uint32*)&in) / (float)RANDMAX;
+	return (float)rand(*(ui32*)&in) / (float)RANDMAX;
 }
 
 //convenient, opaque, type-safe indirection
@@ -190,9 +190,9 @@ struct triad{
 
 #ifndef DOOT_NOMACRO
 
-#define forcount(o,N) for(int64 o=0; o<(N); o++)
+#define forcount(o,N) for(i64 o=0; o<(N); o++)
 #define forct(N) forcount(i,(N))
-#define forcountdown(o,N) for(int64 o=N-1; o>-1; o--)
+#define forcountdown(o,N) for(i64 o=N-1; o>-1; o--)
 //"count" causes terrible base namespace collisions
 
 #define zip(a,b, la,lb) \

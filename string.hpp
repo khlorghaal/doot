@@ -75,7 +75,7 @@ struct str{
 
 	op char const*(){ return cstr(); }
 
-	size_t size() const{ return dat.size()-1; }//because null terminator
+	sizt size() const{ return dat.size()-1; }//because null terminator
 };
 
 unsigned int hash(str const& s);

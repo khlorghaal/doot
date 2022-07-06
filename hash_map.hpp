@@ -16,25 +16,25 @@ struct hash_map: container{
 		bool empty;
 	};
 	#define SLOT_SIZE sizeof(slot)
-	static constexpr uint64 INIT_LEN= 0x20;
+	static constexpr ui64 INIT_LEN= 0x20;
 	static constexpr int8 GROW_FACTOR= 2;
-	static constexpr int16 DEPTH= 8;
+	static constexpr i16 DEPTH= 8;
 	
 	arr<slot> heap;
-	size_t entry_count=0;//only for debug and profiling
+	sizt entry_count=0;//only for debug and profiling
 	slot* begin(){ return heap.base; };
 	slot* end(){ return heap.stop; };
 
-	hash_map(size_t init_len);
+	hash_map(sizt init_len);
 	hash_map();
 	~hash_map();
 
-	size_t expand_reserve= 2;//upon expansion, the number of ensured free slots
+	sizt expand_reserve= 2;//upon expansion, the number of ensured free slots
 	//adjustable member so maps can choose smol:greed
 	//recommend 1:2:3 :: lazy:normal:greedy
 	void expand();
 
-	size_t bucket(K k) const{ return hash(k)%(heap.size()/DEPTH); };
+	sizt bucket(K k) const{ return hash(k)%(heap.size()/DEPTH); };
 	//return null if not contained
 	V* operator[](K k) const;
 	
@@ -58,7 +58,7 @@ struct hash_map: container{
 
 
 template<typename K, typename V>
-hash_map<K,V>::hash_map(size_t init_len){
+hash_map<K,V>::hash_map(sizt init_len){
 	ass(DEPTH>=2);
 	heap= alloc<slot>(init_len*DEPTH);
 	for(auto& e : heap)
@@ -93,7 +93,7 @@ void hash_map<K,V>::expand(){
 		}
 	}
 
-	size_t nbucks= heap.size()/DEPTH;
+	sizt nbucks= heap.size()/DEPTH;
 	
 check_depth:
 	//grow until <= DEPTH-RESERVE collisions occur on any bucket
@@ -129,8 +129,8 @@ check_depth:
 
 template<typename K, typename V> 
 V* hash_map<K,V>::operator[](K k) const{
-	size_t i= bucket(k)*DEPTH;
-	size_t b= 0;
+	sizt i= bucket(k)*DEPTH;
+	sizt b= 0;
 	while(b!=DEPTH){
 		slot& at= heap[i+b++];
 		if(at.empty)//not contained
@@ -145,8 +145,8 @@ V* hash_map<K,V>::operator[](K k) const{
 template<typename K,typename V>
 V* hash_map<K,V>::_alloc(K k){
 put_again:
-	size_t i= bucket(k)*DEPTH;
-	size_t b= 0;
+	sizt i= bucket(k)*DEPTH;
+	sizt b= 0;
 	while(b!=DEPTH){
 		slot& at= heap[i+b++];
 		if(at.empty){//empty slot found
@@ -178,14 +178,14 @@ V& hash_map<K,V>::make(K k, C... c){
 
 template<typename K, typename V> 
 bool hash_map<K,V>::remove(K k){
-	size_t i= bucket(k)*DEPTH;
-	size_t b= 0;
+	sizt i= bucket(k)*DEPTH;
+	sizt b= 0;
 	while(b<DEPTH){
 		slot& at= heap[i+b++];
 		if(at.empty)//not contained; !nulls are always precede nulls in the bucket array
 			return false;
 		if(at.k==k){//match
-			size_t b2= DEPTH-1;
+			sizt b2= DEPTH-1;
 			//start at end, walking back until finding
 			//a bucket that is non null. may be self
 			slot* swap;

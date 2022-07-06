@@ -10,7 +10,7 @@ namespace doot{
 template<typename T>
 struct linear_heap{
 	vector<T> heap;
-	vector<size_t> freed;
+	vector<sizt> freed;
 	
 	T* alloc(){
 		if(freed.empty())
@@ -18,7 +18,7 @@ struct linear_heap{
 		else
 			return heap+(--freed.stop);
 	}
-	void free(size_t i){
+	void free(sizt i){
 		#ifdef DEBUG
 		ass(i>=0 && i<heap.size());
 		memset(heap.base+i,0xFE,SIZEOFT);
@@ -27,7 +27,7 @@ struct linear_heap{
 		freed<<i;
 	}
 	void free(T* t){ free(t-heap.base); }
-	T& operator[](size_t i){
+	T& operator[](sizt i){
 		ass(i>=0 && i<heap.size());
 		return heap.base[i];
 	}

@@ -24,7 +24,7 @@ using namespace doot;
 
 	namespace doot{
 
-	typedef time_t int64_t;//ms
+	typedef time_t i64_t;//ms
 	time_t current_time(){
 		LARGE_INTEGER f;
 		QueryPerformanceFrequency(&f);
@@ -32,7 +32,7 @@ using namespace doot;
 		QueryPerformanceCounter(&t);
 		return t.QuadPart/(f.QuadPart/1000ll);
 	}
-	int64 current_time_us(){
+	i64 current_time_us(){
 		LARGE_INTEGER f;
 		QueryPerformanceFrequency(&f);
 		LARGE_INTEGER t;
@@ -48,9 +48,9 @@ using namespace doot;
 	}
 
 
-	uint64 unendian(uint64 i){ return _byteswap_uint64(i); };
-	uint32 unendian(uint32 i){ return _byteswap_ulong(i);  };
-	uint16 unendian(uint16 i){ return _byteswap_ushort(i); };
+	ui64 unendian(ui64 i){ return _byteswap_ui64(i); };
+	ui32 unendian(ui32 i){ return _byteswap_ulong(i);  };
+	ui16 unendian(ui16 i){ return _byteswap_ushort(i); };
 
 	}
 

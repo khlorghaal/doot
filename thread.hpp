@@ -122,11 +122,11 @@ extern volatile bool active;
 //segments returned are invalid if jobs is reallocated (ie vector modification)
 template<typename T>
 void segment(arr<T> jobs, arr<arr<T>>& res){
-	size_t total= jobs.size();
-	size_t denom= res.size();
+	sizt total= jobs.size();
+	sizt denom= res.size();
 	ass(denom>0);
-	size_t span= total/denom;
-	size_t rem= total - span*denom;
+	sizt span= total/denom;
+	sizt rem= total - span*denom;
 	ass(rem>=0);
 
 	for(int i=0; i!=denom; i++){

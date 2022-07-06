@@ -16,15 +16,15 @@ typedef __m256i xmm;
 //presumes the first bit is byte aligned
 struct bitptr{
 	arr<xmm> range;
-	size_t b;
+	sizt b;
 
 	//relative to beginning
-	inline void seekabs(size_t p){
+	inline void seekabs(sizt p){
 		ass(p>=0 && p<range.size()*8);
 		b= p;
 	}
 	//relative to current position
-	inline void seekadd(size_t d){
+	inline void seekadd(sizt d){
 		seekabs(b+d);
 	}
 
@@ -46,11 +46,11 @@ struct bitpacker{
 	}
 	
 	
-	inline void push(void* src, size_t size){
+	inline void push(void* src, sizt size){
 		bitmemcpy(mark, mark, );
 		mark.seekadd(size);
 	}
-	inline void pull(void* dst,size_t size){
+	inline void pull(void* dst,sizt size){
 		//TODO
 		mark.seekadd(size);
 	}

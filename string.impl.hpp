@@ -18,10 +18,10 @@ str str::fmt(char const* fmt, ...){
 	va_copy(vargc,vargs);
 	//these are rudely mutated by printf
 
-	size_t l= vsnprintf(0,0,fmt,vargs)+1;
-	size_t c= dat.capacity();
-	size_t s= dat.size();
-	size_t n= s+l;
+	sizt l= vsnprintf(0,0,fmt,vargs)+1;
+	sizt c= dat.capacity();
+	sizt s= dat.size();
+	sizt n= s+l;
 	if(n>c)
 		dat.realloc(n);
 	dat.stop--;
@@ -40,10 +40,10 @@ str& str::fmtcat(char const* fmt,...){
 	va_copy(vargc,vargs);
 	//these are rudely mutated by printf
 
-	size_t l= vsnprintf(0,0,fmt,vargs)+1;
-	size_t c= dat.capacity();
-	size_t s= dat.size();
-	size_t n= s+l;
+	sizt l= vsnprintf(0,0,fmt,vargs)+1;
+	sizt c= dat.capacity();
+	sizt s= dat.size();
+	sizt n= s+l;
 	if(n>c)
 		dat.realloc(n);
 	dat.stop--;
@@ -58,7 +58,7 @@ str& str::fmtcat(char const* fmt,...){
 
 
 str& str::cat(char const* c){
-	size_t l= strnlen_s(c,STRMAX);
+	sizt l= strnlen_s(c,STRMAX);
 	if(l>=STRMAX){
 		bad("str::operator=(char const* c) aborting null-terminator search, enormous str, probably corrupt");
 		retthis;

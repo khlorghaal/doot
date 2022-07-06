@@ -15,12 +15,12 @@ struct arr{
 	T* stop= null;
 	T* begin() const { return base; }
 	T* end()   const { return stop; }
-	size_t size() const { return stop-base; }
+	sizt size() const { return stop-base; }
 
 	arr(){}
 	arr(T* a, T* b){ base= a; stop= b; }
 
-	T& operator[](size_t i) const{
+	T& operator[](sizt i) const{
 		ass( i>=0 & i<size() );
 		return base[i];
 	}
@@ -54,19 +54,19 @@ const arr<T> EMPTY= arr<T>(NULL, NULL);
 #define arrayable(b,e) \
 T* begin(){ return b; }\
 T* end(){ return e; }\
-size_t size(){ return end()-begin(); }\
+sizt size(){ return end()-begin(); }\
 operator arr<T>(){ return arr<T>{begin(),end()}; }
 
 
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness
 //copymoveable
-template<typename T, size_t CAP>
+template<typename T, sizt CAP>
 struct fixedarr{
 	T base[CAP];
 	arrayable(base,base+CAP)
 
-	T& operator[](size_t i){
+	T& operator[](sizt i){
 		ass(i>=0 & i<CAP);
 		return base[i];
 	}
@@ -80,10 +80,10 @@ nonconst methods invalidate indices
 
 uses element constructors
 */
-template<typename T, size_t CAP>
+template<typename T, sizt CAP>
 struct dynarr: fixedarr<T,CAP>{
 	using fixedarr<T,CAP>::base;
-	size_t stop= 0;//copymove safe
+	sizt stop= 0;//copymove safe
 	arrayable(base, base+stop);
 
 	~dynarr(){
@@ -105,7 +105,7 @@ struct dynarr: fixedarr<T,CAP>{
 	}
 	void make(T e){ make<T>(e); }
 
-	void rem(size_t idx){
+	void rem(sizt idx){
 		T& e= operator[](idx);
 		e.~T();
 		ass(stop>0);
@@ -113,7 +113,7 @@ struct dynarr: fixedarr<T,CAP>{
 	}
 
 
-	T& operator[](size_t i){
+	T& operator[](sizt i){
 		ass(i>=0 & i<stop);
 		return base[i];
 	}
@@ -123,14 +123,14 @@ struct dynarr: fixedarr<T,CAP>{
 
 //probably the dootest 3 lines of doot
 //may only be used by templates below
-void* __malloc(size_t);
+void* __malloc(sizt);
 void  __free(void*);
-void* __realloc(void*,size_t);
+void* __realloc(void*,sizt);
 
 //eschew these for containers
 //containers use these
 template<typename T>
-inline arr<T> alloc(size_t n){
+inline arr<T> alloc(sizt n){
 	arr<T> ret;
 	if(n>TOO_BIG)
 		err("alloc TOO_BIG");
@@ -141,7 +141,7 @@ inline arr<T> alloc(size_t n){
 	return ret;
 }
 template<typename T>
-inline T* realloc(T* p, size_t s){
+inline T* realloc(T* p, sizt s){
 	ass(!!p);
 	if(s>TOO_BIG)
 		err("alloc TOO_BIG");

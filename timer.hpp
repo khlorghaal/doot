@@ -18,7 +18,7 @@ class Timer{
 
 public:
 	ms total_time=0;//ms since start
-	uint64 tick=0;//number of invocations
+	ui64 tick=0;//number of invocations
 	float spf=0;//seconds per frame
 
 	Timer(float fps);

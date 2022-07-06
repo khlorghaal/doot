@@ -18,11 +18,11 @@
 
 namespace doot{
 
-void* __malloc(  size_t s){	     	return ::malloc( s); };
+void* __malloc(  sizt s){	     	return ::malloc( s); };
 void  __free(   void* p){				   ::free(   p); };
-void* __realloc(void* p, size_t s){	return ::realloc(p,s); };
+void* __realloc(void* p, sizt s){	return ::realloc(p,s); };
 
-void __memcpy(void* dst, void* src, size_t len){
+void __memcpy(void* dst, void* src, sizt len){
 	ass(!!dst&!!src);
 	::memcpy(dst,src,len);
 }

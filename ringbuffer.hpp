@@ -4,13 +4,13 @@
 
 namespace doot{
 
-template<typename T, size_t cap>
+template<typename T, sizt cap>
 struct ringbuffer{
-	static constexpr size_t capacity= cap;
+	static constexpr sizt capacity= cap;
 
 	arr<T> arr= alloc<T>(cap);
-	size_t p= 0;
-	size_t l= 0;
+	sizt p= 0;
+	sizt l= 0;
 	
 	ringbuffer(){
 		fill<T>(arr, 0);
@@ -27,7 +27,7 @@ struct ringbuffer{
 		if(l++>cap)
 			l= cap;
 	}
-	T& operator[](size_t i){
+	T& operator[](sizt i){
 		return arr[i%cap];
 	}
 };

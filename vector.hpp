@@ -15,22 +15,22 @@ struct vector: arr<T>, container{
 	using arr<T>::stop;
 	T* cap;
 
-	static constexpr size_t GROW_FACTOR= 4;
-	static constexpr size_t CAP_DEFAULT= 16;//8*16=128
+	static constexpr sizt GROW_FACTOR= 4;
+	static constexpr sizt CAP_DEFAULT= 16;//8*16=128
 
-	vector(size_t init_cap);
+	vector(sizt init_cap);
 	vector(): vector(CAP_DEFAULT){};
 	vector(vector&& b){ waive(*this, b);}
 	~vector();
 	
-	size_t size() const{     return stop-base;  }
-	size_t capacity() const{ return cap-base;   }
+	sizt size() const{     return stop-base;  }
+	sizt capacity() const{ return cap-base;   }
 	bool empty() const{      return base==stop; }
 
 	//sets capacity, copies elements
-	void realloc(size_t);
+	void realloc(sizt);
 	//will only grow and never shrink
-	void realloc_greed(size_t c){ if(c>capacity()) realloc(c); };
+	void realloc_greed(sizt c){ if(c>capacity()) realloc(c); };
 	//realloc capacity*grow_factor
 	void expand();
 
@@ -50,7 +50,7 @@ struct vector: arr<T>, container{
 	//pushes if element is not contained
 	void push_nodup(T const& e);
 	
-	void insert(size_t i, T const& e);
+	void insert(sizt i, T const& e);
 	void push_front(T const& e){ insert(0,e); }
 
 	//remove and return last element
@@ -59,7 +59,7 @@ struct vector: arr<T>, container{
 	T pop_front();
 	
 	//swaps element with last and shortens
-	void remove_idx(size_t i);
+	void remove_idx(sizt i);
 	//ret true if contained element
 	bool remove_eq(T const& e);	
 	void clear();
@@ -80,7 +80,7 @@ tplt void waive(arr<T>& d,vector<T>& s){
 };
 
 template<typename T>
-vector<T>::vector(size_t init_cap){
+vector<T>::vector(sizt init_cap){
 	if(init_cap!=0){
 		auto a= doot::alloc<T>(init_cap);
 		base= a.base;
@@ -100,8 +100,8 @@ vector<T>::~vector(){
 }
 
 template<typename T>
-void vector<T>::realloc(size_t l){
-	size_t siz= size();
+void vector<T>::realloc(sizt l){
+	sizt siz= size();
 	ass(l>=siz);
 
 	if(!!base)
@@ -115,7 +115,7 @@ void vector<T>::realloc(size_t l){
 }
 template<typename T>
 void vector<T>::expand(){
-	size_t c= capacity()*GROW_FACTOR;
+	sizt c= capacity()*GROW_FACTOR;
 	if(c==0)
 		c= CAP_DEFAULT;
 	realloc(c);
@@ -140,7 +140,7 @@ void vector<T>::push_nodup(T const& e){
 }
 
 template<typename T>
-void vector<T>::insert(size_t i, T const& e){
+void vector<T>::insert(sizt i, T const& e){
 	ass(false);//lol
 }
 template<typename T>
@@ -153,7 +153,7 @@ T vector<T>::pop_front(){
 
 //swaps element with last and shortens
 template<typename T>
-void vector<T>::remove_idx(size_t i){
+void vector<T>::remove_idx(sizt i){
 	ass(i>=0&i<size());
 	base[i].~T();
 	base[i]= *--stop;
@@ -161,7 +161,7 @@ void vector<T>::remove_idx(size_t i){
 //ret true if contained element
 template<typename T>
 bool vector<T>::remove_eq(T const& e){
-	size_t i= find(e);
+	sizt i= find(e);
 	if(i==NULLIDX)
 		return false;
 	remove_idx(i);
