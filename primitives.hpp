@@ -18,8 +18,7 @@ typedef uint64_t  ui64;
 typedef float  f32;
 typedef double f64;
 
-ui8 constexpr NULL= 0ui;
-ui8 constexpr null= 0ui;
+ui8 constexpr null= NULL;
 
 typedef ui32 hash_t;
 hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;

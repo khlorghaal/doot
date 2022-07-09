@@ -1,6 +1,5 @@
 #pragma once
 #include "doot.hpp"
-#include <new>
 
 namespace doot{
 

@@ -30,6 +30,9 @@ constexpr double SMALL= 1./BIG;
 const double SRT2= sqrt(2.);
 const double SRT2INV= (1./SRT2);
 
+typedef float radian;
+typedef float degree;
+
 #define cppify_yf(y) \
 inline float y(float x){ return y##f(x); }
 #define cppify_fy(y) \
@@ -38,6 +41,7 @@ inline double y(double x){ return f##y(x); }
 inline float y(float x){ return f##y##f(x); }
 #define cppify_lly(y) \
 inline long long y(long long x){ return ll##y(x); }
+//todo what fuck do these??
 
 cppify_yf(sin)
 cppify_yf(cos)
