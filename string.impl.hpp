@@ -1,12 +1,16 @@
-#include "string.hpp"
-#include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
-#include <string>
-#include "math.hpp"
+
+#include "string.hpp"
+
 namespace doot{
 
 constexpr int STRMAX= 0x1000;
+
+//sdtdio has count defined, macro interference
+extern sizt _vsnprintf( char * buf, size_t bufsz,
+               const char * fmt, va_list vlist);
+
+extern sizt _strnlen(char const*,sizt);
 
 str str::fmt(char const* fmt, ...){
 	str ret;
@@ -18,14 +22,14 @@ str str::fmt(char const* fmt, ...){
 	va_copy(vargc,vargs);
 	//these are rudely mutated by printf
 
-	sizt l= vsnprintf(0,0,fmt,vargs)+1;
+	sizt l= _vsnprintf(0,0,fmt,vargs)+1;
 	sizt c= dat.capacity();
 	sizt s= dat.size();
 	sizt n= s+l;
 	if(n>c)
 		dat.realloc(n);
 	dat.stop--;
-	vsnprintf(dat.stop,l,fmt,vargc);
+	_vsnprintf(dat.stop,l,fmt,vargc);
 	dat.stop+= l;
 
 	va_end(vargs);
@@ -40,14 +44,14 @@ str& str::fmtcat(char const* fmt,...){
 	va_copy(vargc,vargs);
 	//these are rudely mutated by printf
 
-	sizt l= vsnprintf(0,0,fmt,vargs)+1;
+	sizt l= _vsnprintf(0,0,fmt,vargs)+1;
 	sizt c= dat.capacity();
 	sizt s= dat.size();
 	sizt n= s+l;
 	if(n>c)
 		dat.realloc(n);
 	dat.stop--;
-	vsnprintf(dat.stop,l,fmt,vargc);
+	_vsnprintf(dat.stop,l,fmt,vargc);
 	dat.stop+= l;
 
 	va_end(vargs);
@@ -56,20 +60,38 @@ str& str::fmtcat(char const* fmt,...){
 	retthis;
 }
 
-
-str& str::cat(char const* c){
-	sizt l= strnlen_s(c,STRMAX);
+str& str::cat(char const* _c){
+	char* c= const_cast<char*>(_c);
+	//jesus fuck
+	sizt l= _strnlen(c,STRMAX);
 	if(l>=STRMAX){
-		bad("str::operator=(char const* c) aborting null-terminator search, enormous str, probably corrupt");
+		bad("str::cat(char const* c) donked null-terminator search, corrupt andor bigly");
 		retthis;
 	}
-	dat.stop--;//remove terminator
-	forct(l){
-		char ci= c[i];
-		dat.make(ci);
+	sizt s= dat.size();
+	dat.realloc_greed(s+l);
+	char* d= dat.stop;
+	copy(
+		arr<char>{d-1,d+l  },// -1 as [stop-1]==terminator; overwrite it
+		arr<char>{c  ,c+l+1});//terminator copied from that
+	dat.stop+= l;
+	return *this;
+}
+str& str::cat(str const& b){
+	sizt l= b.dat.size();
+	char* c= const_cast<char*>(b.dat.base);
+	if(l>=STRMAX){
+		bad("str::cat(str const&) too bigly");
+		retthis;
 	}
-	dat.make(0);
-	retthis;
+	sizt s= dat.size();
+	dat.realloc_greed(sizt(s+l));
+	char* d= dat.stop-1;
+	copy(
+		arr<char>{d,d+l},
+		arr<char>{c,c+l});
+	dat.stop+= l;
+	return *this;
 }
 
 bool str::operator==(str const& that) const{
@@ -77,26 +99,30 @@ bool str::operator==(str const& that) const{
 		return true;
 	if(size()!=that.size())
 		return false;
-
+ 
 	char const* a= dat.base;
 	char const* b= that.dat.base;
-	forct(size()){
+	auto n= size();
+	RA(i,n){
 		if(a[i]!=b[i])
 			return false;
 	}
-
 	return true;
 }
 
 
 hash_t hash(str const& str){
-	auto s= str.cstr();
+	arr<char> s= {
+		const_cast<char*>(str.dat.base),
+		const_cast<char*>(str.dat.stop)
+	};
 	//djb2
 	unsigned int x= 5381;
-	char c;
-	while(!!(c=*s++))
+	EACH(c,s)
 		x= (x<<5)+x+c;
 	return x;
 }
 
 }
+
+#undef op

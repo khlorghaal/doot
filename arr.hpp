@@ -10,8 +10,8 @@ arrays are not a container
 */
 template<typename T>
 struct arr{
-	T* base= null;
-	T* stop= null;
+	T* base= 0;
+	T* stop= 0;
 	T* begin() const { return base; }
 	T* end()   const { return stop; }
 	sizt size() const { return stop-base; }
@@ -27,7 +27,7 @@ struct arr{
 	idx ptr_idx(T* t) const{
 		idx idx= t-base;
 		if(idx<0 || idx>=size() || !base )
-			return NULLIDX;
+			return nullidx;
 		return idx;
 	}
 
@@ -38,14 +38,14 @@ struct arr{
 				return i;
 			i++;
 		}
-		return NULLIDX;
+		return nullidx;
 	}
 
-	void clear(){ base= stop= NULL; }
+	void clear(){ base= stop= null; }
 	bool operator!(){ return !base; }
 };
 template<typename T>
-const arr<T> EMPTY= arr<T>(NULL, NULL);
+const arr<T> EMPTY= arr<T>(0,0);
 
 //useful when
 // something doesnt want to inherit arr's pointers
@@ -122,9 +122,9 @@ struct dynarr: fixedarr<T,CAP>{
 
 //probably the dootest 3 lines of doot
 //may only be used by templates below
-void* __malloc(sizt);
-void  __free(void*);
-void* __realloc(void*,sizt);
+void* _malloc(sizt);
+void  _free(void*);
+void* _realloc(void*,sizt);
 
 //eschew these for containers
 //containers use these
@@ -133,7 +133,7 @@ inline arr<T> alloc(sizt n){
 	arr<T> ret;
 	if(n>TOO_BIG)
 		err("alloc TOO_BIG");
-	ret.base= (T*)doot::__malloc(n*TSIZ);
+	ret.base= (T*)_malloc(n*TSIZ);
 	ret.stop= ret.base+n;
 	if(!ret.base)
 		err("OOM");
@@ -144,7 +144,7 @@ inline T* realloc(T* p, sizt s){
 	ass(!!p);
 	if(s>TOO_BIG)
 		err("alloc TOO_BIG");
-	auto res= (T*)doot::__realloc(p,s*TSIZ);
+	auto res= (T*)_realloc(p,s*TSIZ);
 	if(!res)
 		err("OOM");
 	return res;
@@ -153,14 +153,14 @@ template<typename T>
 inline void free(arr<T>& a){
 	if(!a.base)
 		return;
-	doot::__free(a.base);
+	_free(a.base);
 	a= EMPTY<T>;
 }
 
 
 
 template<typename T>
-inline void copy(arr<T>& dst, arr<T>& src){
+inline void copy(arr<T> dst, arr<T> src){
 	if(dst.size()!=src.size())
 		err("array copy size mismatch");
 	_memcpy(dst.base,src.base, src.size()*TSIZ);
@@ -180,7 +180,7 @@ inline idx find(arr<T> a, T val){
 			return i;
 		i++;
 	}
-	return NULLIDX;
+	return nullidx;
 }
 
 }

@@ -100,35 +100,45 @@ void run_tests(){
 	pf.start("rng");
 	{
 		float racc= 0;
-		forcount(i,1024)
+		RA(i,1024)
 			racc+= sfrand();
 		racc/=1024;
 		ass(abs(racc)<.01);
+	}
+	pf.start("nxpo2");
+	{
+		ass(nxpo2(0)==1);
+		ass(nxpo2(1)==2);
+		ass(nxpo2(2)==4);
+		ass(nxpo2(3)==4);
+		ass(nxpo2(0x01000000)==0x02000000);
+		ass(nxpo2(0x01000001)==0x02000000);
+		ass(nxpo2(0x0fffffff)==0x10000000);
 	}
 	pf.stop();
 	pf.start("vector");
 	{
 		vector<int> vec(1);
-		forcount(i,512)
+		RA(i,512)
 			vec.make(i);
-		forcount(i,512){
+		RA(i,512){
 			ass(vec[i]==i);
 			ass(vec.ptr_idx(vec.base+i)==i);
 		}
 		vector<int> vecb;
-		vecb.make(vec);
-		forcount(i,512)
+		vecb.makev(vec);
+		RA(i,512)
 			ass(vec.remove_eq(i));
-		forcountdown(i,512)
+		RD(i,512)
 			ass(vecb.remove_eq(i));
 	}
 	pf.stop();
 	pf.start("hashmap");
 	{
 		hash_map<int, int> map;
-		forcount(i,512)
+		RA(i,512)
 			map.make(i,i);
-		forcount(i,512){
+		RA(i,512){
 			int* p= map[i];
 			ass(!!p);
 			ass(*p==i);
@@ -138,19 +148,19 @@ void run_tests(){
 	pf.start("mappedheap");
 	{
 		idheap<int> heap;
-		forcount(i,512)
+		RA(i,512)
 			heap.make(i,i);
-		forcount(i,512){
+		RA(i,512){
 			auto& e= *heap[i];
 			ass(e==i);
 			ass(heap.ptr_id(&e)==i);
 			ass(heap.index(i)==i);
 		}
-		forcount(i,512)
+		RA(i,512)
 			heap.kill(i);
-		forcount(i,512)
+		RA(i,512)
 			ass(heap.map[i]==NULLIDX);
-		forcountdown(i,511)
+		RD(i,511)
 			heap.make(i,0);//???
 	}
 	pf.stop();
@@ -168,8 +178,8 @@ void run_tests(){
 	{
 		multimapped_heap<int,8> heap;
 		vector<triad<eid,cid,int>> vec;
-		forcount(e,512){
-			forcount(i,8){
+		RA(e,512){
+			RA(i,8){
 				cid c;
 				int val= e+i;
 				heap.make(e,c)= val;
@@ -196,7 +206,7 @@ void run_tests(){
 	pf.start("ringbuffer");
 	{
 		ringbuffer<int, 512> rb;
-		forcount(i,1024)
+		RA(i,1024)
 			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);

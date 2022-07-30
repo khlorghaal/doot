@@ -3,12 +3,6 @@
 #include "hash.hpp"
 #include "math.h"
 
-//windows.h hacks
-#undef min
-#undef max
-#undef NOMINMAX
-#define NOMINMAX 1
-
 namespace doot{
 using ::sqrt;
 using ::tan;
@@ -197,7 +191,7 @@ inline float invsqrt(){
 extern thread_local hash_t frand_seed;
 inline double frand(){
 	frand_seed= hash(frand_seed);
-	return ((float)frand_seed)/HASH_MAX;
+	return ((float)frand_seed)/HASH_MAX_F;
 }
 inline double sfrand(){
 	return frand()*2.f-1.f;

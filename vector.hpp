@@ -9,8 +9,7 @@ template checks if object has init function or not, calls upon allocation
 
 TODO heap container that is a generic allocation owner as a superclass of vector
 */
-template<typename T>
-struct vector: arr<T>, container{
+tplt struct vector: arr<T>, container{
 	using arr<T>::base;
 	using arr<T>::stop;
 	T* cap;
@@ -25,12 +24,12 @@ struct vector: arr<T>, container{
 	
 	sizt size() const{     return stop-base;  }
 	sizt capacity() const{ return cap-base;   }
-	bool empty() const{      return base==stop; }
+	bool empty() const{    return base==stop; }
 
 	//sets capacity, copies elements
 	void realloc(sizt);
 	//will only grow and never shrink
-	void realloc_greed(sizt c){ if(c>capacity()) realloc(c); };
+	void realloc_greed(sizt c);
 	//realloc capacity*grow_factor
 	void expand();
 
@@ -39,12 +38,13 @@ struct vector: arr<T>, container{
 	T& make(E const&... e);
 
 	//appends b to this
-	void make(arr<T> const& b){
-		for(auto const& e: b)
-			make<T const&>(e);
+	void makev(vector<T>& b){
+		makev((arr<T>&)b);
 	}
-	void make(vector<T> const& b){
-		make((arr<T> const&)b);
+	void makev(arr<T>& b){
+		for(T& e:b)
+			make<T>(e);
+		//todo opt reserve
 	}
 	
 	//pushes if element is not contained
@@ -79,8 +79,7 @@ tplt void waive(arr<T>& d,vector<T>& s){
 	s.base= s.stop= s.cap= 0;
 };
 
-template<typename T>
-vector<T>::vector(sizt init_cap){
+tplt vector<T>::vector(sizt init_cap){
 	if(init_cap!=0){
 		auto a= doot::alloc<T>(init_cap);
 		base= a.base;
@@ -91,16 +90,14 @@ vector<T>::vector(sizt init_cap){
 		base= stop= cap= 0;
 }
 
-template<typename T>
-vector<T>::~vector(){
+tplt vector<T>::~vector(){
 	ass(!!base);//temporary for detecting freed vectors
 	if(!!base)//MUST NOT be invoked on uninitialized memory
 		clear();
 	doot::free(*this);
 }
 
-template<typename T>
-void vector<T>::realloc(sizt l){
+tplt void vector<T>::realloc(sizt l){
 	sizt siz= size();
 	ass(l>=siz);
 
@@ -113,8 +110,22 @@ void vector<T>::realloc(sizt l){
 	stop= base+siz;
 	ass(stop<=cap);
 }
-template<typename T>
-void vector<T>::expand(){
+
+tplt void vector<T>::realloc_greed(sizt c){
+	if(c<capacity())
+		return;
+	c*= GROW_FACTOR;
+	T* n= doot::alloc<T>(c).base;
+	sizt s= size();
+	copy<T>({n,n+s},*this);
+	_free(base);
+	base= n;
+	stop= n+s;
+	cap = n+c;
+	
+	ass(stop<=cap);
+};
+tplt void vector<T>::expand(){
 	sizt c= capacity()*GROW_FACTOR;
 	if(c==0)
 		c= CAP_DEFAULT;
@@ -124,27 +135,24 @@ void vector<T>::expand(){
 
 template<typename T>
 template<typename... E>
-T& vector<T>::make(E const&... args){
+T& vector<T>::make(E const&... e){
 	if(stop==cap)
 		expand();
 	ass(stop<cap);
-	return *new(stop++)T((E const&...)args...);
+	return *new(stop++)T(e...);
 }
 
 
 //pushes if element is not contained
-template<typename T>
-void vector<T>::push_nodup(T const& e){
+tplt void vector<T>::push_nodup(T const& e){
 	if(find(*this,e)==NULLIDX)
 		make(e);
 }
 
-template<typename T>
-void vector<T>::insert(sizt i, T const& e){
+tplt void vector<T>::insert(sizt i, T const& e){
 	ass(false);//lol
 }
-template<typename T>
-T vector<T>::pop_front(){
+tplt T vector<T>::pop_front(){
 	ass(size()>0);
 	T ret= base[0];
 	remove_idx(0);
@@ -152,24 +160,21 @@ T vector<T>::pop_front(){
 }
 
 //swaps element with last and shortens
-template<typename T>
-void vector<T>::remove_idx(sizt i){
+tplt void vector<T>::remove_idx(sizt i){
 	ass(i>=0&i<size());
 	base[i].~T();
 	base[i]= *--stop;
 }
 //ret true if contained element
-template<typename T>
-bool vector<T>::remove_eq(T const& e){
-	sizt i= find(e);
+tplt bool vector<T>::remove_eq(T const& e){
+	sizt i= find(*this,e);
 	if(i==NULLIDX)
 		return false;
 	remove_idx(i);
 	return true;
 }
 
-template<typename T>
-void vector<T>::clear(){
+tplt void vector<T>::clear(){
 	for(auto& e: *this)
 		e.~T();
 	stop= base;

@@ -37,10 +37,10 @@ inline void bitmemcpy(bitptr dst, bitptr src){
 }
 
 struct bitpacker{
-	arr<ubyte> data;
+	arr<ui8> data;
 	bitptr mark;
 
-	bitpacker(arr<ubyte> data_){
+	bitpacker(arr<ui8> data_){
 		data= data_;
 		mark= {data,0};
 	}

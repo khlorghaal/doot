@@ -1,170 +1,88 @@
+/*
+synchro primitives are not exposed
+all interthread via
+	warp dispatch/gather
+	message queues
+
+message queues explicitly consumed within thread loop
+	allows easier strong type
+*/
+
 #pragma once
 #include "string.hpp"
 #include "vector.hpp"
 
 namespace doot{
 
-typedef void (*fpvvp)(void*);
-void thread(str& name, fpvvp, void* param);
+/*doot threading notions constancy
+	threads may not terminate
+	termination happens with process termination
+*/
+CALL_T(thread_arg,void*,void);
+void thread(str name, thread_arg);
 
-//this is an uncomfy pattern, but it meets my goal
-struct _mutex;
-void _mutlock(_mutex*);
-void _mutlocknt(_mutex*);
-struct mutex{
-	_mutex* _;
-	mutex();
-	~mutex();
+struct mutex: opaque{
 	void lock();
 	void locknt();
 };
 
 //includes own mutex and predicate. does not wake spuriously
-struct _lock;
-struct lock{
-	_lock* _;
-	lock();
-	~lock();
-	void await();//multiple threads may await
+struct lock: opaque{
+	void wait();//multiple threads may await
 	void wake();//all threads waiting
 };
 
-struct _latch;
-struct latch{
-	_latch* _;
-	latch();
-	~latch();
-	void set(int count);
+//countdown semaphore
+struct latch: opaque{
+	void  set(int count);
 	void tick();
-	void await();
+	void wait();
 };
 
+/*one warp per process, unlike gpu warps
+warps are invoked sequentially from control thread
+threads - init; serial; dispatch; task; gather; task; ...
+        - idle;                   task; idle;   task; ...
+        - idle;                   task; idle;   task; ...
+        - idle;                   task; idle;   task; ...
+*/
+namespace warp{
 
-class executor{
-	lock lock;
-	mutex mut;
-	volatile bool alive= true;
-
-	struct order_t{
-		fpvvp fun;
-		void* arg;
-		latch* latch;//may null
-
-		void invoke(){
-			fun(arg);
-			if(!!latch){
-				latch->tick();
-				latch->await();
-			}
-		};
-	};
-	vector<order_t> orders;
-
-	static void loop_static(void* that){
-		((executor*)that)->loop();
-	}
-	void loop(){
-		lock.await();
-
-		while(true){
-			mut.lock();
-			bool alive_= alive;
-			mut.locknt();
-			if(!alive_)
-				return;
-
-			mut.lock();
-			order_t ord= orders.pop();
-			mut.locknt();
-			ord.invoke();
-			delete ord.arg;
-
-			lock.await();
-		}
-	}
-
-public:
-	executor(str& name){
-		thread(name,loop_static,this);
-	}
-	~executor(){
-		mut.lock();
-		alive= false;
-		ass(orders.empty());
-		mut.locknt();
-		lock.wake();
-	}
-
-	void order(fpvvp fun, void* arg, latch* latch){
-		mut.lock();
-		orders.push_front({fun, arg, latch});
-		mut.locknt();
-		lock.wake();
-	}
-	void order(fpvvp fun_,void* arg){ order(fun_,arg, NULL); }
-	void order(fpvvp fun_)          { order(fun_,NULL,NULL); }
-};
-
-
-
-namespace tasker{
-#define TASKER_NO_MULTITHREAD true
-
-void init();
-
+bool constexpr WARP_NO_MULTITHREAD= true;
 extern int poolsize;//excludes invoking working thread
 extern volatile bool active;
 
+void init();
 
-//number of segments given from size() of ret
-//as with all things doot, parameter deletion must be done by outer scope
-//result pointers are within the range of jobs
-//segments returned are invalid if jobs is reallocated (ie vector modification)
-template<typename T>
-void segment(arr<T> jobs, arr<arr<T>>& res){
-	sizt total= jobs.size();
-	sizt denom= res.size();
-	ass(denom>0);
-	sizt span= total/denom;
-	sizt rem= total - span*denom;
-	ass(rem>=0);
+//allows the implementation to omit headers
+extern void _dispatch(
+	byte* base, byte* start, sizt stride,
+	FPTR(task,void*,void));
 
-	for(int i=0; i!=denom; i++){
-		arr<T>& s= ret[i];
-		s.base= jobs.base + i*span;
-		s.stop= s.base + span;
-	}
-	//give remainder to last thread
-	res[denom-1].stop+= rem;
-}
+/*
+uses the calling thread + pool
+blocks until completion
+In Place Transform pattern
 
-void _invoke(fpvvp, arr<void*>);
+each thread is given an arr<T>
+	handled by the system
+warp itself does not handle iteration
+	because perf reasons
 
-//i can only concieve this being useful for threading
-template<typename T, void(*F)(T)>
-void fpvvpwrap(void* p){
-	F(*(T*)p);
-}
+void task(arr<T>)
+	for(mut T in arr)
+		stuff(t)
+passed as function ptr
 
-//uses the calling thread + pool
-//blocks until completion
-//jobs must not be reallocated in any way until complete
-template<typename T, void(*task)(arr<T>)>
-inline void invoke(arr<T> jobs){
-	if(TASKER_NO_MULTITHREAD || poolsize==0){//potato case
-		task(jobs);
-		return;
-	}
-	int workers= poolsize+1;
-	vector<arr<T>> segs(workers);
-	count(i,workers)
-		segs.make({0,0});
-	segment(jobs,segs);
-
-	_invoke(&fpvvpwrap<arr<T>,task>, &segs);
+jobs must not be reallocated in any way until complete
+	if scoping properly is nonconcern
+*/
+template<typename T, FPTR(task,arr<T>,void)>
+inline void dispatch(arr<T> jobs){
+	_invoke(jobs.base,jobs.stop, TSIZ,
+		//(arr<T> -> void) -> (void* -> void)
+		&voidpfunct<arr<T>,task> );
 }
 
 }
-
-
 }

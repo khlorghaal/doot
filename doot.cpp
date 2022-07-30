@@ -1,31 +1,23 @@
 #include "doot.hpp"
-#include "bytebuf.impl.hpp"
-#include "console.impl.hpp"
+
+//preinclude to have macros work
+#include "string.hpp"
+#include "bytebuf.hpp"
+#include "timer.hpp"
+#include "math.hpp"
+#include "thread.hpp"
+#include "file.hpp"
+
+#include "tests.impl.hpp"
+
 #include "string.impl.hpp"
+#include "bytebuf.impl.hpp"
 #include "timer.impl.hpp"
 #include "trans2d.impl.hpp"
 
-
-#include "weave.impl.hpp"
-#include "tests.impl.hpp"
-
-#include "file.impl.hpp"
-#ifdef LINUX
-#include "os_posix.impl.hpp"
-#elif _WIN32
-#include "os_win.impl.hpp"
-#endif
+#include "thread.impl.hpp"
 
 namespace doot{
-
-void* __malloc(  sizt s){	     	return ::malloc( s); };
-void  __free(   void* p){				   ::free(   p); };
-void* __realloc(void* p, sizt s){	return ::realloc(p,s); };
-
-void __memcpy(void* dst, void* src, sizt len){
-	ass(!!dst&!!src);
-	::memcpy(dst,src,len);
-}
 
 void bad(char const* m){
 	cout(m);
@@ -38,5 +30,13 @@ void err(){err("");}
 void bad(){bad("");}
 
 thread_local hash_t frand_seed= 1;
+
+console cout;
+console cerr;
+extern void _printf(char const*);
+console& console::operator()(str const& x){
+	_printf(x.cstr());
+	retthis;
+};
 
 }

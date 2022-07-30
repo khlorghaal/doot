@@ -9,7 +9,6 @@
 #include "timer.hpp"
 #include <chrono>
 #include <thread>
-#include <iostream>
 using namespace std::this_thread;
 using namespace std::chrono;
 

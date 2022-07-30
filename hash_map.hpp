@@ -17,7 +17,7 @@ struct hash_map: container{
 	};
 	#define SLOT_SIZE sizeof(slot)
 	static constexpr ui64 INIT_LEN= 0x20;
-	static constexpr int8 GROW_FACTOR= 2;
+	static constexpr i8 GROW_FACTOR= 2;
 	static constexpr i16 DEPTH= 8;
 	
 	arr<slot> heap;
@@ -98,9 +98,9 @@ void hash_map<K,V>::expand(){
 check_depth:
 	//grow until <= DEPTH-RESERVE collisions occur on any bucket
 	nbucks*= GROW_FACTOR;
-	ass(DEPTH<uint8(-1));
-	arr<uint8> bcounts= alloc<uint8>(nbucks);
-	fill<uint8>(bcounts, 0);
+	ass(DEPTH<ui8(-1));
+	arr<ui8> bcounts= alloc<ui8>(nbucks);
+	fill<ui8>(bcounts, 0);
 	for(auto& entry: t_entries){
 		auto h= hash(entry.k);
 		auto& c= bcounts[h%nbucks];
@@ -169,11 +169,13 @@ put_again:
 	return null;
 }
 
+
 template<typename K, typename V> 
-template<typename... C>
-V& hash_map<K,V>::make(K k, C... c){
-	//variad will handle move ctor properly
-	return *new(_alloc(k))V((C...)c...);
+template<typename... E>
+V& hash_map<K,V>::make(K k, E... e){
+	//ppack will handle move ctor properly
+	//do not confuse c++ template ppack with c variadic function
+	return *new(_alloc(k))V(e...);
 }
 
 template<typename K, typename V> 

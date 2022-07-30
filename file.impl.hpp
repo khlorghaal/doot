@@ -3,12 +3,7 @@
 #include <stdio.h>
 #include "hash_map.hpp"
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#elif UNIX
-
-#endif
+//#include <fcntl.h>
 
 namespace doot{
 
@@ -30,7 +25,7 @@ bool file_unlock(str& fname){
 	#endif
 	return false;
 }
-bool file_dump(vector<byte>& ret, str& name){
+bool file_dump(vector<ui8>& ret, str& name){
 	FILE* file= 0;
 	errno_t ferr= fopen_s(&file, name.cstr(), "r");
 	char* errstr= strerror(ferr);

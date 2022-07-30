@@ -10,11 +10,12 @@ TODO use table instead of vector
 */
 
 /*
+ECS primary structure
 id->idx->T
 Uses an associative array of id->idx
-to map into an unsorted gapless heap of T.
+to map into an unsorted gapless heap (bag) of T.
 
-ID's are allocated externally, ideally by an index_recycler
+IDs are allocated externally, ideally by an index_recycler
 */
 tplt
 struct idheap: container{
@@ -33,8 +34,8 @@ struct idheap: container{
 	~idheap()= default;
 	idheap(idheap&& b)= default;//vector move ctor invoked
 
-	template<typename... E>//e includes value category
-	T& make(id,E...);
+	template<typename... E>
+	T& make(id, E const& ...);
 	//T& put(id i, T&& e){ return put<T&&>(i,(T&&)e); }
 	//T& make(id i){ return put<T&&>(i,T()); }
 
@@ -54,12 +55,11 @@ struct idheap: container{
 	void purge();
 };
 
-template<typename T, idheap<T>& h_T= T::heap>
+template<typename T, idheap<T>& h= T::heap>
 struct idptr_heap{
-	inline static auto& h= h_T;
 	id _;
-	idptr_heap(): id(NULLID){};
-	idptr_heap(id id): _(id){};
+	idptr_heap(     ): _(NULLID){};
+	idptr_heap(id id): _(    id){};
 
 	operator id(){ return _; }
 	void operator=(id id){ _= id; }
@@ -68,7 +68,7 @@ struct idptr_heap{
 	bool operator!(){ return (_==NULLID)||(!h[_]); }
 };
 
-#define zip_heap(o,id,h) {\
+#define ZIP_HEAP(o,id,h) {\
 auto& _lh= h.heap;\
 auto& _li= h.ids;\
 for(int _i=0; _i!=_lh.size(); _i++){\
@@ -76,7 +76,7 @@ for(int _i=0; _i!=_lh.size(); _i++){\
 	auto& id= _li[_i];
 
 
-#define zip_multiheap(o,id,h) {\
+#define ZIP_MULTIHEAP(o,id,h) {\
 auto& _lh= h.heap.heap;\
 auto& _li= h.eids;\
 for(int _i=0; _i!=_lh.size(); _i++){\
@@ -98,7 +98,7 @@ idheap<T>::idheap(sizt init_cap){
 
 template<typename T>
 template<typename... E>
-T& idheap<T>::make(id id, E... n){
+T& idheap<T>::make(id id, E const& ... e){
 	ass(id!=NULLID);
 	sizt mapsiz= map.size();
 	if(id>=mapsiz){//expand map
@@ -114,11 +114,11 @@ T& idheap<T>::make(id id, E... n){
 
 	ass(ids.size()==heap.size());
 	sizt idx= heap.size();
-	T& e= heap.make((E...)n...);//cast for xvalue fuckery
+	T& ret= heap.make(e...);
 	ids.make(id);
 	map[id]= idx;
 
-	return e;
+	return ret;
 }
 
 template<typename T>
@@ -137,7 +137,7 @@ void idheap<T>::kill(id i){
 	if(x!=idx_end){
 		//swap with end entry
 		//heap[x]= (T&&)heap[idx_end];//object
-		__memcpy(&heap[x], &heap[idx_end],TSIZ);
+		_memcpy(&heap[x], &heap[idx_end],TSIZ);
 
 		 ids[x]= ids[idx_end];//id
 		map[id_end]= x;//remap end index
@@ -149,7 +149,7 @@ void idheap<T>::kill(id i){
 template<typename T>
 idx idheap<T>::index(id id) const{
 	if(id<0)
-		throw;
+		bad("idheap::idx<0");
 	if(id>=map.size())
 		return NULLIDX;
 	return map[id];
@@ -168,7 +168,7 @@ T& idheap<T>::getormake(id id){
 }
 template<typename T>
 void idheap<T>::getarr(arr<id> in, arr<T*> out){
-	zip(i,o,in,out){
+	ZIP(i,o,in,out){
 		o= operator[](i);
 	}}
 }
