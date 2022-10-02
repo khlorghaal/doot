@@ -21,10 +21,10 @@ struct linear_heap{
 	void free(sizt i){
 		#ifdef DEBUG
 		ass(i>=0 && i<heap.size());
-		memset(heap.base+i,0xFE,SIZEOFT);
+		memset(heap.base+i,0xFE,TSIZ);
 		#endif
 
-		freed<<i;
+		freed+=i;
 	}
 	void free(T* t){ free(t-heap.base); }
 	T& operator[](sizt i){

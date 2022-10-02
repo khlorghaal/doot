@@ -29,21 +29,21 @@
 	#define DOOOT doot;
 #endif
 
-int dootmain(int argc, char** argv);
+extern int dootmain(int argc, char** argv);
 
 namespace doot{
 
-void run_tests();
-void create_console();
+extern void run_tests();
+extern void create_console();
 
 //warn the developer of something odd
-void warn(char const*);
+extern void warn(char const*);
 //warn the user the application errored and may have invalid state
-void bad();
-void bad(char const*);
+extern void bad();
+extern void bad(char const*);
 //crash this program with no survivors
-void err();
-void err(char const*);
+extern void err();
+extern void err(char const*);
 
 
 inline void nop(){}//for setting breakpoints
@@ -90,30 +90,36 @@ struct no_assign{
 struct no_default_ctor{
 	no_default_ctor()= delete;
 };
+struct inplace: no_copy,no_move,no_new,no_assign{};
 
 /*containers
 may never have their heap owned by two objects
  owner being the object which destructs the heap upon its destruction
-element type must be movable, otherwise placement new and thus STL is required
-container itself must be movable, for constructing nested containers
+move and copy ctors are globally disabled
+	i dont want to fuck with that anymore
+memcpy is used internally when needed
 
 containers are the only constructs which may preform pointer operations other than
 deref and null check
 */
 struct container{
 	container()= default;
-	container(container const& m)= delete;//copy ctor
-	container(container&& m)= default;//move ctor
-	//fucking hell i dont want to fuck with constructor polymorph anymore
-	container& operator=(container const&)= delete;//copy assign
-	container& operator=(container&&)= delete;
-	//container& operator=(container&&)= default;//move assign //only direct allocators overload this
+	container(container const& m)= delete;//copy
+	container(container&& m)= default;//move
+	container& operator=(container const&)= delete;//copy
+	container& operator=(container&&)= delete;//move
 };
 
-//on raw memory, bypassing any construction or destruction
-//should only be used by containers
-//dont use unless you know what youre doing
-extern void _memcpy(void* dst,void* src,sizt len);
+/*raw memory, bypassing any construction or destruction
+should only be used by containers
+dont use unless know what doing*/
+
+void  _thread(char const* name, void(*f)(void*),void* arg);
+void* _malloc( sizt  s);
+void  _free(   void* p);
+void* _realloc(void* p,   sizt s);
+void  _memcpy( void* dst, void* src, sizt len);
+
 template<typename T>
 inline void copy(T& dst,T& src){
 	_memcpy(&dst,&src,TSIZ);
@@ -166,25 +172,19 @@ inline sizt nxpo2(sizt x){
 }
 
 //convenient, opaque, type-safe indirection
-template<typename T>
+tpl<typn T, typn I= id>
 struct idptr{
-	id i;
+	I i;
 	idptr(): i(NULLID){};
-	idptr(id i_): i(i_){};
-	operator id(){ return i; }
-	void operator=(id i_){ i= i_; }
-	T* operator->(){ return &operator*(); };
+	idptr(I i_): i(i_){};
+	operator I(){ return i; }
+	void operator=(I i_){ i= i_; }
+	T& operator*();
+	T* operator->();
 	bool operator!(){ return i==NULLID; };
-	T& operator*();
 };
-template<typename T>
-struct eidptr: idptr<T>{};
-template<typename T>
-struct ecidptr: ecid{
-	ecidptr(ecid a){ e=a.e; i=a.i; };
-	T* operator->(){ return &operator*(); };
-	T& operator*();
-};
+tplt struct  eidptr: idptr<T,eid>{};
+tplt struct ecidptr: idptr<T,ecid>{};
 
 template<typename A, typename B=A>
 struct pair{
@@ -198,14 +198,89 @@ struct triad{
 	C c;
 };
 
-#define OPAQUE(T)
-void* _;
- T(){};
-~T(){};
+/*these are to
+-declaration doesnt need implementation header
+-implementation doesnt need declaration header
 
-#define OPAQUE_CDTOR_DEFAULT(T,X) \
-T:: T(){ new((X*)_)X(); }\
-T::~T(){ ((X*)_)->~##X(); }
+i had to channel soul of saint terry to assist with
+was possessed into rubber duck as standard
+he called me slurs at least 20 times until i figured out
+weild unholy power of void pointer
+blessed by his divine intellect
+subjugate and contain unholy
+may thine codebase be minimized of voodoo
+
+use
+
+//header
+struct A{
+	OPAQUE_DECL(A) => void* _;
+	void f();
+}
+
+//impl lib ; within doot namespace
+#import "doot..."
+OPAQEXTRN_CDTOR(A)
+OPAQEXTRN(A,f)
+
+//impl ext ; within std|stl|windows namespace
+#import <std...>
+OPAQIMPL_CDTOR(A)
+OPAQIMPL_F(A,f)
+
+output
+
+//header
+struct A{
+	void* _;
+	 A();
+	~A();
+	void f();
+}
+//impl lib
+extern void A_CTOR(void*);
+extern void A_DTOR(void*);
+A:: A(){ A_CTOR(_); }
+A::~A(){ A_DTOR(_); }
+extern void A_f(void*);
+void A::f(){ A_f(_); }
+
+//impl ext
+#include <thingA>
+using _A= thingA
+or
+struct _A{ thingA a; void f(){ a.g(); }; }
+
+void A_CTOR(void* p){ new((_A*)p)_A(); };//placement
+void A_DTOR(void* p){ ((_A*)p)->~_A(); };
+void A_f(void* p){ ((_A*)p)->f(); };
+
+
+
+*/
+#define OPAQUE_DECL(T) \
+void* _;\
+  T();\
+~ T();
+
+#define OPAQEXTRN_CDTOR(T) \
+extern void     T##_##CTOR(void*);\
+extern void     T##_##DTOR(void*);\
+inline T:: T(){ T##_##CTOR(_);  };\
+inline T::~T(){ T##_##DTOR(_);  };
+
+#define OPAQEXTRN(T,F) \
+extern void T##_##F(void*); \
+inline void T::F(){ T##_##F(_);}
+
+#define OPAQIMPL_CDTOR(T) \
+void T##_##CTOR(void*& p){ p= new  _##T(); };\
+void T##_##DTOR(void*& p){ delete (_##T*)p; };
+
+#define OPAQIMPL_F(T,F) \
+void T##_##F(void* p){ ((_##T*)p)->F(); }
+
+
 
 #define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
 
@@ -270,14 +345,14 @@ and frankly i find template syntax arbitrary and incomprehensible.
 
 //#define FWD_CAST(R,M,A,B) R M(A a){ return M((B)a); }
 
+//TODO test? did i what these?? uh????
 #define _CURRY2_h(F) F(y)
 #define _CURRY2_g(F) F(x)
 //CURRY2(F) => F( g(h(x)) )
 #define CURRY2(F) _CURRY2_x(F)
 
-//#define __MAP(l)  
-//#define __MAP(l,a) l(a)
-#define MAP(l,a,...) __MAP(l,a) __MAP(l,__VA_ARGS__)
+#define MAP(vec,f,a...) EACH(_e,vec){ _e.f(a); }
+
 
 
 #define _FUNCTOR_INVOKE_T0_A1(T) EVAL(T< >(x));
@@ -303,6 +378,15 @@ template<typename typename ...LIST>
 void MAP_INVOKE_UNARY(){ MAP<INVOKE_NULLARY,LIST>(); }
 */
 
+#ifdef _MSVC_LANG
+	inline ui64 unendian(ui64 i){ return _byteswap_ui64(i); };
+	inline ui32 unendian(ui32 i){ return _byteswap_ulong(i);  };
+	inline ui16 unendian(ui16 i){ return _byteswap_ushort(i); };
+#else
+	inline ui64 unendian(ui64 i){ return __builtin_bswap64(i); };
+	inline ui32 unendian(ui32 i){ return __builtin_bswap32(i); };
+	inline ui16 unendian(ui16 i){ return __builtin_bswap16(i); };	
+#endif
 
 }//namespace end
 

@@ -44,6 +44,8 @@ struct hash_map: container{
 	//V* put(K k); removed due to unsafeness
 	template<typename... E>
 	V& make(K k, E... v);
+	template<typename... E>
+	V& put(K k, E... v){ return make(k,v...); };
 	//return bool was contained
 	bool remove(K k);
 
@@ -54,7 +56,7 @@ struct hash_map: container{
 	void values_cpy(vector<V>&);
 	void key_values_cpy(vector<pair<K,V>>&);
 };
-
+#define hmap hash_map
 
 
 template<typename K, typename V>

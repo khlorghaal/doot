@@ -17,8 +17,7 @@ to map into an unsorted gapless heap (bag) of T.
 
 IDs are allocated externally, ideally by an index_recycler
 */
-tplt
-struct idheap: container{
+tplt struct idheap: container{
 	static constexpr sizt INIT_CAP= 0x20;
 	static constexpr sizt GROW_FACTOR= 4;
 
@@ -55,17 +54,14 @@ struct idheap: container{
 	void purge();
 };
 
-template<typename T, idheap<T>& h= T::heap>
-struct idptr_heap{
-	id _;
-	idptr_heap(     ): _(NULLID){};
-	idptr_heap(id id): _(    id){};
+//static heap only
+tplt struct hidptr: idptr<T>{
+	inline static idheap<T>& h= T::heap;
+	using idptr<T>::i;
 
-	operator id(){ return _; }
-	void operator=(id id){ _= id; }
-	T& operator*(){	return *h[_]; }
-	T* operator->(){ return h[_]; }
-	bool operator!(){ return (_==NULLID)||(!h[_]); }
+	T& operator*(){	return *h[i]; }
+	T* operator->(){return  h[i]; }
+	bool operator!(){ return (i==NULLID); }
 };
 
 #define ZIP_HEAP(o,id,h) {\
@@ -178,10 +174,6 @@ void idheap<T>::purge(){
 	ids.clear();
 	fill(map, NULLIDX);
 }
-
-
-
-
 
 
 

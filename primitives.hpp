@@ -6,39 +6,39 @@ namespace doot{
 
 struct voidstruct{};//used for changing maps into sets, etc
 
-typedef unsigned long  sizt;
-typedef           char i8;
-typedef          short i16;
-typedef            int i32;
-typedef           long i64;
-typedef unsigned  char ui8;
-typedef unsigned short ui16;
-typedef unsigned   int ui32;
-typedef unsigned  long ui64;
-typedef float    f32;
-typedef double   f64;
+using sizt= unsigned long;
+using i8=   char;
+using i16=  short;
+using i32=  int;
+using i64=  long;
+using ui8=  unsigned  char;
+using ui16= unsigned short;
+using ui32= unsigned   int;
+using ui64= unsigned  long;
+using f32=  float;
+using f64=  double;
 typedef ui8 byte;
 
 #define null 0
 //must define otherwise endless type coercion bitching
 
-typedef ui32 hash_t;
+using hash_t= ui32;
 hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;
 float constexpr HASH_MAX_F= float(HASH_MAX);
 
-typedef i64 sec;
-typedef i64 ms;
-typedef i64 us;
-typedef i64 ns;
+using sec= i64;
+using ms=  i64;
+using us=  i64;
+using ns=  i64;
 
-typedef ui32 index;
+using index=  ui32;
 typedef index idx;
 index constexpr NULLIDX= -1u;
 index constexpr nullidx= NULLIDX;
 
-typedef ui32 id;
-typedef id eid;//entity ID
-typedef id cid;//component ID, where an entity possess multiple components, cids are unique per entity
+using  id=ui32;
+using eid=id;//entity ID
+using cid=id;//component ID, where an entity possess multiple components, cids are unique per entity
 //component arrays prefered over subentities to min deref
 id constexpr NULLID= -1u;
 id constexpr nullid= NULLID;

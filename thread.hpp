@@ -21,19 +21,22 @@ namespace doot{
 CALL_T(thread_arg,void*,void);
 void thread(str name, thread_arg);
 
-struct mutex: opaque{
+struct mutex{
+	OPAQUE_DECL(mutex);
 	void lock();
 	void locknt();
 };
 
 //includes own mutex and predicate. does not wake spuriously
-struct lock: opaque{
+struct lock{
+	OPAQUE_DECL(lock);
 	void wait();//multiple threads may await
 	void wake();//all threads waiting
 };
 
 //countdown semaphore
-struct latch: opaque{
+struct latch{
+	OPAQUE_DECL(latch);
 	void  set(int count);
 	void tick();
 	void wait();

@@ -147,20 +147,20 @@ struct mat3x2{
 	void ident();
 	void trans(float tx, float ty);
 	void trans(vec2 t);
+	void rot(float theta);
 	void trans_rot(float tx, float ty, float theta);
 	void trans_rot(vec2 t, float theta);
 	void trans_rot_scl(float tx, float ty, float theta, float sx, float sy);
 	void trans_rot_scl(vec2 t, float theta, vec2 s);
-	void rot(float theta);
-	static mat3x2 inverse_trans_rot_scl(vec2 t, float r, vec2 s);//scale^-1 * rot^-1 * trans^-1
+	void inverse_trans_rot_scl(vec2 t, float r, vec2 s);//scale^-1 * rot^-1 * trans^-1
 
 	vec2 operator*(vec2 const& p) const;
 	vec2 mul_atrans(vec2 const&) const;//multiply without translation
 	mat3x2 operator*(mat3x2 const&) const;
 
-	void matrix_colMajor(float ret[6]);
+	void colMajor(float ret[6]);
 
-	//these omit all multiplications
+	//these elide all multiplications
 	void unit(vec2&) const;//multiply by [1,1]
 	void unit_box(vec2(&)[4]) const;//multiply by vec2 permutations [-1,1]
 };
@@ -174,10 +174,7 @@ inline mat3x2 lerp(float t,mat3x2 const& a,mat3x2 const& b){
 	lerp_field(ty);
 	return ret;
 }
-struct rect{
-	mat3x2 mat,inv;
-	vec2 wh;
-};
+
 //convert angle to normal
 //eschew in favor of {m.xx,m.yx}
 inline vec2 rotnorm2(float theta){
@@ -189,24 +186,24 @@ struct trans2{
 	vec2 t, s;
 	float theta;
 
+	mat3x2 mat;
+	mat3x2 matinv;
+
 	trans2(){//identity
 		t= 0;
 		s= 1;
 		theta= 0;
 	};
 	trans2(vec2 t_, vec2 s_, float th_): t(t_), s(s_), theta(th_){}
-	mat3x2 mat() const{
-		mat3x2 ret;
-		ret.trans_rot_scl(t, theta, s);
-		return ret;	
-	};
-	inline operator mat3x2() const{ return mat(); };
-	inline operator rect() const{ return {mat(),mat_inverse(),s}; }
+
+	inline operator mat3x2() const{ return mat; };
+	//inline operator rect() const{ return {mat,mat_inverse,s}; }
 
 	inline vec2 rotate(vec2 in){ mat3x2 m; m.rot(theta); return m*in; }
 
-	inline mat3x2 mat_inverse() const{
-		return mat3x2::inverse_trans_rot_scl(t,theta,s);
+	void clean(){//update matrix
+		mat.           trans_rot_scl(t, theta, s);
+		matinv.inverse_trans_rot_scl(t, theta, s);
 	};
 };
 inline trans2 lerp(float t,trans2 const& a,trans2 const& b){
@@ -218,7 +215,7 @@ inline trans2 lerp(float t,trans2 const& a,trans2 const& b){
 }
 
 //child transform
-//does not inherit scale
+//does not inherit scale, because reasons
 struct trans2ch{
 	trans2 local;
 	trans2 global;
@@ -229,7 +226,7 @@ struct trans2ch{
 	//updates global from parameter
 	//does not mutate local
 	void update(trans2 const& parent){
-		mat3x2 p= parent.mat();
+		mat3x2 p= parent.mat;
 		global.t= p*local.t;
 		global.s= local.s;
 		global.theta= local.theta+parent.theta;

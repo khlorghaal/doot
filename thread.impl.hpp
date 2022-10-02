@@ -8,6 +8,24 @@ void thread(str name, thread_arg tharg){
 }
 
 
+
+
+OPAQEXTRN_CDTOR(mutex);
+OPAQEXTRN(mutex,lock);
+OPAQEXTRN(mutex,locknt);
+
+
+OPAQEXTRN_CDTOR(lock);
+OPAQEXTRN(lock,wait);
+OPAQEXTRN(lock,wake);
+
+
+OPAQEXTRN_CDTOR(latch);
+OPAQEXTRN(latch,tick);
+OPAQEXTRN(latch,wait);
+extern void latch_set(int count);
+void latch::set(int count){ latch_set(count); }
+
 struct thread_loop{
 	lock lck;
 	mutex mut;

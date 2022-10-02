@@ -71,30 +71,26 @@ mat3x2 mat3x2::operator*(mat3x2 const& b) const{
 	return ret;
 }
 
-mat3x2 mat3x2::inverse_trans_rot_scl(vec2 t, float r, vec2 s){
-	mat3x2 inv;
-
+void mat3x2::inverse_trans_rot_scl(vec2 t, float r, vec2 s){
 	float zx= cosf(-r);
 	float zy= sinf(-r);
 	/*
 	[sx  0] * [zx -zy]
 	[ 0 sy]   [zy  zx]
 	*/
-	inv.mxx= zx/s.x; inv.mxy=-zy/s.x;
-	inv.myx= zy/s.y; inv.myy= zx/s.y;
+	mxx= zx/s.x; mxy=-zy/s.x;
+	myx= zy/s.y; myy= zx/s.y;
 
 	/*
 	[xx xy 0] * [1  0 -tx]
 	[yx yy 0]   [0  1 -ty]
 	[ 0  0 1]   [0  0  1 ]
 	*/
-	inv.tx= -(t.x*inv.mxx + t.y*inv.mxy);
-	inv.ty= -(t.x*inv.myx + t.y*inv.myy);
-
-	return inv;
+	tx= -(t.x*mxx + t.y*mxy);
+	ty= -(t.x*myx + t.y*myy);
 }
 
-void mat3x2::matrix_colMajor(float ret[6]){
+void mat3x2::colMajor(float ret[6]){
 	ret[0]= mxx; ret[2]= mxy; ret[4]= tx;
 	ret[1]= myx; ret[3]= myy; ret[5]= ty;
 }

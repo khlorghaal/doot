@@ -3,6 +3,8 @@
 #include "hash.hpp"
 #include "math.h"
 
+#undef max
+
 namespace doot{
 using ::sqrt;
 using ::tan;
@@ -15,14 +17,16 @@ using ::floor;
 using ::ceil;
 
 #define INF INFINITY
-constexpr double PI=  3.14159265358979323846;
-constexpr double TAU= 6.28318530717958647692;
+constexpr double PI=  M_PI;
+constexpr double TAU= M_PI*2;
 constexpr double ELR= 2.71828182845904523536;
 constexpr double PHI= 1.61803398874989484820;
-constexpr double BIG= 1ll<<31;
-constexpr double SMALL= 1./BIG;
+constexpr double BIG=   0x1p32 ;
+constexpr double HUGE=  0x1p256;
+constexpr double SMALL= 0x1p-32 ;
+constexpr double TINY=  0x1p-256;
 const double SRT2= sqrt(2.);
-const double SRT2INV= (1./SRT2);
+const double SRT2RCP= (1./SRT2);
 
 typedef float radian;
 typedef float degree;

@@ -3,24 +3,27 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <thread>
+#include <threads.h>
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+#include <unordered_map>
 
 
 namespace doot{
 
+extern void err(char const*);
 
+#define OPAQIMPL_CDTOR(T) \
+void T##_##CTOR(void*& p){ p= new  _##T(); };\
+void T##_##DTOR(void*& p){ delete (_##T*)p; };
+#define OPAQIMPL_F(T,F) \
+void T##_##F(void* p){ ((_##T*)p)->F(); }
 
 struct _mutex:std::mutex{};
-OPAQUE_CDTOR_DEFAULT(struct mutex,_mutex)
-void mutex::lock(){  (_mutex*)_->std::mutex::lock();   };
-void mutex::locknt(){(_mutex*)_->std::mutex::unlock(); };
-
 
 struct _lock{
-	doot::mutex mut;
+	_mutex mut;
 	std::condition_variable cv;
 	volatile bool pred= false;
 	void wait(){
@@ -35,20 +38,18 @@ struct _lock{
 		mut.unlock();
 	}
 };
-OPAQUE_CDTOR_DEFAULT(lock,_lock)
-void lock::wait(){ (_lock*)_->wait(); };
-void lock::wake(){ (_lock*)_->wake(); };
 
 
 struct _latch{
-	doot::mutex mut;
-	doot::lock lck;
+	_mutex mut;
+	_lock lck;
 	volatile int count= 0;
-	void  set(int count){
+	void set(int count){
 		mut.lock();
-		ass(count==0);
+		if(count!=0)
+			err("latch:set:impl: count!=0");
 		count= count;
-		mut.locknt();
+		mut.unlock();
 	}
 	void tick(){
 		mut.lock();
@@ -56,16 +57,29 @@ struct _latch{
 			count--;
 		if(count==0)
 			lck.wake();
-		mut.locknt();
+		mut.unlock();
 	}
 	void wait(){
-		lck.await();
+		lck.wait();
 	}
 };
-OPAQUE_SCDTOR_DEFAULT(latch,_latch)
-void latch::set(int count){ (_latch*)_->set(count); };
-void latch::tick(        ){ (_latch*)_->tick(    ); };
-void latch::wait(        ){ (_latch*)_->wait(    ); };
+
+
+OPAQIMPL_CDTOR(mutex);
+OPAQIMPL_CDTOR(lock);
+OPAQIMPL_CDTOR(latch);
+
+OPAQIMPL_F(mutex,lock);
+OPAQIMPL_F(mutex,unlock);
+
+OPAQIMPL_F(lock,wait);
+OPAQIMPL_F(lock,wake);
+
+void latch_set(void* p, int count){
+	((_latch*)p)->set(count);
+};
+OPAQIMPL_F(latch,tick);
+OPAQIMPL_F(latch,wait);
 
 
 
@@ -75,43 +89,47 @@ int vcore_count(){
 	//fixme hack
 	//query the os
 }
+
+//(void*->void)->(void*->int(0))
+std::mutex _thr_mut;
+static std::unordered_map<void*,void(*)(void*)> _fntr_vp2i_map;
+int _fntr_vp2i(void* p){
+	_thr_mut.lock();
+	auto f= (_fntr_vp2i_map[p]);
+	_thr_mut.unlock();
+	f(p);
+	return 0;
+}
+void  _thread(char const* name, void(*f)(void*),void* arg){
+	thrd_t thr;
+	_thr_mut.lock();
+	_fntr_vp2i_map.emplace(arg,f);
+	_thr_mut.unlock();
+	thrd_create(&thr,&_fntr_vp2i,arg);
 };
 
+void* _malloc(size_t s){
+	return ::malloc( s); };
+void  _free(   void* p){
+	::free(   p); };
+void* _realloc(void* p, size_t s){
+	return ::realloc(p,s); };
+void _memcpy(void* dst, void* src, size_t len){
+	::memcpy(dst,src,len); }
 
-
-
-
-
-
-
-
-
-
-//used rarely, thus declared extern ad hoc
-void  __thread(char const*, void(*)(void*),void*);
-void* __malloc(  sizt s){	     	return ::malloc( s); };
-void  __free(   void* p){				   ::free(   p); };
-void* __realloc(void* p, sizt s){	return ::realloc(p,s); };
-
-void __memcpy(void* dst, void* src, sizt len){
-	ass(!!dst&!!src);
-	::memcpy(dst,src,len);
-}
-
-sizt _vsnprintf( char * buf, size_t bufsz,
+size_t _vsnprintf( char * buf, size_t bufsz,
                const char * fmt, va_list vlist){
-	vsnprintf(buf,bufsz,fmt,vlist);
+	return vsnprintf(buf,bufsz,fmt,vlist);
 }
-sizt _strnlen(char const* s, size_t n){
-	strnlen(s,n);
+size_t _strnlen(char const* s, size_t n){
+	return strnlen(s,n);
 }
 
 
-static doot::mutex console_mut;
-_printf(char const* s){
+static std::mutex console_mut;
+void _printf(char const* s){
 	console_mut.lock();
-	printf(s);
-	console_mut.locknt();
+	printf("%s",s);
+	console_mut.unlock();
 }
-
-}
+};

@@ -34,8 +34,10 @@ tplt struct vector: arr<T>, container{
 	void expand();
 
 	//args forward to ctor
-	template<typename... E>
+	tpl<typn... E>
 	T& make(E const&... e);
+	tpl<typn... E>
+	T& operator+=(E const&... e){ return make(e...); };
 
 	//appends b to this
 	void makev(vector<T>& b){
@@ -133,8 +135,8 @@ tplt void vector<T>::expand(){
 	ass(cap>stop);
 }
 
-template<typename T>
-template<typename... E>
+tplt
+tpl<typn... E>
 T& vector<T>::make(E const&... e){
 	if(stop==cap)
 		expand();
