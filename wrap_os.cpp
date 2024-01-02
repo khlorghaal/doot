@@ -1,20 +1,36 @@
 //OS specific stuff
 
-int dootmain(int argc, char** argv);
+#ifndef DOOT_NO_MAIN
+	extern int dootmain(int, char**);
+#endif
+// DOOT_NO_MAIN used for linked libs
+// whom havent a main
 
 #ifdef __linux__
-#include <sys/time.h>
+#include <time.h>
 #include <sys/termios.h>
 
 #ifndef DOOT_NO_MAIN
 	int main(int argc, char** argv){
-		dootmain(argc,argv);
+		return dootmain(argc,argv);
 	}
 #endif
 namespace doot{
-void create_console(){
 
+void create_console(){
+	//TODO
 }
+time_t current_time_ms(){
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC,&t);
+	return t.tv_nsec*1000000;
+}
+time_t current_time_us(){
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC,&t);
+	return t.tv_nsec*1000;
+}
+
 }
 #endif
 
@@ -39,14 +55,14 @@ void create_console(){
 
 namespace doot{
 
-time_t current_time(){
+time_t current_time_ms(){
 	LARGE_INTEGER f;
 	QueryPerformanceFrequency(&f);
 	LARGE_INTEGER t;
 	QueryPerformanceCounter(&t);
 	return t.QuadPart/(f.QuadPart/1000ll);
 }
-i64 current_time_us(){
+time_t current_time_us(){
 	LARGE_INTEGER f;
 	QueryPerformanceFrequency(&f);
 	LARGE_INTEGER t;
@@ -64,3 +80,80 @@ void create_console(){
 }
 
 #endif
+
+
+#include "file.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include "hash_map.hpp"
+
+
+namespace doot{
+
+bool file_lock(str& name){
+	FILE* file= fopen(name.cstr(), "rw");
+	return !!ftrylockfile(file);
+}
+void file_unlock(str& name){
+	FILE* file= fopen(name.cstr(), "rw");
+	funlockfile(file);
+}
+bool file_dump(vector<u8>& ret, str& name){
+	FILE* file= fopen(name.cstr(), "r");
+	//char* errstr= strerror(ferr);
+	if(!!errno)
+		return true;
+
+	ret.realloc_greed(0x1000);
+	//todo use filesize metadata
+
+	//SEEK_END doesnt always work, therefore
+	//preallocation is unpossible but unnecessary
+	char buf;
+	while(fread(&buf,1,1,file))
+		ret.add(buf);
+	ret.add(0);//null terminator
+	
+	if(ferror(file)){
+		fclose(file);
+		return true;
+	}
+	fclose(file);
+	return false;
+}
+bool file_dump(str& ret, str& name){
+	vector<u8> res;
+	if(file_dump(res,name))
+		return true;
+	EACH(r,res)
+		ret+= r;
+	return false;
+}
+
+struct fchgcall{
+	void (*call)(void*);
+	void* obj;
+	void invoke(){
+		call(obj);
+	}
+};
+hash_map<char const*, fchgcall> fchgmap;
+void fchg_(char const* fnam){
+	if(fchgcall* call= fchgmap[fnam])
+		call->invoke();
+	else
+		throw;
+}
+bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
+	#ifdef _WIN32
+
+	#elif UNIX
+
+	#endif
+	fchgmap.add<fchgcall>(fname.cstr(), {callback,callbackarg});
+	return false;
+}
+
+}

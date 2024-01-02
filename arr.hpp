@@ -19,7 +19,7 @@ struct arr{
 	arr(){}
 	arr(T* a, T* b){ base= a; stop= b; }
 
-	T& operator[](sizt i) const{
+	T& operator[](idx i) const{
 		ass( i>=0 & i<size() );
 		return base[i];
 	}
@@ -56,7 +56,6 @@ T* end(){ return e; }\
 sizt size(){ return end()-begin(); }\
 operator arr<T>(){ return arr<T>{begin(),end()}; }
 
-
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness
 //copymoveable
@@ -65,7 +64,7 @@ struct fixedarr{
 	T base[CAP];
 	arrayable(base,base+CAP)
 
-	T& operator[](sizt i){
+	T& operator[](idx i){
 		ass(i>=0 & i<CAP);
 		return base[i];
 	}
@@ -84,6 +83,8 @@ struct dynarr: fixedarr<T,CAP>{
 	using fixedarr<T,CAP>::base;
 	sizt stop= 0;//copymove safe
 	arrayable(base, base+stop);
+
+	//no copy/assign since shallow/deep ambiguous
 
 	~dynarr(){
 		clear();
@@ -104,7 +105,7 @@ struct dynarr: fixedarr<T,CAP>{
 	}
 	void make(T e){ make<T>(e); }
 
-	void rem(sizt idx){
+	void rem(idx idx){
 		T& e= operator[](idx);
 		e.~T();
 		ass(stop>0);
@@ -112,7 +113,7 @@ struct dynarr: fixedarr<T,CAP>{
 	}
 
 
-	T& operator[](sizt i){
+	T& operator[](idx i){
 		ass(i>=0 & i<stop);
 		return base[i];
 	}
@@ -158,6 +159,21 @@ inline void free(arr<T>& a){
 }
 
 
+tplt struct arr_raii: arr<T>{
+	arr_raii(siz s){
+		arr<T> a= alloc<T>(s);
+		arr<T>::base= a.base;
+		arr<T>::stop= a.stop;
+	}
+	~arr_raii(){ free(*this); }
+
+	static arr_raii<T> copy(arr<T> s){
+		arr_raii<T> ret(s.size());
+		RA(i,s.size())
+			ret[i]= s[i];
+	}
+};
+
 
 template<typename T>
 inline void copy(arr<T> dst, arr<T> src){
@@ -170,6 +186,9 @@ template<typename T>
 inline void fill(arr<T> a, T val){
 	for(auto& e : a)
 		e= val;
+}
+tplt inline void zero(arr<T> a){
+	_memclr(a.base, a.size()*TSIZ);
 }
 
 template<typename T>

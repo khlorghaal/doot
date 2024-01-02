@@ -1,30 +1,26 @@
 #pragma once
 #include "doot.hpp"
-#include "hash.hpp"
-#include "math.h"
+#include "/usr/include/math.h"
 
 #undef max
 
+extc{
+	extern int abs (int __x) noexcept (true) __attribute__ ((__const__)) ;
+	extern long int labs (long int __x) noexcept (true) __attribute__ ((__const__)) ;
+	__extension__ extern long long int llabs (long long int __x) noexcept (true) __attribute__ ((__const__));
+}
+
 namespace doot{
-using ::sqrt;
-using ::tan;
-using ::atan2;
-using ::exp;
-using ::pow;
-using ::log;
-using ::log2;
-using ::floor;
-using ::ceil;
 
 #define INF INFINITY
-constexpr double PI=  M_PI;
-constexpr double TAU= M_PI*2;
-constexpr double ELR= 2.71828182845904523536;
-constexpr double PHI= 1.61803398874989484820;
-constexpr double BIG=   0x1p32 ;
-constexpr double HUGE=  0x1p256;
-constexpr double SMALL= 0x1p-32 ;
-constexpr double TINY=  0x1p-256;
+cex double PI=  M_PI;
+cex double TAU= M_PI*2;
+cex double ELR= 2.71828182845904523536;
+cex double PHI= 1.61803398874989484820;
+cex double BIG=   0x1p32 ;
+cex double HUGE=  0x1p256;
+cex double SMALL= 0x1p-32 ;
+cex double TINY=  0x1p-256;
 const double SRT2= sqrt(2.);
 const double SRT2RCP= (1./SRT2);
 
@@ -37,13 +33,17 @@ inline float y(float x){ return y##f(x); }
 inline double y(double x){ return f##y(x); }
 #define cppify_fyf(y) \
 inline float y(float x){ return f##y##f(x); }
+#define cppify_ly(y) \
+inline long y(long x){ return l##y(x); }
 #define cppify_lly(y) \
 inline long long y(long long x){ return ll##y(x); }
-//todo what fuck do these??
+#define cppify_lliy(y) \
+inline long long int y(long long int x){ return ll##y(x); }
 
 cppify_yf(sin)
 cppify_yf(cos)
-cppify_lly(abs) cppify_fy(abs)
+cppify_lliy(abs) cppify_fy(abs) cppify_fyf(abs)
+
 inline double mod(double x,double m){ return fmod(x,m); }
 inline float mod(float x,float m){ return fmodf(x,m); }
 
@@ -134,8 +134,8 @@ template<typename A, typename T> struct lerpolant{
 		bump(a0,a1,a);
 		bump(t0,t1,t);
 	}
-	T get(time_t t){
-		time_t dt= t1-t0;
+	T get(T t){
+		T dt= t1-t0;
 		t= (t-t0)/dt;
 		t= lerp(t, t0,t1);
 		return lerp(t, a0,a1);
@@ -149,8 +149,8 @@ template<typename A, typename T> struct perpolant{
 		bump(a0,a1,a2,a);
 		bump(t0,t1,t2,t);
 	}
-	A get(time_t t){
-		time_t dt= t2-t0;
+	A get(T t){
+		T dt= t2-t0;
 		t= (t-t1)/dt;
 
 		t= perp(t1-t, t0,t1);
@@ -188,6 +188,7 @@ inline double quadratic_ab(double a, double b){
 }
 
 inline float invsqrt(){
+	//todo intrinsic
 	ass(false);
 	return 0;
 }
@@ -201,8 +202,8 @@ inline double sfrand(){
 	return frand()*2.f-1.f;
 }
 
-inline float  fract(float x){  return x-(long)x; }
-inline double fract(double x){ return x-(long)x; }
+inline float  fract(float x){  return x-(i32)x; }
+inline double fract(double x){ return x-(i64)x; }
 
 struct rati{
 	int num, den;
@@ -240,17 +241,17 @@ inline int trunc(rati const& r){ return (int)r; }
 
 struct fixed{
 	i64 n;
-	static constexpr i64 ZERO= 0ull;
-	static constexpr i64 ONE= 1ull<<31;
-	static constexpr i64 ALMOST_ONE= ONE-1;
-	static constexpr i64 MINVAL= (1ull<<63)+1;
-	static constexpr i64 MAXVAL= MINVAL-1;
+	static cex i64 ZERO= 0ull;
+	static cex i64 ONE= 1ull<<31;
+	static cex i64 ALMOST_ONE= ONE-1;
+	static cex i64 MINVAL= (1ull<<63)+1;
+	static cex i64 MAXVAL= MINVAL-1;
 
-	constexpr fixed(i64 n_):  n( n_ ){}
-	constexpr fixed(ui64 n_): n( n_ ){}
-	constexpr fixed(int i):     n( i ){}
-	constexpr fixed(double d):  n( d*ONE ){}
-	constexpr fixed(rati r):    n( (r.num<<31)/r.den ){}
+	cex fixed(i64 n_):  n( n_ ){}
+	cex fixed(u64 n_): n( n_ ){}
+	cex fixed(int i):     n( i ){}
+	cex fixed(double d):  n( d*ONE ){}
+	cex fixed(rati r):    n( (r.num<<31)/r.den ){}
 
 	fixed operator+(i64 x){ return n+(x<<31); }
 	fixed operator-(i64 x){ return n-(x<<31); }

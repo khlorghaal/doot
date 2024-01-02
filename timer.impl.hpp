@@ -7,16 +7,12 @@
  */
 
 #include "timer.hpp"
-#include <chrono>
-#include <thread>
-using namespace std::this_thread;
-using namespace std::chrono;
 
 namespace doot{
 
 Timer::Timer(float fps){
 	setMaxUpdatesPerSecond(fps);
-	tInvoke= tBegin= tBeginp= current_time();
+	tInvoke= tBegin= tBeginp= current_time_ms();
 }
 
 void Timer::setMaxUpdatesPerSecond(float cap){
@@ -31,23 +27,23 @@ void Timer::invoke(){
 	   process    wait
 	^tbegp     ^tinvk   ^tbeg
 	*/
-	tInvoke= current_time();
+	tInvoke= current_time_ms();
 	ms tProcess= tInvoke-tBegin;
 	ms dt= tBegin-tBeginp;
 	spf= (dt+1e-16f)/1000.f;
 
 	spf_avg= spf_avg*.8 + spf*.2;
 
-	i64 wait= targetTimeus-tProcess*1000;
+	us wait= targetTimeus-tProcess*1000;
 	waiting= true;
 	if(wait>250)
-		sleep_for(microseconds(wait));
+		sleep(wait);
 	else
 		;
 	waiting= false;
 
 	tBeginp= tBegin;
-	tBegin= current_time();
+	tBegin= current_time_ms();
 	total_time+= tBegin-tBeginp;
 	tick++;
 }
@@ -61,10 +57,10 @@ float Timer::getRelativeRate(Timer& that){
 
 void profiler::start(str const& name_){
 	name= name_;
-	beg= current_time();
+	beg= current_time_ms();
 };
 void profiler::stop(){
-	end= current_time();
+	end= current_time_ms();
 	cout(str::fmt("profiler: %20s: %5lli ms", name.cstr(), end-beg));
 };
 

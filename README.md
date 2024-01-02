@@ -62,6 +62,11 @@ Use the suffix "n't" whenever possible
    Object does not wish to be associated with fire;  
   The ambiguity is desirable, it prevents complacency.  
 
+Nomenclature  
+ add: allocate into a container
+ sub: subtract from a container, freeing
+ make: construct something at a high level, often adds internally  
+ kill: dtor of make
 
 
 DOOT DOOT DOOT DOOT HONK DOO DOOT DOOT DOO DOOT DOOT DOOT DOOT DOOT HONK DOO DOOT DOOT DOO DOOT  

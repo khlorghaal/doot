@@ -14,11 +14,13 @@
 #include "bytebuf.impl.hpp"
 #include "timer.impl.hpp"
 #include "trans2d.impl.hpp"
-
 #include "thread.impl.hpp"
 
 namespace doot{
 
+void warn(char const* m){
+	cout(m);
+}
 void bad(char const* m){
 	cout(m);
 }

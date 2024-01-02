@@ -9,22 +9,23 @@ void thread(str name, thread_arg tharg){
 
 
 
-
-OPAQEXTRN_CDTOR(mutex);
-OPAQEXTRN(mutex,lock);
-OPAQEXTRN(mutex,locknt);
-
-
-OPAQEXTRN_CDTOR(lock);
-OPAQEXTRN(lock,wait);
-OPAQEXTRN(lock,wake);
+OPAQ_CDTOR_DEFR(mutex);
+OPAQEXTRN_M(mutex,lock);
+OPAQEXTRN_M(mutex,locknt);
 
 
-OPAQEXTRN_CDTOR(latch);
-OPAQEXTRN(latch,tick);
-OPAQEXTRN(latch,wait);
-extern void latch_set(int count);
-void latch::set(int count){ latch_set(count); }
+OPAQ_CDTOR_DEFR(lock);
+OPAQEXTRN_M(lock,wait);
+OPAQEXTRN_M(lock,wake);
+
+
+OPAQ_CDTOR_DEFR(latch);
+extern void latch_set(void*,int);
+void latch::set(int i){ latch_set(this,i); };
+OPAQEXTRN_M(latch,tick);
+OPAQEXTRN_M(latch,wait);
+
+
 
 struct thread_loop{
 	lock lck;
@@ -92,20 +93,20 @@ void init(){
 	ass(poolsize>=0);
 
 	RA(i,poolsize)
-		warp_threads.make(strfmt("tasker %i",i));
+		warp_threads.add(strfmt("tasker %i",i));
 }
 
 
 //fucking unsafe holy shit
 //this is most unsafe code ive ever written
 //12 year old me wrote safer code
-void _dispatch(byte* base, byte* stop, sizt stride, FPTR(task,void*,void)){
+void _dispatch(i8* base, i8* stop, sizt stride, FPTR(task,void*,void)){
 	ass(!active);
 	active= true;
 
 	sizt total= (sizt)(stop-base)/stride;//number of T
 	sizt denom= poolsize;//denominator, number of threads
-	vector<arr<byte>> segs(denom);//task casts back to arr<T>
+	vector<arr<i8>> segs(denom);//task casts back to arr<T>
 
 	if(denom<=0){
 		warn("thread::warp::dispatch:: 0 jobs provided");
@@ -130,9 +131,9 @@ void _dispatch(byte* base, byte* stop, sizt stride, FPTR(task,void*,void)){
 		ass(rem>=0);
 	
 		RA(i,denom){
-			byte* b= (byte*)(i*span);
-			byte* s= (byte*)(b+span);
-			segs.make(arr<byte>{b,s});
+			i8* b= (i8*)(i*span);
+			i8* s= (i8*)(b+span);
+			segs.add(arr<i8>{b,s});
 		}
 		//give remainder to last thread
 		//worstcase: total= denom*2-1
@@ -141,9 +142,9 @@ void _dispatch(byte* base, byte* stop, sizt stride, FPTR(task,void*,void)){
 	
 	}else{//less jobs than threads
 		RA(i,total){
-			segs.make(arr<byte>{
-				(byte*)i  ,
-				(byte*)i+1});
+			segs.add(arr<i8>{
+				(i8*)i  ,
+				(i8*)i+1});
 		}
 	}
 	EACH(s,segs){
@@ -154,7 +155,7 @@ void _dispatch(byte* base, byte* stop, sizt stride, FPTR(task,void*,void)){
 
 	//woken threads
 	ltch.set(denom);
-	EN(i,thr,warp_threads)
+	EN(i,thr,warp_threads){
 		bool busy=
 			thr.dispatch(
 				thread_arg{

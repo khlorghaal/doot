@@ -99,11 +99,21 @@ void run_tests(){
 	pf.stop();
 	pf.start("rng");
 	{
-		float racc= 0;
-		RA(i,1024)
-			racc+= sfrand();
-		racc/=1024;
-		ass(abs(racc)<.01);
+		{//floats
+			float racc= 0;
+			RA(i,0x100)
+				racc+= sfrand();
+			racc/=0x100;
+			ass(abs(racc)<.01);
+		}
+		{//hash entropy
+			i64 racc= 0;
+			RA(i,0x100){
+				racc+= hash((u64)i);
+				racc+= hash((u32)i);
+			}
+			ass(abs(racc-INTMAX<hash_t>) < .01*0x200);
+		}
 	}
 	pf.start("nxpo2");
 	{
@@ -120,24 +130,24 @@ void run_tests(){
 	{
 		vector<int> vec(1);
 		RA(i,512)
-			vec.make(i);
+			vec.add(i);
 		RA(i,512){
 			ass(vec[i]==i);
 			ass(vec.ptr_idx(vec.base+i)==i);
 		}
 		vector<int> vecb;
-		vecb.makev(vec);
+		vecb.addv(vec);
 		RA(i,512)
-			ass(vec.remove_eq(i));
+			ass(vec.sub_eq(i));
 		RD(i,512)
-			ass(vecb.remove_eq(i));
+			ass(vecb.sub_eq(i));
 	}
 	pf.stop();
 	pf.start("hashmap");
 	{
 		hash_map<int, int> map;
 		RA(i,512)
-			map.make(i,i);
+			map.add(i,i);
 		RA(i,512){
 			int* p= map[i];
 			ass(!!p);
@@ -149,7 +159,7 @@ void run_tests(){
 	{
 		idheap<int> heap;
 		RA(i,512)
-			heap.make(i,i);
+			heap.add(i,i);
 		RA(i,512){
 			auto& e= *heap[i];
 			ass(e==i);
@@ -157,56 +167,32 @@ void run_tests(){
 			ass(heap.index(i)==i);
 		}
 		RA(i,512)
-			heap.kill(i);
+			heap.sub(i);
 		RA(i,512)
 			ass(heap.map[i]==NULLIDX);
 		RD(i,511)
-			heap.make(i,0);//???
+			heap.add(i,0);//??? what?
 	}
 	pf.stop();
 
 	pf.start("kitchen sink container");
 	{
 		idheap<hash_map<str,vector<str>>> wew;
-		auto& a= wew.make(0);
-		auto& b= a.make("a");
-		auto& c= b.make("b");
+		hash_map<str,vector<str>>& a= wew.add(0);
+		vector<str>& b= a.add("a");
+		str& c= b.add("b");
+		ass((*(*wew[0])["a"])[0]=="b");
 	}
 	pf.stop();
-	/*
-	pf.start("multimappedheap");
-	{
-		multimapped_heap<int,8> heap;
-		vector<triad<eid,cid,int>> vec;
-		RA(e,512){
-			RA(i,8){
-				cid c;
-				int val= e+i;
-				heap.make(e,c)= val;
-				vec.make({(eid)e,c,val});
-			}
-		}
-		ass(heap.cidget.next==512*8);
-		dynarr<int,8> group;
-		for(auto& v : vec){
-			ass(heap.cid2eid(v.b)==v.a);
-			ass(*heap.cid2t(v.b)==v.c);
-			ass(find(heap.eid2cids(v.a), v.b)!=NULLID);
 
-			for(int* vp : heap[v.a])
-				group.make(*vp);
-			ass(find((arr<int>)group,v.c)!=NULLID);
-			group.clear();
-		}
-		for(auto& v: vec)
-			heap.kill(v.b);
-	}
-	pf.stop();
-	*/
 	pf.start("ringbuffer");
 	{
 		ringbuffer<int, 512> rb;
-		RA(i,1024)
+		RA(i,512)
+			rb<<i;
+		RA(i,512)
+			ass(rb[i]==i);	
+		RA2(i,512,1024)
 			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);

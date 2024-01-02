@@ -3,6 +3,7 @@
 #include "string.hpp"
 
 namespace doot{
+using size_t= siz;
 
 constexpr int STRMAX= 0x1000;
 

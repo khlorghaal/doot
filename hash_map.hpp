@@ -2,8 +2,6 @@
 #include "vector.hpp"
 #include "array_algos.hpp"
 
-#include "hash.hpp"
-
 namespace doot{
 	
 //all pointers returned are invalidated upon next nonconst method invocation
@@ -15,10 +13,12 @@ struct hash_map: container{
 		K k;
 		bool empty;
 	};
-	#define SLOT_SIZE sizeof(slot)
-	static constexpr ui64 INIT_LEN= 0x20;
-	static constexpr i8 GROW_FACTOR= 2;
-	static constexpr i16 DEPTH= 8;
+	static cex siz SLOT_SIZE= sizeof(slot);
+	static cex u8 DEPTH= 4;//depth must be cex for performance
+	static cex siz DEFAULT_LEN= 0x20;
+
+	i8 grow_factor= 4;//tunable
+	u8 expand_pad= 2;
 	
 	arr<slot> heap;
 	sizt entry_count=0;//only for debug and profiling
@@ -41,13 +41,11 @@ struct hash_map: container{
 	V* _alloc(K k);
 
 	//places a key and invokes ctor(E...)
-	//V* put(K k); removed due to unsafeness
 	template<typename... E>
-	V& make(K k, E... v);
-	template<typename... E>
-	V& put(K k, E... v){ return make(k,v...); };
+	V& add(K k, E... v);
 	//return bool was contained
-	bool remove(K k);
+	bool sub(K k);
+	OPADDSUB;
 
 	//remove all elements
 	void clear();
@@ -55,9 +53,15 @@ struct hash_map: container{
 	void keys_cpy(vector<K>&);
 	void values_cpy(vector<V>&);
 	void key_values_cpy(vector<pair<K,V>>&);
+
 };
 #define hmap hash_map
 
+//expensive, avoid
+#define EACH_HMAP(e,M) \
+		EACH(_S_##e,M.heap)\
+			if(unlikely(!_S_##e.empty))\
+				fauto( e= _S_##e.v )
 
 template<typename K, typename V>
 hash_map<K,V>::hash_map(sizt init_len){
@@ -67,7 +71,7 @@ hash_map<K,V>::hash_map(sizt init_len){
 		e.empty= true;
 }
 template<typename K, typename V>
-hash_map<K,V>::hash_map(): hash_map(INIT_LEN){
+hash_map<K,V>::hash_map(): hash_map(hash_map<K,V>::DEFAULT_LEN){
 };
 template<typename K, typename V>
 hash_map<K,V>::~hash_map(){
@@ -76,57 +80,58 @@ hash_map<K,V>::~hash_map(){
 
 template<typename K, typename V> 
 void hash_map<K,V>::expand(){
-	if(expand_reserve<=0){//must increase or is pointless
-		bad("hash_map::expand() this.expand_reserve must be >0, to increase the number of free slots");
-		expand_reserve= 1;
-	}
-	if(expand_reserve>DEPTH-1){
-		bad("hash_map::expand() this.expand_reserve must be < DEPTH-1, or expansion will bottom");
-		expand_reserve= DEPTH-1;
-	}
+	if(expand_pad<0)//must increase or is pointless
+		err("hash_map::expand() this.expand_reserve must be >0, to increase the number of free slots");
+	if(expand_pad>DEPTH-1)
+		err("hash_map::expand() this.expand_reserve must =< DEPTH-1, or expansion will bottom");
 
 	//move all !null slots
-	arr<slot> t_entries= alloc<slot>(heap.size());
-	{
-		int i=0;
-		for(auto& e: heap){
-			if(!e.empty)//todo 0can skip rest of bucket
-				copy<slot>(t_entries[i++], e);
+	arr_raii<slot> t_entries(heap.size());
+	siz i= 0;
+	EACH(e,heap){
+		if(!e.empty){//todo opt skip rest of bucket if empty
+			copy(t_entries[i++],e);
 		}
 	}
 
-	sizt nbucks= heap.size()/DEPTH;
+	siz nbucks= heap.size()/DEPTH;
 	
-check_depth:
-	//grow until <= DEPTH-RESERVE collisions occur on any bucket
-	nbucks*= GROW_FACTOR;
-	ass(DEPTH<ui8(-1));
-	arr<ui8> bcounts= alloc<ui8>(nbucks);
-	fill<ui8>(bcounts, 0);
-	for(auto& entry: t_entries){
-		auto h= hash(entry.k);
-		auto& c= bcounts[h%nbucks];
-		c++;//increment bucket's member count
-		if(c+expand_reserve>DEPTH){//reserve number of free slots
-			free(bcounts);
-			goto check_depth;
+	u8 expand_tries= 0;
+	//fit depth
+	while(true){//monte carlo
+		//grow until <= DEPTH-RESERVE collisions occur on any bucket
+		if(expand_tries>4)
+			warn("unreasonable hashmap expansion, increase grow factor or unfuck hash algo");
+		if(expand_tries>8)
+			err("hashmap failure");
+		expand_tries++;
+
+		nbucks*= grow_factor;
+		arr_raii<u8> bcounts(nbucks);
+		zero(bcounts);
+		bool exp= false;
+		EACH(entry,t_entries){
+			hash_t h= hash(entry.k);
+			u8& c= bcounts[h%nbucks];//bucket's member count
+			c++;
+			if(c+expand_pad>=DEPTH){//must reserve at least 1
+				exp= true;
+				goto scan_end;
+			}
 		}
+		scan_end:
+		if(!exp)
+			break;
 	}
-	free(bcounts);
 
-	//reallocate and set nulls
-	free(heap);
-	heap= alloc<slot>(nbucks*DEPTH);
-
+	realloc(heap.base,nbucks*DEPTH);
 	ass(heap.size()%DEPTH==0);
-	for(auto& e: heap)
+	EACH(e,heap)
 		e.empty= true;
 
 	//repopulate
-	for(auto& entry: t_entries)
-		copy<V>(*_alloc(entry.k), entry.v);
-
-	free(t_entries);
+	EACH(e,t_entries)
+		copy(*_alloc(e.k), e.v);
 }
 
 template<typename K, typename V> 
@@ -146,63 +151,60 @@ V* hash_map<K,V>::operator[](K k) const{
 
 template<typename K,typename V>
 V* hash_map<K,V>::_alloc(K k){
-put_again:
-	sizt i= bucket(k)*DEPTH;
-	sizt b= 0;
-	while(b!=DEPTH){
-		slot& at= heap[i+b++];
-		if(at.empty){//empty slot found
-			new(&at.k)K(k);//for nonprimitive keys such as str
-			at.empty= false;
-			entry_count++;
-			return &at.v;
+	RA(expansion,2){
+		idx i= bucket(k)*DEPTH;
+		RA(b,DEPTH){
+			slot& at= heap[i+b];
+			if(at.empty){//empty slot found
+				entry_count++;
+				at.empty= false;
+				at.k= k;
+				return &(at.v);
+			}
+			else if(at.k==k){//entry with key already present
+				warn("hmap overwrite");
+				return &(at.v);
+			}
 		}
-		else if(at.k==k){//entry with key already present
-			ass(false);//i just want to see when this happens
-			at.v.~V();
-			return &at.v;
-		}
+		//could not fit in bucket
+		ass(expansion==0);
+		//expansion guarantees >=1 free slot per bucket
+		expand();
 	}
-	//could not fit in bucket
-	expand();
-	goto put_again;
-	//expand leaves >=1 free slot,
-	//thus will not recurse more than once
-	return null;
+	unreachable; return null;
 }
 
 
 template<typename K, typename V> 
 template<typename... E>
-V& hash_map<K,V>::make(K k, E... e){
+V& hash_map<K,V>::add(K k, E... e){
 	//ppack will handle move ctor properly
 	//do not confuse c++ template ppack with c variadic function
 	return *new(_alloc(k))V(e...);
 }
 
 template<typename K, typename V> 
-bool hash_map<K,V>::remove(K k){
-	sizt i= bucket(k)*DEPTH;
-	sizt b= 0;
-	while(b<DEPTH){
-		slot& at= heap[i+b++];
-		if(at.empty)//not contained; !nulls are always precede nulls in the bucket array
+bool hash_map<K,V>::sub(K k){
+	idx i= bucket(k)*DEPTH;
+	RA(b,DEPTH){
+		slot& at= heap[i+b];
+		if(at.empty)//empty always procedes unempty
 			return false;
 		if(at.k==k){//match
-			sizt b2= DEPTH-1;
 			//start at end, walking back until finding
 			//a bucket that is non null. may be self
-			slot* swap;
-			do swap= &heap[i+b2--];
-			while(swap->empty);
+			RD(b2,DEPTH){
+				slot& swap= heap[i+b2];//may == at
+				if(swap.empty)//end element to be moved
+					continue;
+				copy(at,swap);
+				swap.empty= true;
+				entry_count-=1;
+				return true;
+			}
 			//there will not be a scenario where
-			//b2<b; as at must be non null
-			at.k= swap->k;
-			at.v= swap->v;
-			at.empty= swap->empty;
-			swap->empty= true;
-			entry_count--;
-			return true;
+			//b2<b || b2>depth; as at must be non null
+			unreachable;
 		}
 	}
 	//not contained
@@ -218,15 +220,15 @@ void hash_map<K,V>::clear(){
 
 template<typename K, typename V> 
 void hash_map<K,V>::keys_cpy(vector<K>& r){
-	for(auto& s: heap)
+	EACH(s,heap)
 		if(!s.empty)
-			r<<s.k;
+			r+=s.k;
 }
 template<typename K, typename V> 
 void hash_map<K,V>::values_cpy(vector<V>& v){
-	for(auto& s: arr<slot>(begin(),end()))
+	EACH(s,heap)
 		if(!s.empty)
-			v<<s.v;
+			v+=s.v;
 }
 
 }

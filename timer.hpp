@@ -4,8 +4,9 @@
 
 namespace doot{
 
-ms current_time();//os.cpp
-us current_time_us();
+extern ms current_time_ms();//os.cpp
+extern us current_time_us();
+extern void sleep(us);
 
 class Timer{
 	ms tInvoke, tBegin, tBeginp;
@@ -18,7 +19,7 @@ class Timer{
 
 public:
 	ms total_time=0;//ms since start
-	ui64 tick=0;//number of invocations
+	u64 tick=0;//number of invocations
 	float spf=0;//seconds per frame
 
 	Timer(float fps);

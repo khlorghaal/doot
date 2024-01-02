@@ -13,7 +13,7 @@ namespace doot{
 typedef __m256i xmm;
 
 //making this a specialization of arr would be too constraining and misappropriate
-//presumes the first bit is byte aligned
+//presumes the first bit is i8 aligned
 struct bitptr{
 	arr<xmm> range;
 	sizt b;
@@ -37,10 +37,10 @@ inline void bitmemcpy(bitptr dst, bitptr src){
 }
 
 struct bitpacker{
-	arr<ui8> data;
+	arr<u8> data;
 	bitptr mark;
 
-	bitpacker(arr<ui8> data_){
+	bitpacker(arr<u8> data_){
 		data= data_;
 		mark= {data,0};
 	}

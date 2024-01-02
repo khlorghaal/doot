@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <threads.h>
 #include <mutex>
@@ -9,18 +10,23 @@
 #include <memory>
 #include <unordered_map>
 
+#define _DOOT_NO_NEW_ 1
+#include "doot.hpp"//opaque macros
+#include "thread.hpp"
+
+#include <chrono>
+#include <thread>
+//FIXME PURGE STD
+using namespace std::this_thread;
+using namespace std::chrono;
 
 namespace doot{
 
 extern void err(char const*);
 
-#define OPAQIMPL_CDTOR(T) \
-void T##_##CTOR(void*& p){ p= new  _##T(); };\
-void T##_##DTOR(void*& p){ delete (_##T*)p; };
-#define OPAQIMPL_F(T,F) \
-void T##_##F(void* p){ ((_##T*)p)->F(); }
-
 struct _mutex:std::mutex{};
+//i dont remember why this isnt a typedef
+//there is probably a reason for that
 
 struct _lock{
 	_mutex mut;
@@ -65,21 +71,58 @@ struct _latch{
 };
 
 
-OPAQIMPL_CDTOR(mutex);
-OPAQIMPL_CDTOR(lock);
-OPAQIMPL_CDTOR(latch);
 
-OPAQIMPL_F(mutex,lock);
-OPAQIMPL_F(mutex,unlock);
+void mutex_CTOR(void* s){
+	OPAQ_M_CTOR(s,_mutex);
+}
+void mutex_DTOR(void* s){
+	OPAQ_M_DTOR(s,_mutex);
+}
+void mutex_lock(void* s){
+	OPAQ_T_DEREF(s,_mutex,m);
+	m.lock();
+}
+void mutex_locknt(void* s){
+	OPAQ_T_DEREF(s,_mutex,m);
+	m.unlock();
+}
 
-OPAQIMPL_F(lock,wait);
-OPAQIMPL_F(lock,wake);
+void lock_CTOR(void* s){
+	OPAQ_M_CTOR(s,_lock);
+}
+void lock_DTOR(void* s){
+	OPAQ_M_DTOR(s,_lock);
+}
+void lock_wait(void* s){
+	OPAQ_T_DEREF(s,_lock,l);
+	l.wait();
+}
+void lock_wake(void* s){
+	OPAQ_T_DEREF(s,_lock,l);
+	l.wake();
+}
 
-void latch_set(void* p, int count){
-	((_latch*)p)->set(count);
-};
-OPAQIMPL_F(latch,tick);
-OPAQIMPL_F(latch,wait);
+void latch_CTOR(void* s){
+	OPAQ_M_CTOR(s,_latch);
+}
+void latch_DTOR(void* s){
+	OPAQ_M_DTOR(s,_latch);
+}
+
+void latch_set(void* s, int i){
+	OPAQ_T_DEREF(s,_latch,l);
+	l.set(i);
+}
+void latch_tick(void* s){
+	OPAQ_T_DEREF(s,_latch,l);
+	l.tick();
+}
+void latch_wait(void* s){
+	OPAQ_T_DEREF(s,_latch,l);
+	l.tick();
+}
+
+
 
 
 
@@ -108,20 +151,26 @@ void  _thread(char const* name, void(*f)(void*),void* arg){
 	thrd_create(&thr,&_fntr_vp2i,arg);
 };
 
-void* _malloc(size_t s){
+void sleep(ms ms){
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+void* _malloc(siz s){
 	return ::malloc( s); };
 void  _free(   void* p){
 	::free(   p); };
-void* _realloc(void* p, size_t s){
+void* _realloc(void* p, siz s){
 	return ::realloc(p,s); };
-void _memcpy(void* dst, void* src, size_t len){
+void _memcpy(void* dst, void* src, siz len){
 	::memcpy(dst,src,len); }
+void _memclr(void* dst, siz len){
+	::memset(dst,0,len); }
 
-size_t _vsnprintf( char * buf, size_t bufsz,
+size_t _vsnprintf( char * buf, siz bufsz,
                const char * fmt, va_list vlist){
 	return vsnprintf(buf,bufsz,fmt,vlist);
 }
-size_t _strnlen(char const* s, size_t n){
+size_t _strnlen(char const* s, siz n){
 	return strnlen(s,n);
 }
 

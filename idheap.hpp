@@ -1,6 +1,5 @@
 #pragma once
 #include "doot.hpp"
-#include "index_recycler.hpp"
 #include "array_algos.hpp"
 
 namespace doot{
@@ -34,17 +33,17 @@ tplt struct idheap: container{
 	idheap(idheap&& b)= default;//vector move ctor invoked
 
 	template<typename... E>
-	T& make(id, E const& ...);
-	//T& put(id i, T&& e){ return put<T&&>(i,(T&&)e); }
-	//T& make(id i){ return put<T&&>(i,T()); }
+	T& add(id, E const& ...);
 
-	void kill(id);//calls dtor
-	void kill(T* t){ kill(ptr_id(t)); };
+	//sub for pointer, id, or object-equality
+	void sub(id);
+	id sub(T* t);
+	id sub(T& t);
 
 	idx index(id) const;
 	id ptr_id(T* t) const{
 		sizt i= t-heap.base;
-		ass(i>=0&&i<heap.size());
+		ass(i>=0&&i<heap.size());//boundcheck
 		return ids[i];
 	}
 	T* operator[](id) const;
@@ -53,6 +52,21 @@ tplt struct idheap: container{
 
 	void purge();
 };
+
+//convenient, type-safe
+tpl<typn T, typn I= id>
+struct idptr{
+	I i;
+	idptr(): i(NULLID){};
+	idptr(I i_): i(i_){};
+	operator I(){ return i; }
+	void operator=(I i_){ i= i_; }
+	T& operator*();
+	T* operator->(){ return &(operator*()); };
+	bool operator!(){ return i==NULLID; };
+};
+tplt struct  eidptr: idptr<T,eid>{};
+tplt struct ecidptr: idptr<T,ecid>{};
 
 //static heap only
 tplt struct hidptr: idptr<T>{
@@ -64,27 +78,96 @@ tplt struct hidptr: idptr<T>{
 	bool operator!(){ return (i==NULLID); }
 };
 
-#define ZIP_HEAP(o,id,h) {\
+#define ZIP_HEAP(o,id_,h) \
 auto& _lh= h.heap;\
 auto& _li= h.ids;\
-for(int _i=0; _i!=_lh.size(); _i++){\
-	auto&  o= _lh[_i];\
-	auto& id= _li[_i];
+for(idx _i##o=0; _i##o!=_lh.size(); _i##o++)\
+	for(auto& o= _lh[_i##o];0;)\
+		for(id const& id_= _li[_i##o];0;)
 
 
-#define ZIP_MULTIHEAP(o,id,h) {\
-auto& _lh= h.heap.heap;\
-auto& _li= h.eids;\
-for(int _i=0; _i!=_lh.size(); _i++){\
-	auto&  o= _lh[_i];\
-	auto& id= _li[_i];
+//#define ZIP_MULTIHEAP(o,id,h) {\
+//auto& _lh= h.heap.heap;\
+//auto& _li= h.eids;\
+//for(int _i=0; _i!=_lh.size(); _i++){\
+//	auto&  o= _lh[_i];\
+//	auto& id= _li[_i];
 
 
+/*
+returns an unused index
+keeps a list of freed indices which it recycles first,
+if none are free it makes a new one
 
+popped indices will have closely adjacent values,
+making them suited for associative arrays
+*/
+struct index_recycler{
+	vector<idx> freed;
+	idx next= 0;
 
+	idx pop(){
+		if(freed.empty())
+			return next++;
+		else
+			return *(--freed.stop);
+	}
+	inline idx operator()(){ return pop(); }
 
-template<typename T>
-idheap<T>::idheap(sizt init_cap){
+	void free(idx i){
+		ass(i<next);
+		freed.add(i);
+	}
+};
+
+/*not static
+intended for
+	-components which need local heap
+	-static types which shouldnt use entities*/
+tpl<typn T> struct bag: idheap<T>{
+	index_recycler rcyc;
+
+	tpl<typn... E>
+	T& add(E const&... e){
+		return idheap<T>::add(rcyc(),e...);
+	}
+	
+	void sub(id cid){
+		idheap<T>::sub(cid);
+		rcyc.free(cid);
+	};
+	void sub(T& e){
+		rcyc.free(idheap<T>::sub(e));
+	}
+	OPADDSUB;
+};
+
+//static bag heap
+//crtp only
+tplt struct bheap: bag<T>{
+	inline static bag<T> heap;
+	using ptr= class idptr<T>;
+	ptr self;
+
+	tpl<typn... E>
+	static T& add(E... e){
+		id i= bag<T>::rcyc();
+		T& r= idheap<T>::add(i,e...);
+		r.self= i;
+		return r;
+	}
+	operator ptr(){ return self; }
+	bool operator!(){ return self==nullid; }
+};
+
+//for classes of
+//	static type::heap
+#define HEAP_PTR_DEREF_DEF(T) \
+tpl<> T& idptr<T>::operator*(){\
+	return *(T::heap[i]);\
+}
+
+tplt idheap<T>::idheap(sizt init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
 	 map.realloc(init_cap);
@@ -92,9 +175,8 @@ idheap<T>::idheap(sizt init_cap){
 	fill(map, NULLIDX);
 }
 
-template<typename T>
-template<typename... E>
-T& idheap<T>::make(id id, E const& ... e){
+tplt template<typename... E>
+T& idheap<T>::add(id id, E const& ... e){
 	ass(id!=NULLID);
 	sizt mapsiz= map.size();
 	if(id>=mapsiz){//expand map
@@ -110,15 +192,14 @@ T& idheap<T>::make(id id, E const& ... e){
 
 	ass(ids.size()==heap.size());
 	sizt idx= heap.size();
-	T& ret= heap.make(e...);
-	ids.make(id);
+	T& ret= heap.add(e...);
+	ids.add(id);
 	map[id]= idx;
 
 	return ret;
 }
 
-template<typename T>
-void idheap<T>::kill(id i){
+tplt void idheap<T>::sub(id i){
 	idx x= index(i);
 	if(x==NULLIDX)
 		return;
@@ -141,35 +222,40 @@ void idheap<T>::kill(id i){
 	heap.stop--;
 	ids.stop--;
 }
+tplt id idheap<T>::sub(T* t){
+	id i= ptr_id(t);
+	sub(i);
+	return i;
+};
+tplt id idheap<T>::sub(T& t){
+	EN(i,e,heap){
+		if(e==t){
+			id id= ids[i];
+			sub(id);
+			return id;
+		}
+	}
+}
 
-template<typename T>
-idx idheap<T>::index(id id) const{
+tplt idx idheap<T>::index(id id) const{
 	if(id<0)
 		bad("idheap::idx<0");
 	if(id>=map.size())
 		return NULLIDX;
 	return map[id];
 }
-template<typename T>
-T* idheap<T>::operator[](id id) const{
+tplt T* idheap<T>::operator[](id id) const{
 	sizt idx= index(id);
 	if(idx==NULLIDX)
 		return (T*)0;
 	return &heap[idx];
 }
-template<typename T>
-T& idheap<T>::getormake(id id){
-	idx idx= index(id);
-	return idx==NULLIDX? make(id):heap[idx];
-}
-template<typename T>
-void idheap<T>::getarr(arr<id> in, arr<T*> out){
+tplt void idheap<T>::getarr(arr<id> in, arr<T*> out){
 	ZIP(i,o,in,out){
-		o= operator[](i);
-	}}
+		o= op[](i);
+	}
 }
-template<typename T>
-void idheap<T>::purge(){
+tplt void idheap<T>::purge(){
 	heap.clear();
 	ids.clear();
 	fill(map, NULLIDX);

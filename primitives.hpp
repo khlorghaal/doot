@@ -6,23 +6,26 @@ namespace doot{
 
 struct voidstruct{};//used for changing maps into sets, etc
 
-using sizt= unsigned long;
+using siz_t= unsigned long long;
+using sizt = unsigned long long;
+using siz  = unsigned long long;
 using i8=   char;
 using i16=  short;
 using i32=  int;
-using i64=  long;
-using ui8=  unsigned  char;
-using ui16= unsigned short;
-using ui32= unsigned   int;
-using ui64= unsigned  long;
+using i64=  long long;
+using  u8= unsigned  char;
+using u16= unsigned short;
+using u32= unsigned   int;
+using u64= unsigned  long long;
 using f32=  float;
 using f64=  double;
-typedef ui8 byte;
 
 #define null 0
 //must define otherwise endless type coercion bitching
 
-using hash_t= ui32;
+#define CEX extern "C"
+
+using hash_t= u32;
 hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;
 float constexpr HASH_MAX_F= float(HASH_MAX);
 
@@ -31,12 +34,12 @@ using ms=  i64;
 using us=  i64;
 using ns=  i64;
 
-using index=  ui32;
-typedef index idx;
+using index=  u32;
+using idx= index;;
 index constexpr NULLIDX= -1u;
 index constexpr nullidx= NULLIDX;
 
-using  id=ui32;
+using  id=u32;
 using eid=id;//entity ID
 using cid=id;//component ID, where an entity possess multiple components, cids are unique per entity
 //component arrays prefered over subentities to min deref

@@ -1,4 +1,5 @@
 #pragma once
+#include "primitives.hpp"
 #include "vector.hpp"
 
 namespace doot{
@@ -15,7 +16,7 @@ struct str{
 	vector<char> dat;//includes terminator
 	char const* cstr() const{ return dat.base; }
 
-	str(){ dat.make(0); };
+	str(){ dat.add(0); };
 	str(str const&  b):str(){ cat(b); }
 	str(char const* b):str(){ cat(b); }
 	//tple str(E b){ op=<E>(b); }
@@ -24,7 +25,7 @@ struct str{
 
 	void clear(){
 		dat.clear();
-		dat.make(0);
+		dat.add(0);
 	}
 
 	static str fmt(char const* fmt,...);//construct
@@ -47,12 +48,12 @@ struct str{
 	#define L(T, x) \
 		str& op+=(T b){          return fmtcat(x,b); }\
 		str& op= (T b){ clear(); return fmtcat(x,b); }
-		L( i32,"%d");
-		L(ui32,"%u");
-		L( i64,"%dll");
-		L(ui64,"%ull");
-		L( f32,"%3.4f");
-		L( f64,"%6.4f");
+		L(i32,"%d");
+		L(u32,"%u");
+		L(i64,"%dll");
+		L(u64,"%ull");
+		L(f32,"%3.4f");
+		L(f64,"%6.4f");
 		//str& op+=(rati b){fmt(*this,"[%i/%i]",b.num,b.den);}
 		//str& op+=(arr<char> a){ fmt("%s",a.base); retthis; }
 	#undef L
@@ -62,7 +63,7 @@ struct str{
 	FWD_CAST(str&, op= , A,B);
 	//L(f32,f64);
 	//L(i32,i64);
-	//L(ui32,ui64);
+	//L(u32,u64);
 	#undef L
 
 	bool op!() const { return !dat.base || dat.size()<=1; };

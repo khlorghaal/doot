@@ -61,10 +61,10 @@ struct gvec2{
 
 typedef gvec2<float>    vec2;
 typedef gvec2<double>  dvec2;
-typedef gvec2<i32>   ivec2;
-typedef gvec2<i64>   lvec2;
-typedef gvec2<ui32> uivec2;
-typedef gvec2<ui64> ulvec2;
+typedef gvec2<i32>     ivec2;
+typedef gvec2<i64>     lvec2;
+typedef gvec2<u32>    uivec2;
+typedef gvec2<u64>    ulvec2;
 template<typename T>
 inline gvec2<T> lerp(float t,gvec2<T> const& a,gvec2<T> const& b){
 	return {
@@ -140,7 +140,6 @@ struct mat3x2{
 	float mxx, mxy, tx;
 	float myx, myy, ty;
 
-	mat3x2()= default;
 	void operator=(mat3x2 const&);
 
 	//assignment

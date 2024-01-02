@@ -8,6 +8,26 @@
 		#define DEBUG 1
 	#endif
 #endif
+
+#define TSIZ sizeof(T)
+#define lengthof(T) (sizeof(T)/sizeof(T[0]))
+
+#define retthis return *this
+
+#define op operator
+#define tpl template
+#define typn typename
+#define tplt template<typename T>
+#define tple template<typename E>
+#define tples template<typename E...>
+#define ass assert
+#define cst const
+#define cex constexpr
+#define rcas reinterpret
+#define extc extern "C"
+
+#define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
+
 #endif
 
 #ifndef DOOT_NOCOMBINATORIAL
@@ -44,11 +64,12 @@ extern void bad(char const*);
 //crash this program with no survivors
 extern void err();
 extern void err(char const*);
+#define unreachable err("unreachable")
 
 
 inline void nop(){}//for setting breakpoints
 
-inline void ass(bool x) {
+inline void assert(bool x) {
 #ifdef DEBUG
 	if(!x)
 		err("failed assert");
@@ -58,16 +79,6 @@ inline void ass(bool x) {
 }
 
 
-#define TSIZ sizeof(T)
-#define lengthof(T) (sizeof(T)/sizeof(T[0]))
-
-#define retthis return *this
-
-#define op operator
-#define tpl  template
-#define typn typename
-#define tplt template<typename T>
-#define tple template<typename E>
 
 struct no_copy{
 	no_copy()= default;
@@ -80,8 +91,8 @@ struct no_move{
 	void operator=(no_move const&&)= delete;
 };
 struct no_new{
-	static void* operator new  (sizt)= delete;
-	static void* operator new[](sizt)= delete;
+	static void* operator new  (unsigned long)= delete;
+	static void* operator new[](unsigned long)= delete;
 };
 struct no_assign{
 	void operator=(no_assign const&)= delete;
@@ -119,48 +130,62 @@ void* _malloc( sizt  s);
 void  _free(   void* p);
 void* _realloc(void* p,   sizt s);
 void  _memcpy( void* dst, void* src, sizt len);
+void  _memclr( void* dst, sizt len);
 
-template<typename T>
-inline void copy(T& dst,T& src){
+//these dont give a fuck about move semantics
+tplt inline void copy(T& dst,T& src){
 	_memcpy(&dst,&src,TSIZ);
 }
-
-template<typename T>
-void swap(T& a, T& b){//args must be constructed
+tplt void swap(T& a, T& b){
 	constexpr int s= TSIZ;
-	ui8 c[s];
+	u8 c[s];
 	_memcpy(&c,&a,s);
 	_memcpy(&a,&b,s);
 	_memcpy(&b,&c,s);
 }
-
-template<typename T>
-inline void bump(T& t0, T& t1, T& t){
+tplt inline void bump(T& t0, T& t1, T& t){
 	t0= t1;
 	t1= t;
 }
-template<typename T>
-inline void bump(T& t0, T& t1, T& t2, T& t){
-	//TODO recursive template
+tplt inline void bump(T& t0, T& t1, T& t2, T& t){
 	t0= t1;
 	t1= t2;
 	t2= t;
 }
 
+tpl<typn B, typn A> B reinterpret(A a){
+	ass(sizeof(A)==sizeof(B));
+	return *((B*)(&a));
+}
 
-ui64 unendian(ui64);
-ui32 unendian(ui32);
-ui16 unendian(ui16);
+u64 unendian(u64);
+u32 unendian(u32);
+u16 unendian(u16);
 
-constexpr ui32 RANDMAX= ui32(-1);
-inline ui32 rand(ui32 x){
-	x= ((x>>16)^x)*0x7FFFFFFFU;
-	x= ((x>>16)^x)*0x7FFFFFFFU;
-	x=  (x>>16)^x;
+
+
+//TODO crc intrinsics
+inline hash_t hash(u32 x){
+	x= (x<<8)*0x6487d51ul-x*0x45d9f3bul;
 	return x;
 }
+inline hash_t hash(u64 x){
+	x= (x^((x*0xbf58476d1ce4e5b9ull)>>30));
+	return hash((u32)x);
+}
+inline hash_t hash(void* x){ return hash((u64) x); };
+inline hash_t hash(i32   x){ return hash((u32) x); };
+inline hash_t hash(i64   x){ return hash((u64) x); };
+
+
+tplt cex T INTMAX= (T)(-1);
+inline u32 rand(u32 x){
+	return hash(x);
+}
+
+
 inline float rand(float in){
-	return (float)rand(*(ui32*)&in) / (float)RANDMAX;
+	return (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
 }
 
 //next power of 2
@@ -171,27 +196,12 @@ inline sizt nxpo2(sizt x){
 	return 2<<x;
 }
 
-//convenient, opaque, type-safe indirection
-tpl<typn T, typn I= id>
-struct idptr{
-	I i;
-	idptr(): i(NULLID){};
-	idptr(I i_): i(i_){};
-	operator I(){ return i; }
-	void operator=(I i_){ i= i_; }
-	T& operator*();
-	T* operator->();
-	bool operator!(){ return i==NULLID; };
-};
-tplt struct  eidptr: idptr<T,eid>{};
-tplt struct ecidptr: idptr<T,ecid>{};
-
-template<typename A, typename B=A>
+tpl<typn A, typn B=A>
 struct pair{
 	A a;
 	B b;
 };
-template<typename A, typename B=A, typename C=B>
+tpl<typn A, typn B=A, typn C=B>
 struct triad{
 	A a;
 	B b;
@@ -254,35 +264,41 @@ struct _A{ thingA a; void f(){ a.g(); }; }
 void A_CTOR(void* p){ new((_A*)p)_A(); };//placement
 void A_DTOR(void* p){ ((_A*)p)->~_A(); };
 void A_f(void* p){ ((_A*)p)->f(); };
-
-
-
 */
-#define OPAQUE_DECL(T) \
-void* _;\
-  T();\
-~ T();
+#define OPAQ_CDTOR_DECL(T) T(); ~T();
 
-#define OPAQEXTRN_CDTOR(T) \
+#define OPAQ_CDTOR_DEFR(T) \
 extern void     T##_##CTOR(void*);\
 extern void     T##_##DTOR(void*);\
-inline T:: T(){ T##_##CTOR(_);  };\
-inline T::~T(){ T##_##DTOR(_);  };
+T:: T(){ T##_##CTOR(this);  };\
+T::~T(){ T##_##DTOR(this);  };
 
-#define OPAQEXTRN(T,F) \
+#define OPAQ_M(M) void* M;
+//opaque member to be refereed to
+// and casted by implementation
+//must be first member of struct
+// void* badness requires this
+
+//self void*, member name, typn
+#define OPAQ_M_CTOR(v,T) \
+*((void**)v)= new T();
+#define OPAQ_M_DTOR(v,T) \
+delete ( (T*)(*( (void**)v )) );
+//the void * is a struct with a void*
+//new the T and pass its location
+//into the member values
+#define OPAQ_T_DEREF(v,T,s) \
+T& s= *((T*)(*((void**)v)));
+//some of the most horrendous code ive ever written
+//this WILL be purged
+
+#define OPAQEXTRN_M(T,F) \
 extern void T##_##F(void*); \
 inline void T::F(){ T##_##F(_);}
-
-#define OPAQIMPL_CDTOR(T) \
-void T##_##CTOR(void*& p){ p= new  _##T(); };\
-void T##_##DTOR(void*& p){ delete (_##T*)p; };
-
+//T_F  the opaque function
+//T::F the member function callforwarding to the opaque
 #define OPAQIMPL_F(T,F) \
-void T##_##F(void* p){ ((_##T*)p)->F(); }
-
-
-
-#define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
+void T##_##F(void* p){ ((T*)p)->F(); }
 
 /*(A->void)->(B->void)
 used to opaquify a function pointer
@@ -311,33 +327,59 @@ struct SYM{\
 	RET invoke(){ return f(x); }\
 };
 
+//used for loopy macros to prevent parents mismatch
+//horribly renegade
+#define fauto(S) for(auto& S ;0; )
+
 //range
 #define RA(o,n) for(i64 o=0; o<(n); o++)
+#define RA2(o,n1,n2) for(i64 o=n1; o<(n2); o++)
 //range descending
-#define RD(o,n) for(i64 o=(n)-1; o>-1; o--)
+#define RD(o,n) for(i64 o=(n)-1; o-->=0;)
 #define EACH(o,v) for(auto& o : v)
+#define EACHD(o,v) \
+	for(idx _i##o= v.size()-1; _i##o-->=0;)\
+		for(auto& o= v[_i##o];0;)
+//um okay so uh yea
+// the secondary for is a way of creating a statement
+// without the need for a bracket mismatch
+
 //enumerate
-#define EN(i,o,v) i64 i=-1; EACH(o,v){ i++;
+#define EN(i,o,v) \
+	for(idx i=0; i<v.size(); i++)\
+		fauto(o=v[i])
+#define EN_D(i,o,v) \
+	for(idx i=v.size()-1; i>=0; i--)\
+		fauto(o=v[i])
 
-
+//todo fix the nullderef on 0 sized arrays
 #define ZIP(a,b, la,lb) \
-for(int _i=0; _i!=la.size(); _i++){\
-	auto& a= la[_i];\
-	auto& b= lb[_i];
+	ass(la.size()==lb.size());\
+	for(idx _i##a##b=0; _i##a##b!=la.size(); _i##a##b++)\
+		fauto(a= la[_i##a##b])\
+		fauto(b= lb[_i##a##b])
 
-#define ZIP3(a,b,c, la,lb,lc) \
-for(int _i=0; _i!=la.size(); _i++){ \
-	auto& a= la[_i];\
-	auto& b= lb[_i];\
-	auto& c= lc[_i];
+//#define ZIP3(a,b,c, la,lb,lc) \
+//for(int _i=0; _i!=la.size(); _i++){ \
+//	auto& a= la[_i];\
+//	auto& b= lb[_i];\
+//	auto& c= lc[_i];
+
+
+
+#define OPADDSUB \
+	tpl<typn E> void op+=(E cst& e){ add(e); }\
+	tpl<typn E> void op-=(E cst& e){ sub(e); }
+
+
 
 /*functional macros
  DANGER see examples before hurting yourself
 
 i chose macros over templates for functors.
 macros allow simple declarative lambdas, while templates quickly become arcane.
-macros ultimately expand to strong types, making explicit type redundant.
-and frankly i find template syntax arbitrary and incomprehensible.
+macros ultimately expand to strong types, making explicit typn redundant.
+but mostly i find template syntax arbitrary and incomprehensible.
 */
 
 //puts memeber into scope
@@ -363,6 +405,12 @@ and frankly i find template syntax arbitrary and incomprehensible.
 //MAP_INVOKE_TEMPLATE(T,a,b,c) => T<a>(); T<b>(); T<c>();
 #define MAP_INVOKE_TEMPLATE(T,...) MAP(_FUNCTOR_INVOKE_T1_A0(T), __VA_ARGS__)
 
+//tpl<typn T, T const DEFAULT> struct maybe{
+//	T* t;
+//	T& operator(){ return (!!t)? *t : DEFAULT; }
+//}
+
+
 /*broken and confusing
 namespace functor{
 
@@ -378,22 +426,29 @@ template<typename typename ...LIST>
 void MAP_INVOKE_UNARY(){ MAP<INVOKE_NULLARY,LIST>(); }
 */
 
+//intrinsics
+
+#define   likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
 #ifdef _MSVC_LANG
-	inline ui64 unendian(ui64 i){ return _byteswap_ui64(i); };
-	inline ui32 unendian(ui32 i){ return _byteswap_ulong(i);  };
-	inline ui16 unendian(ui16 i){ return _byteswap_ushort(i); };
+	inline u64 unendian(u64 i){ return _i8swap_u64(i); };
+	inline u32 unendian(u32 i){ return _i8swap_ulong(i);  };
+	inline u16 unendian(u16 i){ return _i8swap_ushort(i); };
 #else
-	inline ui64 unendian(ui64 i){ return __builtin_bswap64(i); };
-	inline ui32 unendian(ui32 i){ return __builtin_bswap32(i); };
-	inline ui16 unendian(ui16 i){ return __builtin_bswap16(i); };	
+	inline u64 unendian(u64 i){ return __builtin_bswap64(i); };
+	inline u32 unendian(u32 i){ return __builtin_bswap32(i); };
+	inline u16 unendian(u16 i){ return __builtin_bswap16(i); };	
 #endif
 
 }//namespace end
 
 
-/*placement new, substitute header <new>
-i guess an intercept in addition to other `new` override??
-maybe for heap debug of placements?
-container orientation obviates this*/
-inline void* op new  (doot::sizt, void* p){ return p; }
-inline void* op new[](doot::sizt, void* p){ return p; }
+#ifndef _DOOT_NO_NEW_
+	/*placement new, substitute header <new>
+	i guess an intercept in addition to other `new` override??
+	maybe for heap debug of placements?
+	container orientation obviates this*/
+	inline void* op new  (unsigned long, void* p) noexcept { return p; }
+	inline void* op new[](unsigned long, void* p) noexcept { return p; }
+#endif

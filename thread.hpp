@@ -9,6 +9,7 @@ message queues explicitly consumed within thread loop
 */
 
 #pragma once
+#include "doot.hpp"
 #include "string.hpp"
 #include "vector.hpp"
 
@@ -22,21 +23,24 @@ CALL_T(thread_arg,void*,void);
 void thread(str name, thread_arg);
 
 struct mutex{
-	OPAQUE_DECL(mutex);
+	OPAQ_M(_);
+	OPAQ_CDTOR_DECL(mutex);
 	void lock();
 	void locknt();
 };
 
 //includes own mutex and predicate. does not wake spuriously
 struct lock{
-	OPAQUE_DECL(lock);
+	OPAQ_M(_);
+	OPAQ_CDTOR_DECL(lock);
 	void wait();//multiple threads may await
 	void wake();//all threads waiting
 };
 
 //countdown semaphore
 struct latch{
-	OPAQUE_DECL(latch);
+	OPAQ_M(_);
+	OPAQ_CDTOR_DECL(latch);
 	void  set(int count);
 	void tick();
 	void wait();
@@ -59,7 +63,7 @@ void init();
 
 //allows the implementation to omit headers
 extern void _dispatch(
-	byte* base, byte* start, sizt stride,
+	i8* base, i8* start, sizt stride,
 	FPTR(task,void*,void));
 
 /*

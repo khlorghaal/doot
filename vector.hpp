@@ -7,6 +7,8 @@ all pointers to elements are invalidated upon nonconst method invocation
 reallocation ignores move and copy constructors
 template checks if object has init function or not, calls upon allocation
 
+subtractions and insertions fuck sorting
+
 TODO heap container that is a generic allocation owner as a superclass of vector
 */
 tplt struct vector: arr<T>, container{
@@ -14,8 +16,8 @@ tplt struct vector: arr<T>, container{
 	using arr<T>::stop;
 	T* cap;
 
-	static constexpr sizt GROW_FACTOR= 4;
-	static constexpr sizt CAP_DEFAULT= 16;//8*16=128
+	static cex sizt GROW_FACTOR= 4;
+	static cex sizt CAP_DEFAULT= 16;//8*16=128
 
 	vector(sizt init_cap);
 	vector(): vector(CAP_DEFAULT){};
@@ -35,24 +37,24 @@ tplt struct vector: arr<T>, container{
 
 	//args forward to ctor
 	tpl<typn... E>
-	T& make(E const&... e);
+	T& add(E const&... e);
 	tpl<typn... E>
-	T& operator+=(E const&... e){ return make(e...); };
+	T& operator+=(E const&... e){ return add(e...); };
 
 	//appends b to this
-	void makev(vector<T>& b){
-		makev((arr<T>&)b);
+	void addv(vector<T>& b){
+		addv((arr<T>&)b);
 	}
-	void makev(arr<T>& b){
+	void addv(arr<T>& b){
 		for(T& e:b)
-			make<T>(e);
+			add<T>(e);
 		//todo opt reserve
 	}
 	
 	//pushes if element is not contained
 	void push_nodup(T const& e);
 	
-	void insert(sizt i, T const& e);
+	void insert(idx i, T const& e);
 	void push_front(T const& e){ insert(0,e); }
 
 	//remove and return last element
@@ -61,13 +63,37 @@ tplt struct vector: arr<T>, container{
 	T pop_front();
 	
 	//swaps element with last and shortens
-	void remove_idx(sizt i);
+	void sub_idx(idx i);
 	//ret true if contained element
-	bool remove_eq(T const& e);	
+	bool sub_eq(T const& e);	
+
+	void sub(arr<idx>);//param must be sorted ascending
+	void op-=(arr<idx> a){ sub(a); }
+
 	void clear();
 };
 
-//s relinquishes its allocation, bestowing it onto d
+tpl<typn T, auto cond> void filter_sub(vector<T>& v){
+	vector<idx> d;
+	EN(i,e,v){
+		if(cond(e))
+			d+=i;
+	}
+	v-=d;
+};
+tplt void vector<T>::sub(arr<idx> d){
+	u64 pi= -1;
+	EACHD(e,d){//descending, remove from end
+		#ifdef DEBUG
+			//ordering is crucial
+			ass(e<pi);
+			pi= e;
+		#endif
+		sub_idx(e);
+	}
+};
+
+//s relinquishes its allocation, stowing d
 //d MUST NOT be initialized, as it will not be destructed
 tplt void waive(vector<T>& d, vector<T>& s){
 	d.base= s.base;
@@ -137,7 +163,7 @@ tplt void vector<T>::expand(){
 
 tplt
 tpl<typn... E>
-T& vector<T>::make(E const&... e){
+T& vector<T>::add(E const&... e){
 	if(stop==cap)
 		expand();
 	ass(stop<cap);
@@ -151,28 +177,28 @@ tplt void vector<T>::push_nodup(T const& e){
 		make(e);
 }
 
-tplt void vector<T>::insert(sizt i, T const& e){
+tplt void vector<T>::insert(idx i, T const& e){
 	ass(false);//lol
 }
 tplt T vector<T>::pop_front(){
 	ass(size()>0);
 	T ret= base[0];
-	remove_idx(0);
+	sub_idx(0);
 	return ret;
 }
 
 //swaps element with last and shortens
-tplt void vector<T>::remove_idx(sizt i){
+tplt void vector<T>::sub_idx(idx i){
 	ass(i>=0&i<size());
 	base[i].~T();
 	base[i]= *--stop;
 }
 //ret true if contained element
-tplt bool vector<T>::remove_eq(T const& e){
+tplt bool vector<T>::sub_eq(T const& e){
 	sizt i= find(*this,e);
 	if(i==NULLIDX)
 		return false;
-	remove_idx(i);
+	sub_idx(i);
 	return true;
 }
 
