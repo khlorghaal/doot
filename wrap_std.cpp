@@ -175,10 +175,24 @@ size_t _strnlen(char const* s, siz n){
 }
 
 
-static std::mutex console_mut;
-void _printf(char const* s){
+struct console_stream{
+	decltype(stdout) self;
+	static console_stream _stdout;
+	static console_stream _stderr;
+};
+console_stream console_stream::_stdout(stdout);
+console_stream console_stream::_stderr(stderr);
+std::mutex console_mut;
+console cout(&console_stream::_stdout);
+console cerr(&console_stream::_stderr);
+extern void _printf(char const*);
+extern void _printf(char const*);
+console& console::operator()(str const& x){
 	console_mut.lock();
-	printf("%s",s);
+	fprintf(stream->self,"%s\n",x.cstr());
 	console_mut.unlock();
-}
+	retthis;
+};
+
+
 };

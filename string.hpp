@@ -81,10 +81,15 @@ unsigned int hash(str const& s);
 
 #define strfmt doot::str::fmt
 
-
+struct console_stream;
 struct console{
+	console_stream* stream;
 	console& op()(str const&);
 	tple console& op()(E e){ op()(str((E)e)); retthis; };
+	//todo
+	//#define FOLD_FUNCFORM(F,OP) \
+	//	inline tpl<typn E...> OP(E const&... es){ OP(f(e,...)); }
+	//FOLD_FUNCFORM(op(),+)
 };
 extern console cout;
 extern console cerr;

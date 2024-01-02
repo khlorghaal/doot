@@ -41,6 +41,8 @@ time_t current_time_us(){
 #ifndef DOOT_NO_MAIN
 	int main(int argc, char* argv[], char* envp[]){
 		#ifdef DEBUG
+		//this is for a VS setup
+		//assume windows users wont launch from term even when debug build
 		doot::create_console();
 		#elif
 		#error

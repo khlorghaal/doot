@@ -59,13 +59,13 @@ extern void create_console();
 //warn the developer of something odd
 extern void warn(char const*);
 //warn the user the application errored and may have invalid state
-extern void bad();
 extern void bad(char const*);
 //crash this program with no survivors
-extern void err();
 extern void err(char const*);
 #define unreachable err("unreachable")
 
+inline void err(){err("");}
+inline void bad(){bad("");}
 
 inline void nop(){}//for setting breakpoints
 

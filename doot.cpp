@@ -19,26 +19,17 @@
 namespace doot{
 
 void warn(char const* m){
-	cout(m);
+	cerr(m);
 }
 void bad(char const* m){
-	cout(m);
+	cerr(m);
 }
 void err(char const* m){
-	cout(m);
+	cerr(m);
 	throw;
 };
-void err(){err("");}
-void bad(){bad("");}
 
 thread_local hash_t frand_seed= 1;
 
-console cout;
-console cerr;
-extern void _printf(char const*);
-console& console::operator()(str const& x){
-	_printf(x.cstr());
-	retthis;
-};
 
 }
