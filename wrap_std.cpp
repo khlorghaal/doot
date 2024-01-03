@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include <threads.h>
 #include <mutex>
@@ -49,7 +50,7 @@ struct _lock{
 struct _latch{
 	_mutex mut;
 	_lock lck;
-	volatile int count= 0;
+	std::atomic<int> count= 0;
 	void set(int count){
 		mut.lock();
 		if(count!=0)
@@ -174,6 +175,13 @@ size_t _strnlen(char const* s, siz n){
 	return strnlen(s,n);
 }
 
+char const* strfmt_cstr(char const* s, ...){
+    va_list args;
+    va_start(args, s);
+    auto ret= strfmt(s, args);
+    va_end(args);
+    return ret;
+}
 
 struct console_stream{
 	decltype(stdout) self;

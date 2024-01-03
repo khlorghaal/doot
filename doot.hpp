@@ -69,14 +69,14 @@ inline void bad(){bad("");}
 
 inline void nop(){}//for setting breakpoints
 
-inline void assert(bool x) {
+ 
+extern char const* strfmt_cstr(char const*,...);
+#define SRCLOC() strfmt_cstr("%i:%i",__FILE__,__LINE__)
 #ifdef DEBUG
-	if(!x)
-		err("failed assert");
+	#define assert(X) {if(!(X)){err(SRCLOC());}}
 #else
-	;
+	#define assert(X) {}
 #endif
-}
 
 
 
@@ -368,8 +368,8 @@ struct SYM{\
 
 
 #define OPADDSUB \
-	tpl<typn E> void op+=(E cst& e){ add(e); }\
-	tpl<typn E> void op-=(E cst& e){ sub(e); }
+	tpl<typn... E> void op+=(E cst&... e){ add(e...); }\
+	tpl<typn... E> void op-=(E cst&... e){ sub(e...); }
 
 
 
@@ -405,10 +405,11 @@ but mostly i find template syntax arbitrary and incomprehensible.
 //MAP_INVOKE_TEMPLATE(T,a,b,c) => T<a>(); T<b>(); T<c>();
 #define MAP_INVOKE_TEMPLATE(T,...) MAP(_FUNCTOR_INVOKE_T1_A0(T), __VA_ARGS__)
 
-//tpl<typn T, T const DEFAULT> struct maybe{
-//	T* t;
-//	T& operator(){ return (!!t)? *t : DEFAULT; }
-//}
+tpl<typn T> struct maybe{
+	T* t;
+	T& none;
+	T& op()(){ return !!t?*t:none; }
+};
 
 
 /*broken and confusing

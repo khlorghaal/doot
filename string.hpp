@@ -77,9 +77,9 @@ struct str{
 	sizt size() const{ return dat.size()-1; }//because null terminator
 };
 
-unsigned int hash(str const& s);
+#define strfmt str::fmt
 
-#define strfmt doot::str::fmt
+unsigned int hash(str const& s);
 
 struct console_stream;
 struct console{
