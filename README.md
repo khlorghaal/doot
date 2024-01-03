@@ -1,7 +1,7 @@
 The Data Oriented Orthodox Template Library is an attempt to remove and wrap the insanity of modern c++, replacing it with data oriented templates and data transform functions.  
 All of the STL is strictly removed from headers, this removes approximately [40-400]kLOC from most compilation units, dramatically reducing compilation times, nearer what would be expected of C.  
 
-DOOT is potentially multipurpose, but is intended for gamedev, and is being used as the basis for the unreleased vulkan framework DOOGF  
+DOOT is potentially multipurpose, but is intended for gamedev
 
 
 Warps  
@@ -28,27 +28,22 @@ Allocations should be done as high on the stack as sensible.
 Freeing must always be done within the same scope as its matching allocation.  
 Memory ownership transfers may only be done for thread communication.  
 
-Don't use nondefault copy or move constructors.  
- Containers are the exception, as a move ctor of a stack object is the only way for them to invoke a constructor without placement new.  
+Don't use copy or move constructors ever.  
+ Containers do construction by being passed a template<E...> for a placement new.  
+ Internally, str is the only exception.
 
 Raw memory reallocs of an object must always be valid.  
  Pointer field assignments must not be relative to this.  
+ Pointers into a container should never be moved up the scope.  
 
 Pointers to objects in containers are invalidated whenever the container is modified.  
 Never use pointers to objects in a container outside of local scope.  
 
-Eschew raw pointers and new/delete,  
-in favor of containers and container references.  
+Methods may only modify fields of this, and function ref params.  
 
-Methods may only modify fields of this, and function parameters.  
-
-No copy or move semantics.  
- String is currently a dootnt exception  
 Constructors and destructors are fine.  
  Containers call default ctor and dtor.  
  Must obey law of methods.  
-No in-place new, use init methods.
- This is undesirable, but placement-new for whatever stupid reason requires STL
 
 Use the suffix "n't" whenever possible  
  lock - locknt  
@@ -65,8 +60,8 @@ Use the suffix "n't" whenever possible
 Nomenclature  
  add: allocate into a container
  sub: subtract from a container, freeing
- make: construct something at a high level, often adds internally  
- kill: dtor of make
+ make: construct something at an abstract level, often including an add internally  
+ kill: maken't
 
 
 DOOT DOOT DOOT DOOT HONK DOO DOOT DOOT DOO DOOT DOOT DOOT DOOT DOOT HONK DOO DOOT DOOT DOO DOOT  
