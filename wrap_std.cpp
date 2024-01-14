@@ -23,7 +23,7 @@ using namespace std::chrono;
 
 namespace doot{
 
-extern void err(char const*);
+extern void _err(char const*, char const*);
 
 struct _mutex:std::mutex{};
 //i dont remember why this isnt a typedef
@@ -176,11 +176,11 @@ size_t _strnlen(char const* s, siz n){
 }
 
 char const* strfmt_cstr(char const* s, ...){
-    va_list args;
-    va_start(args, s);
-    auto ret= strfmt(s, args);
+	va_list args;
+	va_start(args,s);
+    auto ret= strfmt(s,args);
     va_end(args);
-    return ret;
+    retret;
 }
 
 struct console_stream{
@@ -190,16 +190,14 @@ struct console_stream{
 };
 console_stream console_stream::_stdout(stdout);
 console_stream console_stream::_stderr(stderr);
-std::mutex console_mut;
+std::mutex console_mut= std::mutex();
 console cout(&console_stream::_stdout);
 console cerr(&console_stream::_stderr);
-extern void _printf(char const*);
-extern void _printf(char const*);
 console& console::operator()(str const& x){
 	console_mut.lock();
-	fprintf(stream->self,"%s\n",x.cstr());
+	fprintf(stream->self,"%s\n",(cstr)x);
 	console_mut.unlock();
-	retthis;
+	rett;
 };
 
 

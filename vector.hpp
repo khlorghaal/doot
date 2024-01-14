@@ -42,13 +42,13 @@ tplt struct vector: arr<T>, container{
 	T& operator+=(E const&... e){ return add(e...); };
 
 	//appends b to this
-	void addv(vector<T>& b){
+	void addv(vector<T> cst& b){
 		addv((arr<T>&)b);
 	}
-	void addv(arr<T>& b){
+	void addv(arr<T> cst& b){
+		realloc_greed(size()+b.size());
 		for(T& e:b)
 			add<T>(e);
-		//todo opt reserve
 	}
 	
 	//pushes if element is not contained
@@ -96,6 +96,8 @@ tplt void vector<T>::sub(arr<idx> d){
 //s relinquishes its allocation, stowing d
 //d MUST NOT be initialized, as it will not be destructed
 tplt void waive(vector<T>& d, vector<T>& s){
+	if(d.base!=null && d.size()==0)
+		warn("vector waive destination not empty");
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;

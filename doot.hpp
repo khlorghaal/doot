@@ -10,16 +10,19 @@
 #endif
 
 #define TSIZ sizeof(T)
-#define lengthof(T) (sizeof(T)/sizeof(T[0]))
 
 #define retthis return *this
+#define retth   return *this
+#define rett    return *this
+#define retr   return r
+#define retret return ret;
 
 #define op operator
 #define tpl template
 #define typn typename
 #define tplt template<typename T>
 #define tple template<typename E>
-#define tples template<typename E...>
+#define tples template<typename... E>
 #define ass assert
 #define cst const
 #define cex constexpr
@@ -54,26 +57,35 @@ extern int dootmain(int argc, char** argv);
 namespace doot{
 
 extern void run_tests();
+
 extern void create_console();
 
+extern cstr strfmt_cstr(cstr,...);
+
+#define _stringize(s) #s
+#define stringize(s) _stringize(s)
+#define SRCLOC " " __FILE__ ":" stringize(__LINE__) ": "
+//spaces required, no spaces invokes operator""
+//the nesting acts an an eval, as __LINE__ is an int
+
+
 //warn the developer of something odd
-extern void warn(char const*);
+extern void _warn(cstr,cstr);
+#define warn(s) _warn((SRCLOC),s);
 //warn the user the application errored and may have invalid state
-extern void bad(char const*);
+extern void _bad(cstr,cstr);
+#define bad(s) _bad((SRCLOC),s);
 //crash this program with no survivors
-extern void err(char const*);
+extern void _err(cstr,cstr);
+#define err(s) _err((SRCLOC),s);
 #define unreachable err("unreachable")
 
-inline void err(){err("");}
-inline void bad(){bad("");}
 
 inline void nop(){}//for setting breakpoints
 
- 
-extern char const* strfmt_cstr(char const*,...);
-#define SRCLOC() strfmt_cstr("%i:%i",__FILE__,__LINE__)
+
 #ifdef DEBUG
-	#define assert(X) {if(!(X)){err(SRCLOC());}}
+	#define assert(X) {if(!(X)){err("ass failure: " stringize(X));}}
 #else
 	#define assert(X) {}
 #endif
@@ -335,10 +347,10 @@ struct SYM{\
 #define RA(o,n) for(i64 o=0; o<(n); o++)
 #define RA2(o,n1,n2) for(i64 o=n1; o<(n2); o++)
 //range descending
-#define RD(o,n) for(i64 o=(n)-1; o-->=0;)
+#define RD(o,n) for(i64 o=(n); o-->0;)
 #define EACH(o,v) for(auto& o : v)
 #define EACHD(o,v) \
-	for(idx _i##o= v.size()-1; _i##o-->=0;)\
+	for(idx _i##o= v.size(); _i##o-->0;)\
 		for(auto& o= v[_i##o];0;)
 //um okay so uh yea
 // the secondary for is a way of creating a statement
@@ -372,7 +384,6 @@ struct SYM{\
 	tpl<typn... E> void op-=(E cst&... e){ sub(e...); }
 
 
-
 /*functional macros
  DANGER see examples before hurting yourself
 
@@ -383,7 +394,7 @@ but mostly i find template syntax arbitrary and incomprehensible.
 */
 
 //puts memeber into scope
-#define BIND(o,m) auto& m= (o).m;
+#define usef(o,m) auto& m= (o).m;
 
 //#define FWD_CAST(R,M,A,B) R M(A a){ return M((B)a); }
 
@@ -407,8 +418,10 @@ but mostly i find template syntax arbitrary and incomprehensible.
 
 tpl<typn T> struct maybe{
 	T* t;
-	T& none;
-	T& op()(){ return !!t?*t:none; }
+	static maybe<T> yes(T* t){ ass(t!=null); return {   t}; };
+	static maybe<T>  no(){                   return {null}; };
+	bool op!(){ return !t; }
+	T& op()(T& none){ return !!t?*t:none; }
 };
 
 

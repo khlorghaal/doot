@@ -95,15 +95,15 @@ void create_console(){
 namespace doot{
 
 bool file_lock(str& name){
-	FILE* file= fopen(name.cstr(), "rw");
+	FILE* file= fopen(name, "rw");
 	return !!ftrylockfile(file);
 }
 void file_unlock(str& name){
-	FILE* file= fopen(name.cstr(), "rw");
+	FILE* file= fopen(name, "rw");
 	funlockfile(file);
 }
 bool file_dump(vector<u8>& ret, str& name){
-	FILE* file= fopen(name.cstr(), "r");
+	FILE* file= fopen(name, "r");
 	//char* errstr= strerror(ferr);
 	if(!!errno)
 		return true;
@@ -154,7 +154,7 @@ bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
 	#elif UNIX
 
 	#endif
-	fchgmap.add<fchgcall>(fname.cstr(), {callback,callbackarg});
+	fchgmap.add<fchgcall>(fname, {callback,callbackarg});
 	return false;
 }
 

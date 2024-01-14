@@ -52,6 +52,7 @@ inline float mod(float x,float m){ return fmodf(x,m); }
 template<typename T>
 inline T sign(T const x){
 	return (x>0)-(x<0);
+	//todo intrinsic
 }
 
 template<typename T>

@@ -14,6 +14,8 @@ id->idx->T
 Uses an associative array of id->idx
 to map into an unsorted gapless heap (bag) of T.
 
+is basically a specialized map<id,T>, where ids are small coherent numbers
+
 IDs are allocated externally, ideally by an index_recycler
 */
 tplt struct idheap: container{
@@ -188,7 +190,7 @@ T& idheap<T>::add(id id, E const& ... e){
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		err(str::fmt("entry already present %i - %i",id,map[id]).cstr());
+		err(strfmt("entry already present %i - %i",id,map[id]));
 
 	ass(ids.size()==heap.size());
 	sizt idx= heap.size();

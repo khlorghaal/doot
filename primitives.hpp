@@ -19,6 +19,7 @@ using u32= unsigned   int;
 using u64= unsigned  long long;
 using f32=  float;
 using f64=  double;
+using cstr= char const*;
 
 #define null 0
 //must define otherwise endless type coercion bitching

@@ -6,7 +6,6 @@
 #include "idheap.hpp"
 #include "ringbuffer.hpp"
 
-#ifdef DEBUG
 namespace doot{
 void run_tests(){
 	profiler pf;
@@ -22,11 +21,11 @@ void run_tests(){
 		ass(c=="asdfzxcv");
 		str d= c; d.clear(); d+= "qwer";
 		ass(d=="qwer");
-		str g= str::fmt("a%s","b").fmtcat("%s","c");
+		str g= str::fmt("a%s","b")+strfmt("%s","c");
 		ass(g=="abc");
 		str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,1.f);
 		ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
-		str e= d; e.fmtcat("%s%i",d.cstr(),0);
+		str e= d; e+=strfmt("%s%i",(cstr)d,0);
 		ass(e=="qwerqwer0");
 	}
 
@@ -208,4 +207,3 @@ void run_tests(){
 	cout("tests completed");
 };
 }
-#endif

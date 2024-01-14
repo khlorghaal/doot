@@ -4,7 +4,7 @@ namespace doot{
 
 extern void _thread(char const*, FPTR(_,void*,void),void*);
 void thread(str name, thread_arg tharg){
-	_thread(name.cstr(), tharg.f, tharg.x);
+	_thread(name, tharg.f, tharg.x);
 }
 
 

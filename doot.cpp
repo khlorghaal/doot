@@ -8,7 +8,9 @@
 #include "thread.hpp"
 #include "file.hpp"
 
+#ifdef DEBUG
 #include "tests.impl.hpp"
+#endif
 
 #include "string.impl.hpp"
 #include "bytebuf.impl.hpp"
@@ -18,14 +20,15 @@
 
 namespace doot{
 
-void warn(char const* m){
-	cerr(m);
+void _warn(char const* s, char const* m){
+	cerr(str(s)+m);
 }
-void bad(char const* m){
-	cerr(m);
+void _bad(char const* s, char const* m){
+	//todo? idk if i like the concept of bad
+	cerr(str(s)+m);
 }
-void err(char const* m){
-	cerr(m);
+void _err(char const* s, char const* m){
+	cerr(str(s)+m);
 	throw;
 };
 

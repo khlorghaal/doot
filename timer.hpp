@@ -43,7 +43,7 @@ struct profiler{
 	us beg;
 	us end;
 
-	void start(str const&);
+	void start(str);
 	void stop();
 };
 
