@@ -7,7 +7,6 @@ using size_t= siz;
 
 constexpr int STRMAX= 0x1000;
 
-//sdtdio has count defined, macro interference
 extern sizt _vsnprintf( char * buf, size_t bufsz,
                const char * fmt, va_list vlist);
 
@@ -15,7 +14,7 @@ extern sizt _strnlen(char const*,sizt);
 
 str str::fmt(char const* fmt, ...){
 	str ret;
-	usef(ret,dat);
+	usem(ret,dat);
 
 	va_list vargs;
 	va_start(vargs,fmt);
@@ -24,14 +23,9 @@ str str::fmt(char const* fmt, ...){
 	//these are rudely mutated by printf
 
 	sizt l= _vsnprintf(0,0,fmt,vargs)+1;
-	sizt c= dat.capacity();
-	sizt s= dat.size();
-	sizt n= s+l;
-	if(n>c)
-		dat.realloc(n);
-	dat.stop--;
-	_vsnprintf(dat.stop,l,fmt,vargc);
-	dat.stop+= l;
+	dat.realloc(l);
+	dat.stop= dat.base+l;
+	_vsnprintf(dat.base,l,fmt,vargc);
 
 	va_end(vargc);
 	va_end(vargs);
@@ -40,18 +34,13 @@ str str::fmt(char const* fmt, ...){
 };
 
 bool str::operator==(str const& that) const{
-	if(dat.base==that.dat.base)
-		return true;
-	if(size()!=that.size())
-		return false;
- 
-	arr<char> a= dat;
-	arr<char> b= that.dat;
-	auto n= size();
-	ZIP(x,y,a,b)
-		if(unlikely(x!=y))
-			return false;
-	return true;
+	if(dat==that.dat)
+		re 1;
+	ZIP(a,b,dat,that.dat){
+		if(unlikely(a!=b))
+			re 0;
+	}
+	re 1;
 }
 
 

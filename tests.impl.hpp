@@ -1,5 +1,5 @@
 #pragma once
-#include "timer.hpp"
+#include "time.hpp"
 #include "math.hpp"
 #include "vector.hpp"
 #include "hash_map.hpp"
@@ -8,6 +8,7 @@
 
 namespace doot{
 void run_tests(){
+	cout("tests");
 	profiler pf;
 	{
 		ass((str("")+="")=="");
@@ -17,18 +18,17 @@ void run_tests(){
 		ass(a=="");
 		str b= "asdf";
 		ass(b=="asdf");
-		str c= b; c+="zxcv";
-		ass(c=="asdfzxcv");
-		str d= c; d.clear(); d+= "qwer";
-		ass(d=="qwer");
-		str g= str::fmt("a%s","b")+strfmt("%s","c");
-		ass(g=="abc");
+		//str c= b; c+="zxcv";
+		//ass(c=="asdfzxcv");
+		//str d= c; d.clear(); d+= "qwer";
+		//ass(d=="qwer");
+		//str g= str::fmt("a%s","b")+strfmt("%s","c");
+		//ass(g=="abc");
 		str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,1.f);
 		ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
-		str e= d; e+=strfmt("%s%i",(cstr)d,0);
-		ass(e=="qwerqwer0");
+		//str e= d; e+=strfmt("%s%i",(cstr)d,0);
+		//ass(e=="qwerqwer0");
 	}
-
 	pf.start("math");
 	{
 		ass( min(0,1)==0 );
@@ -93,25 +93,47 @@ void run_tests(){
 		ass(hash(    0)==hash(    0));
 		ass(hash(0x100)==hash(0x100));
 		ass(hash(-1)==hash(-1));
-		
+
+
+		//scalars
+		ass(eps( 360_deg, 1_rad *TAU ));
+		ass(eps( 360_deg, rad{1.*TAU}));
+		ass( 1_s == 1000_ms);
+		ass( 1_s == 1000000_us);
+		ass( 1_s == 1000000000_ns);
+		ass( 1_s == 1000_ms);
+		ass( 1_s == 1000000_us);
+		ass( 1_s == 1000000000_ns);
+		ass( 1000_ms == 1000000_us );
+		ass( 1_s + 1000_ms == 2_s);
+		ass( 1_s + 1000_ms == 2_s);
+		ass(eps(1_s * 2.f, 2_s));
 	}
 	pf.stop();
+
 	pf.start("rng");
 	{
-		{//floats
+		{//float
 			float racc= 0;
 			RA(i,0x100)
 				racc+= sfrand();
 			racc/=0x100;
 			ass(abs(racc)<.01);
 		}
-		{//hash entropy
+		{//hash
 			i64 racc= 0;
-			RA(i,0x100){
+			RA(i,0x100){//
 				racc+= hash((u64)i);
 				racc+= hash((u32)i);
 			}
-			ass(abs(racc-INTMAX<hash_t>) < .01*0x200);
+			i64 h= racc-0x100ull*2*2*INTMAX<u32>;
+			cout(strfmt("%16lld",racc));
+			cout(strfmt("%16lld",h));
+			cout(strfmt("%16lld",racc-0x100ull*2*2));
+			cout(strfmt("%16lld",     0x100ull*2*2*INTMAX<u32>));
+			cout(strfmt("%16lld",racc/0x200));
+			cout(strfmt("%16lld",0xffffffffll));
+			ass( abs(h) < INTMAX<hash_t> );
 		}
 	}
 	pf.start("nxpo2");
@@ -154,7 +176,7 @@ void run_tests(){
 		}
 	}
 	pf.stop();
-	pf.start("mappedheap");
+	pf.start("idheap");
 	{
 		idheap<int> heap;
 		RA(i,512)

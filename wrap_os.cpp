@@ -1,10 +1,11 @@
 //OS specific stuff
+#import "time.hpp"
 
 #ifndef DOOT_NO_MAIN
 	extern int dootmain(int, char**);
 #endif
 // DOOT_NO_MAIN used for linked libs
-// whom havent a main
+// whom havent main
 
 #ifdef __linux__
 #include <time.h>
@@ -20,15 +21,10 @@ namespace doot{
 void create_console(){
 	//TODO
 }
-time_t current_time_ms(){
+nsec current_time(){
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC,&t);
-	return t.tv_nsec*1000000;
-}
-time_t current_time_us(){
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC,&t);
-	return t.tv_nsec*1000;
+	return t.tv_nsec;
 }
 
 }
@@ -57,19 +53,12 @@ time_t current_time_us(){
 
 namespace doot{
 
-time_t current_time_ms(){
+nsec current_time(){
 	LARGE_INTEGER f;
 	QueryPerformanceFrequency(&f);
 	LARGE_INTEGER t;
 	QueryPerformanceCounter(&t);
-	return t.QuadPart/(f.QuadPart/1000ll);
-}
-time_t current_time_us(){
-	LARGE_INTEGER f;
-	QueryPerformanceFrequency(&f);
-	LARGE_INTEGER t;
-	QueryPerformanceCounter(&t);
-	return t.QuadPart/(f.QuadPart/1000000ll);
+	return t.QuadPart/(f.QuadPart/1000000000ll);
 }
 
 void create_console(){

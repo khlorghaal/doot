@@ -11,23 +11,31 @@
 
 #define TSIZ sizeof(T)
 
+#define re return
 #define retthis return *this
 #define retth   return *this
 #define rett    return *this
 #define retr   return r
 #define retret return ret;
 
+#define inl inline
 #define op operator
 #define tpl template
 #define typn typename
 #define tplt template<typename T>
 #define tple template<typename E>
 #define tples template<typename... E>
-#define ass assert
 #define cst const
+#define cre const&
+#define acs auto const
+#define acr auto const&
+#define are auto&
 #define cex constexpr
+#define sex static constexpr
+#define ass assert
 #define rcas reinterpret
 #define extc extern "C"
+#define dtyp decltype
 
 #define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
 
@@ -52,7 +60,9 @@
 	#define DOOOT doot;
 #endif
 
-extern int dootmain(int argc, char** argv);
+#ifndef DOOT_NO_MAIN
+	extern int dootmain(int argc, char** argv);
+#endif
 
 namespace doot{
 
@@ -133,6 +143,7 @@ struct container{
 	container& operator=(container&&)= delete;//move
 };
 
+
 /*raw memory, bypassing any construction or destruction
 should only be used by containers
 dont use unless know what doing*/
@@ -170,38 +181,62 @@ tpl<typn B, typn A> B reinterpret(A a){
 	return *((B*)(&a));
 }
 
-u64 unendian(u64);
-u32 unendian(u32);
-u16 unendian(u16);
 
 
 
-//TODO crc intrinsics
-inline hash_t hash(u32 x){
-	x= (x<<8)*0x6487d51ul-x*0x45d9f3bul;
-	return x;
+tplt cex T INTMAX;
+tpl<> inl cex  i8 INTMAX< i8> = 0x7f;
+tpl<> inl cex i16 INTMAX<i16> = 0x7fff;
+tpl<> inl cex i32 INTMAX<i32> = 0x7fffffff;
+tpl<> inl cex i64 INTMAX<i64> = 0x7fffffffffffffff;
+tpl<> inl cex  u8 INTMAX< u8> = 0xff;
+tpl<> inl cex u16 INTMAX<u16> = 0xffff;
+tpl<> inl cex u32 INTMAX<u32> = 0xffffffff;
+tpl<> inl cex u64 INTMAX<u64> = 0xffffffffffffffff;
+
+tplt cex T HUGE;
+tplt cex T TINY;
+tpl<> inline cex f32 HUGE<f32> = 1e32f;
+tpl<> inline cex f32 TINY<f32> = 1e-32f;
+tpl<> inline cex f64 HUGE<f64> = 1e300 ;
+tpl<> inline cex f64 TINY<f64> = 1e-300;
+cex f32 ETA= 1.e-5;//kinda small but not really
+
+
+//tplt struct MAP_KIND;
+//#define MAPT(S,A,B) tpl<> struct MAP_KIND_##S<A>{ using T= B };
+//DEMAPT(S) using MAP_KIND_##S<A>::T
+//MAPT(signedT,  u8, i8 )
+//MAPT(signedT, u16, i16)
+//MAPT(signedT, u32, i32)
+//MAPT(signedT, u64, i64)
+//MAPT(signedT,   T, T  )
+
+
+inl hash_t hash(u32 x){
+	//murmur
+	x*= 0xcc9e2d51;
+    x^=(x<<15)|(x>>17);
+    x*= 0x1b873593;
+	re x;
 }
-inline hash_t hash(u64 x){
-	x= (x^((x*0xbf58476d1ce4e5b9ull)>>30));
-	return hash((u32)x);
+inl hash_t hash(u64 x){
+	x= x^(x*0xbf58476d1ce4e5b9ull);
+	re hash((u32)x);
 }
-inline hash_t hash(void* x){ return hash((u64) x); };
-inline hash_t hash(i32   x){ return hash((u32) x); };
-inline hash_t hash(i64   x){ return hash((u64) x); };
+inl hash_t hash(void* x){ re hash((u64) x); };
+inl hash_t hash(i32   x){ re hash((u32) x); };
+inl hash_t hash(i64   x){ re hash((u64) x); };
 
-
-tplt cex T INTMAX= (T)(-1);
-inline u32 rand(u32 x){
+inl u32 rand(u32 x){
 	return hash(x);
 }
-
-
-inline float rand(float in){
+inl float rand(float in){
 	return (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
 }
 
 //next power of 2
-inline sizt nxpo2(sizt x){
+inl sizt nxpo2(sizt x){
 	x= __builtin_clzll(x);
 	x= 64-x;
 	ass(x<63);
@@ -341,7 +376,7 @@ struct SYM{\
 
 //used for loopy macros to prevent parents mismatch
 //horribly renegade
-#define fauto(S) for(auto& S ;0; )
+#define fauto(S) if(auto& S;1)
 
 //range
 #define RA(o,n) for(i64 o=0; o<(n); o++)
@@ -351,7 +386,7 @@ struct SYM{\
 #define EACH(o,v) for(auto& o : v)
 #define EACHD(o,v) \
 	for(idx _i##o= v.size(); _i##o-->0;)\
-		for(auto& o= v[_i##o];0;)
+		fauto(o= v[_i##o])
 //um okay so uh yea
 // the secondary for is a way of creating a statement
 // without the need for a bracket mismatch
@@ -364,12 +399,12 @@ struct SYM{\
 	for(idx i=v.size()-1; i>=0; i--)\
 		fauto(o=v[i])
 
-//todo fix the nullderef on 0 sized arrays
 #define ZIP(a,b, la,lb) \
-	ass(la.size()==lb.size());\
-	for(idx _i##a##b=0; _i##a##b!=la.size(); _i##a##b++)\
-		fauto(a= la[_i##a##b])\
-		fauto(b= lb[_i##a##b])
+	RA(_i##a##b, la.size())\
+		fauto(a=la[_i##a##b])\
+			fauto(b=lb[_i##a##b])
+
+//symcats must use the symbol names not the vectors, as the vector symbols may be expressions
 
 //#define ZIP3(a,b,c, la,lb,lc) \
 //for(int _i=0; _i!=la.size(); _i++){ \
@@ -394,7 +429,7 @@ but mostly i find template syntax arbitrary and incomprehensible.
 */
 
 //puts memeber into scope
-#define usef(o,m) auto& m= (o).m;
+#define usem(o,m) auto& m= (o).m;
 
 //#define FWD_CAST(R,M,A,B) R M(A a){ return M((B)a); }
 
@@ -404,9 +439,20 @@ but mostly i find template syntax arbitrary and incomprehensible.
 //CURRY2(F) => F( g(h(x)) )
 #define CURRY2(F) _CURRY2_x(F)
 
-#define MAP(vec,f,a...) EACH(_e,vec){ _e.f(a); }
+#define VOIDMAP(vec,f,a...) EACH(_e,vec){ _e.f(a); }
 
 
+/*a primitive that enforces casting
+ie seconds and miliseconds, degrees and radians
+T: the underlying primitive
+C: crtp leaf class
+BASIS: the subtype within the scalar-kind with unit = 1
+*/
+tpl<typn T, typn S> struct scalar{
+	T v=0;
+	op T(){ re v; }
+};
+#define SCALAR_RATIO(A,B) *B::unit/A::unit
 
 #define _FUNCTOR_INVOKE_T0_A1(T) EVAL(T< >(x));
 #define _FUNCTOR_INVOKE_T1_A0(T) EVAL(T<x>( ));
@@ -425,25 +471,11 @@ tpl<typn T> struct maybe{
 };
 
 
-/*broken and confusing
-namespace functor{
-
-template<typename LAMBDA, typename ...LIST>
-inline void MAP(){ LAMBDA<LIST...>(); }
-
-template<typename T, typename F> inline void INVOKE_NULLARY( ){ T::F( ); }
-template<typename T, typename F> inline void INVOKE_UNARY(T t){ T::F(t); }
-
-template<typename ...LIST>
-void MAP_INVOKE_NULLARY(){ MAP<INVOKE_NULLARY,LIST>(); }
-template<typename typename ...LIST>
-void MAP_INVOKE_UNARY(){ MAP<INVOKE_NULLARY,LIST>(); }
-*/
-
 //intrinsics
 
-#define   likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define   likely(x) __builtin_expect(x, 1)
+#define unlikely(x) __builtin_expect(x, 0)
+
 
 #ifdef _MSVC_LANG
 	inline u64 unendian(u64 i){ return _i8swap_u64(i); };

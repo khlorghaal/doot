@@ -75,7 +75,7 @@ inline gvec2<T> lerp(float t,gvec2<T> const& a,gvec2<T> const& b){
 //unary
 template<typename T> inline T len(gvec2<T> const& a){ return sqrt(a.x*a.x + a.y*a.y); }
 template<typename T> inline gvec2<T> norm(gvec2<T> const& a){ return a/len(a); }
-template<typename T> inline double angle(gvec2<T> const& a){ return atan2((double)a.y,(double)a.x); }
+template<typename T> inline double atan(gvec2<T> const& a){ return atan2((double)a.y,(double)a.x); }
 
 template<typename T> inline T dot(gvec2<T> const& a,gvec2<T> const& b){ return a.x*b.x + a.y*b.y; }
 template<typename T> inline gvec2<T> rot4(gvec2<T> const& a){ return {a.y,-a.x}; }
@@ -86,18 +86,18 @@ template<typename T> inline gvec2<T> min(gvec2<T> a,gvec2<T> b){ return {min(a.x
 template<typename T> inline gvec2<T> max(gvec2<T> a,gvec2<T> b){ return {max(a.x,b.x),max(a.y,b.y)}; }
 
 //scalar n-ary
-template<typename T> inline gvec2<T> abs(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(abs(x),abs(y)); }
-template<typename T> inline gvec2<T> sign(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(x>0?1:x<0?-1:0,y>0?1:y<0?-1:0); }
-template<typename T> inline gvec2<T> fract(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(fract(x),fract(y)); }
-template<typename T> inline gvec2<T> floor(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(floor(x),floor(y)); }
-template<typename T> inline gvec2<T> ciel(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(ciel(x),ciel(y)); }
-template<typename T> inline gvec2<T> sin(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(sin(x),sin(y)); }
-template<typename T> inline gvec2<T> cos(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(cos(x),cos(y)); }
-template<typename T> inline gvec2<T> sqrt(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(sqrt(x),sqrt(y)); }
-template<typename T> inline gvec2<T> log(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(log(x),log(y)); }
-template<typename T> inline gvec2<T> log2(gvec2<T> a){ T const& x= a.x,y= a.y; return gvec2<T>(log2(x),log2(y)); }
-template<typename T> inline gvec2<T> pow(gvec2<T> a,T p){ T const& x= a.x,y= a.y; return gvec2<T>(pow(x,p),pow(y,p)); }
-template<typename T> inline gvec2<T> mod(gvec2<T> a,T m){ T const& x= a.x,y= a.y; return gvec2<T>(mod(x,m),mod(y,m)); }
+tplt inl gvec2<T>   abs(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(abs(x),abs(y)); }
+tplt inl gvec2<T>  sign(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(sign(x),sign(y)); }
+tplt inl gvec2<T> fract(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(fract(x),fract(y)); }
+tplt inl gvec2<T> floor(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(floor(x),floor(y)); }
+tplt inl gvec2<T>  ciel(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(ciel(x),ciel(y)); }
+tplt inl gvec2<T>   sin(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(sin(x),sin(y)); }
+tplt inl gvec2<T>   cos(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(cos(x),cos(y)); }
+tplt inl gvec2<T>  sqrt(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(sqrt(x),sqrt(y)); }
+tplt inl gvec2<T>   log(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(log(x),log(y)); }
+tplt inl gvec2<T>  log2(gvec2<T> a){     T x= a.x,y= a.y; re gvec2<T>(log2(x),log2(y)); }
+tplt inl gvec2<T>   pow(gvec2<T> a,T p){ T x= a.x,y= a.y; re gvec2<T>(pow(x,p),pow(y,p)); }
+tplt inl gvec2<T>   mod(gvec2<T> a,T m){ T x= a.x,y= a.y; re gvec2<T>(mod(x,m),mod(y,m)); }
 
 
 

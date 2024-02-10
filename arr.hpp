@@ -202,4 +202,17 @@ inline idx find(arr<T> a, T val){
 	return nullidx;
 }
 
+
+tplt bool operator==(arr<T> a, arr<T>b){
+	if(a.size()!=b.size())
+		return false;
+	if(a.base==b.base && a.stop==b.stop)
+		return true;
+
+	ZIP(x,y,a,b)
+		if(unlikely(x!=y))
+			return false;
+	return true;
+}
+
 }

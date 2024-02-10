@@ -21,19 +21,16 @@ using f32=  float;
 using f64=  double;
 using cstr= char const*;
 
+using fL= long double;//abomination should only be used for constexprs
+
 #define null 0
 //must define otherwise endless type coercion bitching
 
-#define CEX extern "C"
 
-using hash_t= u32;
-hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;
-float constexpr HASH_MAX_F= float(HASH_MAX);
-
-using sec= i64;
-using ms=  i64;
-using us=  i64;
-using ns=  i64;
+using time_t= i64;
+using nsec= time_t;//nanoseconds are the standard time unit
+//for clarity, do not statefully store or pass other time units
+//i tried strongly typed implicit scalar basis conversions, but it was against the will of god
 
 using index=  u32;
 using idx= index;;
@@ -56,7 +53,11 @@ struct ecid{
 };//entity->element IDs
 const ecid NULLECID= {NULLID,NULLID};
 
-sizt constexpr TOO_BIG= 0x10000000ULL-1;
+using hash_t= u32;
+hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;
+f32 constexpr HASH_MAX_F= f32(HASH_MAX);
+
+siz constexpr TOO_BIG= 0x10000000ULL-1;
 //no reasonable allocation allowed to excede
 
 }

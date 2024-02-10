@@ -37,9 +37,9 @@ tplt struct vector: arr<T>, container{
 
 	//args forward to ctor
 	tpl<typn... E>
-	T& add(E const&... e);
+	T& add(E cre... e);
 	tpl<typn... E>
-	T& operator+=(E const&... e){ return add(e...); };
+	T& op+=(E cre... e){ return add(e...); };
 
 	//appends b to this
 	void addv(vector<T> cst& b){
@@ -52,10 +52,10 @@ tplt struct vector: arr<T>, container{
 	}
 	
 	//pushes if element is not contained
-	void push_nodup(T const& e);
+	void push_nodup(T cre e);
 	
-	void insert(idx i, T const& e);
-	void push_front(T const& e){ insert(0,e); }
+	void insert(idx i, T cre e);
+	void push_front(T cre e){ insert(0,e); }
 
 	//remove and return last element
 	T pop(){ ass(size()>0); return *--stop; }
@@ -65,7 +65,7 @@ tplt struct vector: arr<T>, container{
 	//swaps element with last and shortens
 	void sub_idx(idx i);
 	//ret true if contained element
-	bool sub_eq(T const& e);	
+	bool sub_eq(T cre e);	
 
 	void sub(arr<idx>);//param must be sorted ascending
 	void op-=(arr<idx> a){ sub(a); }
@@ -165,7 +165,7 @@ tplt void vector<T>::expand(){
 
 tplt
 tpl<typn... E>
-T& vector<T>::add(E const&... e){
+T& vector<T>::add(E cre... e){
 	if(stop==cap)
 		expand();
 	ass(stop<cap);
@@ -174,12 +174,12 @@ T& vector<T>::add(E const&... e){
 
 
 //pushes if element is not contained
-tplt void vector<T>::push_nodup(T const& e){
+tplt void vector<T>::push_nodup(T cre e){
 	if(find(*this,e)==NULLIDX)
 		make(e);
 }
 
-tplt void vector<T>::insert(idx i, T const& e){
+tplt void vector<T>::insert(idx i, T cre e){
 	ass(false);//lol
 }
 tplt T vector<T>::pop_front(){
@@ -196,7 +196,7 @@ tplt void vector<T>::sub_idx(idx i){
 	base[i]= *--stop;
 }
 //ret true if contained element
-tplt bool vector<T>::sub_eq(T const& e){
+tplt bool vector<T>::sub_eq(T cre e){
 	sizt i= find(*this,e);
 	if(i==NULLIDX)
 		return false;

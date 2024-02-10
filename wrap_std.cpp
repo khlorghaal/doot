@@ -1,5 +1,4 @@
 //encloses all std+stl headers to prevent name collision
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -152,8 +151,8 @@ void  _thread(char const* name, void(*f)(void*),void* arg){
 	thrd_create(&thr,&_fntr_vp2i,arg);
 };
 
-void sleep(ms ms){
-	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+void sleep(nsec t){
+	std::this_thread::sleep_for(std::chrono::nanoseconds(t));
 }
 
 void* _malloc(siz s){
@@ -188,11 +187,11 @@ struct console_stream{
 	static console_stream _stdout;
 	static console_stream _stderr;
 };
-console_stream console_stream::_stdout(stdout);
-console_stream console_stream::_stderr(stderr);
+console_stream console_stream::_stdout= {stdout};
+console_stream console_stream::_stderr= {stderr};
+console cout= {&console_stream::_stdout};
+console cerr= {&console_stream::_stderr};
 std::mutex console_mut= std::mutex();
-console cout(&console_stream::_stdout);
-console cerr(&console_stream::_stderr);
 console& console::operator()(str const& x){
 	console_mut.lock();
 	fprintf(stream->self,"%s\n",(cstr)x);

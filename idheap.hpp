@@ -84,8 +84,8 @@ tplt struct hidptr: idptr<T>{
 auto& _lh= h.heap;\
 auto& _li= h.ids;\
 for(idx _i##o=0; _i##o!=_lh.size(); _i##o++)\
-	for(auto& o= _lh[_i##o];0;)\
-		for(id const& id_= _li[_i##o];0;)
+	for(    auto&   o= _lh[_i##o];0;)\
+	for(id const& id_= _li[_i##o];0;)
 
 
 //#define ZIP_MULTIHEAP(o,id,h) {\

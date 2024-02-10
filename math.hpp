@@ -5,130 +5,116 @@
 #undef max
 
 extc{
-	extern int abs (int __x) noexcept (true) __attribute__ ((__const__)) ;
-	extern long int labs (long int __x) noexcept (true) __attribute__ ((__const__)) ;
+	              extern           int   abs (          int __x) noexcept (true) __attribute__ ((__const__)) ;
+	              extern      long int  labs (     long int __x) noexcept (true) __attribute__ ((__const__)) ;
 	__extension__ extern long long int llabs (long long int __x) noexcept (true) __attribute__ ((__const__));
 }
 
 namespace doot{
 
 #define INF INFINITY
-cex double PI=  M_PI;
-cex double TAU= M_PI*2;
-cex double ELR= 2.71828182845904523536;
-cex double PHI= 1.61803398874989484820;
-cex double BIG=   0x1p32 ;
-cex double HUGE=  0x1p256;
-cex double SMALL= 0x1p-32 ;
-cex double TINY=  0x1p-256;
-const double SRT2= sqrt(2.);
-const double SRT2RCP= (1./SRT2);
+cex f64 PI=  M_PI;
+cex f64 TAU= M_PI*2;
+cex f64 ELR= 2.71828182845904523536;
+cex f64 PHI= 1.61803398874989484820;
+cst f64 SRT2= sqrt(2.);
+cst f64 SRT2RCP= (1./SRT2);
 
-typedef float radian;
-typedef float degree;
+//epsilon equality
+#define eps(a,b) (abs(f32(a-b))<ETA)
 
-#define cppify_yf(y) \
-inline float y(float x){ return y##f(x); }
-#define cppify_fy(y) \
-inline double y(double x){ return f##y(x); }
-#define cppify_fyf(y) \
-inline float y(float x){ return f##y##f(x); }
-#define cppify_ly(y) \
-inline long y(long x){ return l##y(x); }
-#define cppify_lly(y) \
-inline long long y(long long x){ return ll##y(x); }
-#define cppify_lliy(y) \
-inline long long int y(long long int x){ return ll##y(x); }
+using rad= f32;
+inl rad op""_rad(double   long      x){ re (f32) x; }
+inl rad op""_rad(unsigned long long x){ re (f32) x; }
+inl rad op""_trn(double   long      x){ re (f32)(x* TAU); }
+inl rad op""_trn(unsigned long long x){ re (f32)(x* TAU); }
+inl rad op""_deg(double   long      x){ re (f32)(x*(TAU/360)); }
+inl rad op""_deg(unsigned long long x){ re (f32)(x*(TAU/360)); }
 
-cppify_yf(sin)
-cppify_yf(cos)
-cppify_lliy(abs) cppify_fy(abs) cppify_fyf(abs)
+#define cppify_xf(y)  inl f32 y(f32 x){ re  y##f   (x); }
+#define cppify_fx(y)  inl f64 y(f64 x){ re  f##y   (x); }
+#define cppify_fxf(y) inl f32 y(f32 x){ re  f##y##f(x); }
+#define cppify_lx(y)  inl i32 y(i32 x){ re  l##y   (x); }
+#define cppify_llx(y) inl i64 y(i64 x){ re ll##y   (x); }
 
-inline double mod(double x,double m){ return fmod(x,m); }
-inline float mod(float x,float m){ return fmodf(x,m); }
+cppify_xf(sin)
+cppify_xf(cos)
+cppify_llx(abs) cppify_fx(abs) cppify_fxf(abs)
+
+inl f64 mod(f64 x,f64 m){ re fmod(x,m); }
+inl f32 mod(f32 x,f32 m){ re fmodf(x,m); }
 
 
 
-template<typename T>
-inline T sign(T const x){
-	return (x>0)-(x<0);
+tplt T sign(T cst x){
+	re (x>0)-(x<0);
 	//todo intrinsic
 }
 
-template<typename T>
-inline T min(T const a, T const b){
+tplt T min(T cst a, T cst b){
 	bool a_le= a<=b;
 	bool b_lt= !a_le;
-	return a_le*a + b_lt*b;
+	re a_le*a + b_lt*b;
 }
-template<typename T>
-inline T max(T const a, T const b){
+tplt T max(T cst a, T cst b){
 	bool a_ge= a>=b;
 	bool b_gt= !a_ge;
-	return a_ge*a + b_gt*b;
+	re a_ge*a + b_gt*b;
 }
 
-template<typename T>
-inline T minabs(T const a, T const b){
+tplt T minabs(T cst a, T cst b){
 	bool a_le= abs(a)<=abs(b);
 	bool b_lt= !a_le;
-	return a_le*a + b_lt*b;
+	re a_le*a + b_lt*b;
 }
-template<typename T>
-inline T maxabs(T const a, T const b){
+tplt T maxabs(T cst a, T cst b){
 	bool a_ge= abs(a)>=abs(b);
 	bool b_gt= !a_ge;
-	return a_ge*a + b_gt*b;
+	re a_ge*a + b_gt*b;
 }
 
 //result will have the sign of a
-template<typename T>
-inline T minabssa(T const a, T const b){
+tplt T minabssa(T cst a, T cst b){
 	bool a_le= abs(a)<=abs(b);
 	bool b_lt= !a_le;
 	T sa= sign(a);
 	T r= a_le*a + b_lt*b;
-	return sa*r;
+	re sa*r;
 }
-template<typename T>
-inline T smaxabssa(T const a, T const b){
+tplt T smaxabssa(T cst a, T cst b){
 	bool a_ge= abs(a)>=abs(b);
 	bool b_gt= !a_ge;
-	return a_ge*a + b_gt*b;
+	re a_ge*a + b_gt*b;
 }
 
 
-template<typename T>
-inline T clamp(T const x, T const a, T const b){
+tplt T clamp(T cst x, T cst a, T cst b){
 	bool lt_a= x<a;
 	bool gt_b= x>b;
 	bool same= !(lt_a||gt_b);
-	return x*same + a*lt_a + b*gt_b;
+	re x*same + a*lt_a + b*gt_b;
 }
 
-template<typename T>
-inline T lerp(float const x, T const a, T const b){
-	return a+(b-a)*x;
+tplt T lerp(float cst x, T cst a, T cst b){
+	re a+(b-a)*x;
 }
 
-template<typename T>
-inline T lerp(   	   T const c, T const d,
-		float const y, T const a, T const b,
-				   float const x){
+tplt T lerp(   	   T cst c, T cst d,
+		f32 cst y, T cst a, T cst b,
+				 f32 cst x){
 	T cd= c+(d-c)*x;
 	T ab= a+(b-a)*x;
-	return ab+(cd-ab)*y;
+	re ab+(cd-ab)*y;
 }
 #define lerp_field(m) ret.m= lerp(t, a.m, b.m)
 
-template<typename T>
-inline T perp(float const x, T const a, T const b, T const c){
+tplt T perp(f32 x, T cst a, T cst b, T cst c){
 	T ca;
 	T cb;
 	T cc;
 	ass(false);
 }
-template<typename A, typename T> struct lerpolant{
+tpl<typn A, typn T> struct lerpolant{
 	A a0, a1;
 	T t0, t1;
 	void bump(A a, T t){
@@ -139,11 +125,11 @@ template<typename A, typename T> struct lerpolant{
 		T dt= t1-t0;
 		t= (t-t0)/dt;
 		t= lerp(t, t0,t1);
-		return lerp(t, a0,a1);
+		re lerp(t, a0,a1);
 	}
 };
 
-template<typename A, typename T> struct perpolant{
+tpl<typn A, typn T> struct perpolant{
 	A a0, a1, a2;
 	T t0, t1, t2;
 	void bump(A a, T t){
@@ -155,90 +141,89 @@ template<typename A, typename T> struct perpolant{
 		t= (t-t1)/dt;
 
 		t= perp(t1-t, t0,t1);
-		return perp(t, t0,t1);
+		re perp(t, t0,t1);
 	}
 };
 
 //signed modulus [-m,m)
-inline double smod(double x, double m){
-	return fmod(x+m,m*2)-m;
+inl f32 smod(f32 x, f32 m){
+	re mod(x+m,m*2)-m;
 }
 //angle normalize (-pi, pi]
-inline double angn(double t){
-	return t-ceil(t/TAU-.5)*TAU;
+inl rad angn(rad t){
+	re t-ceil(t/TAU-.5)*TAU;
 }
 
 //( -b +- sqrt(b^2-4ac) )/ 2a
-inline double quadratic(double a, double b, double c){
-	double const srt_det= sqrt(b*b - 4*a*c);
-	double const denom= 1./(2*a);
-	double A= ( -b - srt_det )*denom;
-	double B= ( -b + srt_det )*denom;
+inl f64 quadratic(f64 a, f64 b, f64 c){
+	f64 cst srt_det= sqrt(b*b - 4*a*c);
+	f64 cst denom= 1./(2*a);
+	f64 A= ( -b - srt_det )*denom;
+	f64 B= ( -b + srt_det )*denom;
 	if(A!=A)
 		A= 0;
 	if(B!=B)
 		B= 0;
-	return max(A,B);
+	re max(A,B);
 }
-inline double quadratic_ac(double a, double c){
+inl f64 quadratic_ac(f64 a, f64 c){
 	//c will be negative in kinematic situations
-	return -sqrt(c/a);
+	re -sqrt(c/a);
 }
-inline double quadratic_ab(double a, double b){
-	return -b/a;
+inl f64 quadratic_ab(f64 a, f64 b){
+	re -b/a;
 }
 
-inline float invsqrt(){
+inl f32 invsqrt(){
 	//todo intrinsic
 	ass(false);
-	return 0;
+	re 0;
 }
 
 extern thread_local hash_t frand_seed;
-inline double frand(){
-	frand_seed= hash(frand_seed);
-	return ((float)frand_seed)/HASH_MAX_F;
+inl f64 frand(){
+	re ((f32)hash(frand_seed++))/HASH_MAX_F;
 }
-inline double sfrand(){
-	return frand()*2.f-1.f;
+inl f64 sfrand(){
+	re frand()*2.f-1.f;
 }
 
-inline float  fract(float x){  return x-(i32)x; }
-inline double fract(double x){ return x-(i64)x; }
+inl f32 fract(f32 x){ re x-(i32)x; }
+inl f64 fract(f64 x){ re x-(i64)x; }
 
 struct rati{
-	int num, den;
+	i32 num, den;
 
-	operator int() const{ return num/den; }
+	op int() cst{ re num/den; }
 
-	rati rcp() const{ return {den,num};	}
-	rati operator-() const{	return {-num,den}; }
-	rati operator*(rati const& x) const{ return {num*x.num, den*x.den};	}
-	rati operator/(rati const& x) const{ return {num*x.den, den*x.num}; }
-	rati operator+(rati const& x) const{
+	rati rcp() cst{ re {den,num};	}
+	rati op-() cst{	re {-num,den}; }
+	rati op*(rati cre x) cst{ re {num*x.num, den*x.den};	}
+	rati op/(rati cre x) cst{ re {num*x.den, den*x.num}; }
+	rati op+(rati cre x) cst{
 		//a/b + c/d
 		//ad/bd + cb/db
 		//ad+cb / bd
-		const int a= num;
-		const int b= den;
-		const int c= x.num;
-		const int d= x.den;
-		return {a*d+b*c, b*d};
+		cst i32 a= num;
+		cst i32 b= den;
+		cst i32 c= x.num;
+		cst i32 d= x.den;
+		re {a*d+b*c, b*d};
 	}
-	rati operator-(rati const& x) const{
-		const int a= num;
-		const int b= den;
-		const int c= x.num;
-		const int d= x.den;
-		return {a*d-b*c, b*d};
+	rati op-(rati cre x) cst{
+		cst i32 a= num;
+		cst i32 b= den;
+		cst i32 c= x.num;
+		cst i32 d= x.den;
+		re {a*d-b*c, b*d};
 	}
 
-	rati operator+(int const& x) const{	return {num+x*den, den}; }
-	rati operator-(int const& x) const{	return {num-x*den, den}; }
-	rati operator*(int const& x) const{	return {x*num,den};	}
-	rati operator/(int const& x) const{	return {num,den*x};	}
+	rati op+(i32 cre x) cst{ re {num+x*den, den}; }
+	rati op-(i32 cre x) cst{ re {num-x*den, den}; }
+	rati op*(i32 cre x) cst{ re {x*num,den};	}
+	rati op/(i32 cre x) cst{ re {num,den*x};	}
 };
-inline int trunc(rati const& r){ return (int)r; }
+inl i32 trunc(rati cre r){ re (int)r; }
 
 struct fixed{
 	i64 n;
@@ -254,40 +239,40 @@ struct fixed{
 	cex fixed(double d):  n( d*ONE ){}
 	cex fixed(rati r):    n( (r.num<<31)/r.den ){}
 
-	fixed operator+(i64 x){ return n+(x<<31); }
-	fixed operator-(i64 x){ return n-(x<<31); }
-	fixed operator*(i64 x){ return n*x; }
-	fixed operator/(i64 x){ return n/x; }
+	fixed op+(i64 x){ re n+(x<<31); }
+	fixed op-(i64 x){ re n-(x<<31); }
+	fixed op*(i64 x){ re n*x; }
+	fixed op/(i64 x){ re n/x; }
 
-	fixed operator+(fixed x){ return n+x.n; }
-	fixed operator-(fixed x){ return n-x.n; }
+	fixed op+(fixed x){ re n+x.n; }
+	fixed op-(fixed x){ re n-x.n; }
 	//n = g(x,y)*k = f(x*k,y*k)
-	fixed operator*(fixed x){
-		return 
+	fixed op*(fixed x){
+		re 
 			 n*(x.n>>31)+//upper
 		   ((n*(x.n&ALMOST_ONE))>>31);//lower
 	}
-	fixed operator/(fixed x){
-		return 
+	fixed op/(fixed x){
+		re 
 			 n/(x.n>>31)+
 		   ((n/(x.n&ALMOST_ONE))>>31);
 	}
 };
-inline i32 trunc(fixed x){
-	return x.n>>31;
+inl i32 trunc(fixed x){
+	re x.n>>31;
 }
-inline i32 fract(fixed x){
-	return x.n&fixed::ALMOST_ONE;
+inl i32 fract(fixed x){
+	re x.n&fixed::ALMOST_ONE;
 }
 
 struct cmplx{
-	float r,i;
-	inline cmplx operator+(cmplx& z) const{
-		return {r+z.r, i+z.i};
+	f32 r,i;
+	inl cmplx op+(cmplx& z) cst{
+		re {r+z.r, i+z.i};
 	}
-	inline cmplx operator*(cmplx& z) const{
-		const float ar= r, ai= i, br=z.r, bi=z.i;
-		return {
+	inl cmplx op*(cmplx& z) cst{
+		cst float ar= r, ai= i, br=z.r, bi=z.i;
+		re {
 			ar*br - ai*bi,
 			ar*bi + ai*br
 		};

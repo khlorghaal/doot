@@ -3,7 +3,7 @@
 //preinclude to have macros work
 #include "string.hpp"
 #include "bytebuf.hpp"
-#include "timer.hpp"
+#include "time.hpp"
 #include "math.hpp"
 #include "thread.hpp"
 #include "file.hpp"
@@ -18,6 +18,8 @@
 #include "trans2d.impl.hpp"
 #include "thread.impl.hpp"
 
+extc{ void abort(); }
+
 namespace doot{
 
 void _warn(char const* s, char const* m){
@@ -29,7 +31,7 @@ void _bad(char const* s, char const* m){
 }
 void _err(char const* s, char const* m){
 	cerr(str(s)+m);
-	throw;
+	abort();
 };
 
 thread_local hash_t frand_seed= 1;

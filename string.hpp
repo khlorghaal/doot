@@ -16,10 +16,10 @@ struct str{
 
 	str(){ clear(); };
 	str(cstr b):str(){ cat(fmt(b)); }
-	str(str cst& b):str(){ dat.addv(b.dat); }
-	str(str &&   b){ waive(dat,b.dat); }
-	str& op=(str cst& b){ dat.clear(); dat.addv(b.dat); retth; }
-	str& op=(str &&   b){ free(dat); waive(dat,b.dat); retth; }
+	str(str cre b):str(){ dat.addv(b.dat); }
+	//str(str &&   b){ waive(dat,b.dat); }
+	str& op=(str cre b){ dat.clear(); dat.addv(b.dat); retth; }
+	//str& op=(str &&   b){ free(dat); waive(dat,b.dat); retth; }
 	str& op=(cstr b){ op=(str(b)); retth; }
 	str(i32 x):str(){ cat(fmt("%d",   x)); }
 	str(u32 x):str(){ cat(fmt("%u",   x)); }
@@ -61,7 +61,7 @@ struct console_stream;
 struct console{
 	console_stream* stream;
 	console& op()(str const&);
-	tple console& op()(E e){ op()(str((E)e)); retthis; };
+	//tple console& op()(E e){ op()(str((E)e)); retthis; };
 	//todo strfmt forward
 };
 extern console cout;

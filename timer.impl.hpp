@@ -1,24 +1,16 @@
-/* timer.cpp
- *
- *  Created on: Oct 14, 2015
- *  Author: Khlorghaal
- *	All Rights Reserved.
- *	Do not distribute.
- */
-
-#include "timer.hpp"
+#include "time.hpp"
 
 namespace doot{
 
-Timer::Timer(float fps){
+Timer::Timer(f32 fps){
 	setMaxUpdatesPerSecond(fps);
-	tInvoke= tBegin= tBeginp= current_time_ms();
+	tInvoke= tBegin= tBeginp= current_time();
 }
 
-void Timer::setMaxUpdatesPerSecond(float cap){
+void Timer::setMaxUpdatesPerSecond(f32 cap){
 	if(cap==-1 || cap==0)
-		targetTimeus= 0;
-	targetTimeus= int(1000000.f/cap);
+		targetTime= 0_ns;
+	targetTime= sec(1)/cap;
 }
 
 void Timer::invoke(){
@@ -27,41 +19,41 @@ void Timer::invoke(){
 	   process    wait
 	^tbegp     ^tinvk   ^tbeg
 	*/
-	tInvoke= current_time_ms();
-	ms tProcess= tInvoke-tBegin;
-	ms dt= tBegin-tBeginp;
-	spf= (dt+1e-16f)/1000.f;
+	tInvoke= current_time();
+	nsec tProcess= tInvoke-tBegin;
+	nsec dt= tBegin-tBeginp;
+	spf= 1.f/sec(dt);
 
 	spf_avg= spf_avg*.8 + spf*.2;
 
-	us wait= targetTimeus-tProcess*1000;
+	nsec wait= targetTime-tProcess;
 	waiting= true;
-	if(wait>250)
+	if(wait>250_us)
 		sleep(wait);
 	else
 		;
 	waiting= false;
 
 	tBeginp= tBegin;
-	tBegin= current_time_ms();
+	tBegin= current_time();
 	total_time+= tBegin-tBeginp;
 	tick++;
 }
 
 
 /**thisrate * k = thatrate*/
-float Timer::getRelativeRate(Timer& that){
+f32 Timer::getRelativeRate(Timer& that){
 	return that.spf/spf;
 }
 
 
 void profiler::start(str name_){
 	name= name_;
-	beg= current_time_ms();
+	beg= current_time();
 };
 void profiler::stop(){
-	end= current_time_ms();
-	cout(strfmt("profiler: %20s: %5lli ms", (cstr)name, end-beg));
+	end= current_time();
+	cout(strfmt("profiler: %20s: %5lli ms", (cstr)name, msec(end-beg)));
 };
 
 }
