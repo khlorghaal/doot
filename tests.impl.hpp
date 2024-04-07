@@ -29,8 +29,8 @@ void run_tests(){
 		//str e= d; e+=strfmt("%s%i",(cstr)d,0);
 		//ass(e=="qwerqwer0");
 	}
-	pf.start("math");
-	{
+	
+	{//math
 		ass( min(0,1)==0 );
 		ass( max(0,1)==1 );
 
@@ -109,35 +109,37 @@ void run_tests(){
 		ass( 1_s + 1000_ms == 2_s);
 		ass(eps(1_s * 2.f, 2_s));
 	}
-	pf.stop();
-
-	pf.start("rng");
-	{
-		{//float
+	
+	{//rng
+		{//global
 			float racc= 0;
-			RA(i,0x100)
+			RA(i,0x1000)
 				racc+= sfrand();
-			racc/=0x100;
+			racc/=0x1000;
 			ass(abs(racc)<.01);
 		}
-		{//hash
+		{//average
 			i64 racc= 0;
-			RA(i,0x100){//
-				racc+= hash((u64)i);
-				racc+= hash((u32)i);
+			RA(i,0x1000){//
+				racc+= (i32)hash((u64)i);
+				racc+= (i32)hash((u32)i);
 			}
-			i64 h= racc-0x100ull*2*2*INTMAX<u32>;
-			cout(strfmt("%16lld",racc));
-			cout(strfmt("%16lld",h));
-			cout(strfmt("%16lld",racc-0x100ull*2*2));
-			cout(strfmt("%16lld",     0x100ull*2*2*INTMAX<u32>));
-			cout(strfmt("%16lld",racc/0x200));
-			cout(strfmt("%16lld",0xffffffffll));
-			ass( abs(h) < INTMAX<hash_t> );
+			ass( abs(racc/0x1000ll) < INTMAX<hash_t> );
+		}
+		{//modular
+			//i64 a= 0;
+			//RA(k,0x10){
+			//RA(j,0x10){
+			//	RA(i,0x100){
+			//		a+= (hash(i*j*k)%(k+2));
+			//	}
+			//	//print(a/(k+2));
+			//	a=0;
+			//}}
 		}
 	}
-	pf.start("nxpo2");
-	{
+	
+	{//nxpo2
 		ass(nxpo2(0)==1);
 		ass(nxpo2(1)==2);
 		ass(nxpo2(2)==4);
@@ -146,9 +148,8 @@ void run_tests(){
 		ass(nxpo2(0x01000001)==0x02000000);
 		ass(nxpo2(0x0fffffff)==0x10000000);
 	}
-	pf.stop();
-	pf.start("vector");
-	{
+	
+	{//vector
 		vector<int> vec(1);
 		RA(i,512)
 			vec.add(i);
@@ -163,21 +164,21 @@ void run_tests(){
 		RD(i,512)
 			ass(vecb.sub_eq(i));
 	}
-	pf.stop();
-	pf.start("hashmap");
-	{
+	
+	{//hashmap
 		hash_map<int, int> map;
-		RA(i,512)
+		RA(i,512){
+			print(i);
 			map.add(i,i);
+		}
 		RA(i,512){
 			int* p= map[i];
 			ass(!!p);
 			ass(*p==i);
 		}
 	}
-	pf.stop();
-	pf.start("idheap");
-	{
+	
+	{//idheap
 		idheap<int> heap;
 		RA(i,512)
 			heap.add(i,i);
@@ -194,20 +195,18 @@ void run_tests(){
 		RD(i,511)
 			heap.add(i,0);//??? what?
 	}
-	pf.stop();
 
-	pf.start("kitchen sink container");
-	{
+	
+	{//kitchen sink container
 		idheap<hash_map<str,vector<str>>> wew;
 		hash_map<str,vector<str>>& a= wew.add(0);
 		vector<str>& b= a.add("a");
 		str& c= b.add("b");
 		ass((*(*wew[0])["a"])[0]=="b");
 	}
-	pf.stop();
 
-	pf.start("ringbuffer");
-	{
+	
+	{//ringbuffer
 		ringbuffer<int, 512> rb;
 		RA(i,512)
 			rb<<i;
@@ -218,13 +217,11 @@ void run_tests(){
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);
 	}
-	pf.stop();
 	/*
-	pf.start("");
-	{
+	
+	{//
 
 	}
-	pf.stop();
 	*/
 	cout("tests completed");
 };

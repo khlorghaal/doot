@@ -129,8 +129,7 @@ void* _realloc(void*,sizt);
 
 //eschew these for containers
 //containers use these
-template<typename T>
-inline arr<T> alloc(sizt n){
+tplt inl arr<T> alloc(sizt n){
 	arr<T> ret;
 	if(n>TOO_BIG)
 		err("alloc TOO_BIG");
@@ -138,17 +137,22 @@ inline arr<T> alloc(sizt n){
 	ret.stop= ret.base+n;
 	if(!ret.base)
 		err("OOM");
-	return ret;
+	retret;
 }
-template<typename T>
-inline T* realloc(T* p, sizt s){
-	ass(!!p);
+tplt inl void realloc(arr<T>& r, sizt n){
+	if(!r){
+		warn("realloc on unalloced array");
+		r= alloc<T>(n);
+		re;
+	}
+	ass(!!r);
+	sizt s= n*TSIZ;
 	if(s>TOO_BIG)
 		err("alloc TOO_BIG");
-	auto res= (T*)_realloc(p,s*TSIZ);
-	if(!res)
+	r.base= (T*)_realloc(r.base,s);
+	r.stop= r.base+n;
+	if(!r.base)
 		err("OOM");
-	return res;
 }
 template<typename T>
 inline void free(arr<T>& a){
@@ -165,13 +169,7 @@ tplt struct arr_raii: arr<T>{
 		arr<T>::base= a.base;
 		arr<T>::stop= a.stop;
 	}
-	~arr_raii(){ free(*this); }
-
-	static arr_raii<T> copy(arr<T> s){
-		arr_raii<T> ret(s.size());
-		RA(i,s.size())
-			ret[i]= s[i];
-	}
+	~arr_raii(){ free<T>(*this); }
 };
 
 

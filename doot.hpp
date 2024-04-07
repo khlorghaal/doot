@@ -36,6 +36,7 @@
 #define rcas reinterpret
 #define extc extern "C"
 #define dtyp decltype
+#define print(x) cout(strfmt("%s\n",str(x).dat.base))
 
 #define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
 
@@ -213,34 +214,14 @@ cex f32 ETA= 1.e-5;//kinda small but not really
 //MAPT(signedT,   T, T  )
 
 
-inl hash_t hash(u32 x){
-	//murmur
-	x*= 0xcc9e2d51;
-    x^=(x<<15)|(x>>17);
-    x*= 0x1b873593;
-	re x;
-}
-inl hash_t hash(u64 x){
-	x= x^(x*0xbf58476d1ce4e5b9ull);
-	re hash((u32)x);
-}
-inl hash_t hash(void* x){ re hash((u64) x); };
-inl hash_t hash(i32   x){ re hash((u32) x); };
-inl hash_t hash(i64   x){ re hash((u64) x); };
-
-inl u32 rand(u32 x){
-	return hash(x);
-}
-inl float rand(float in){
-	return (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
-}
-
 //next power of 2
 inl sizt nxpo2(sizt x){
+	if(x==0)//UB
+		return 1;
 	x= __builtin_clzll(x);
 	x= 64-x;
 	ass(x<63);
-	return 2<<x;
+	return 1<<x;
 }
 
 tpl<typn A, typn B=A>
@@ -469,6 +450,52 @@ tpl<typn T> struct maybe{
 	bool op!(){ return !t; }
 	T& op()(T& none){ return !!t?*t:none; }
 };
+
+
+//essential math
+
+inl hash_t hash(u32 x){
+	u32 PRIME_0 = 0x9E3779B1u;
+	u32 PRIME_1 = 0x85EBCA77u;
+	u32 PRIME_2 = 0xC2B2AE3Du;
+	u32 PRIME_3 = 0x27D4EB2Fu;
+
+	u32 a0= x*PRIME_0;
+	u32 a1= x*PRIME_1;
+	u32 a2= x*PRIME_2;
+	u32 a3= x*PRIME_3;
+	x^= a0^a1^a2^a3;
+
+	re x;
+}
+inl hash_t hash(u64 x){
+	u64 PRIME_0 = 0xC43A65E071D385B1ull;
+	u64 PRIME_1 = 0x9A232294BAEEBB27ull;
+	u64 PRIME_2 = 0xAC0671A220DFABF7ull;
+	u64 PRIME_3 = 0xB59BC8E3F34FFF6Bull;
+
+	u64 a0= x*PRIME_0;
+	u64 a1= x*PRIME_1;
+	u64 a2= x*PRIME_2;
+	u64 a3= x*PRIME_3;
+		x= a0;
+	u64 y= a2^a3;
+	y^= (y<<32)|(y>>32);
+	x^= y;
+
+	re x;
+}
+inl hash_t hash(void* x){ re hash((u64) x); };
+inl hash_t hash(i32   x){ re hash((u32) x); };
+inl hash_t hash(i64   x){ re hash((u64) x); };
+
+inl u32 rand(u32 x){
+	return hash(x);
+}
+inl float rand(float in){
+	return (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
+}
+
 
 
 //intrinsics

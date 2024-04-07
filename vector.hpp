@@ -132,7 +132,7 @@ tplt void vector<T>::realloc(sizt l){
 	ass(l>=siz);
 
 	if(!!base)
-		base= doot::realloc<T>(base, l);
+		doot::realloc<T>(*this, l);//violates namespace, swap cap and stop
 	else
 		base= doot::alloc<T>(l).base;
 

@@ -23,8 +23,8 @@ struct str{
 	str& op=(cstr b){ op=(str(b)); retth; }
 	str(i32 x):str(){ cat(fmt("%d",   x)); }
 	str(u32 x):str(){ cat(fmt("%u",   x)); }
-	str(i64 x):str(){ cat(fmt("%dll", x)); }
-	str(u64 x):str(){ cat(fmt("%ull", x)); }
+	str(i64 x):str(){ cat(fmt("%lld", x)); }
+	str(u64 x):str(){ cat(fmt("%llu", x)); }
 	str(f32 x):str(){ cat(fmt("%3.3f",x)); }
 	str(f64 x):str(){ cat(fmt("%6.4f",x)); }
 	//str(rati b){fmt(*this,"[%i/%i]",b.num,b.den);}

@@ -14,11 +14,11 @@ struct hash_map: container{
 		bool empty;
 	};
 	static cex siz SLOT_SIZE= sizeof(slot);
-	static cex u8 DEPTH= 4;//depth must be cex for performance
+	static cex u16 DEPTH= 4;//depth must be cex for performance
 	static cex siz DEFAULT_LEN= 0x20;
 
-	i8 grow_factor= 4;//tunable
-	u8 expand_pad= 2;
+	u8 grow_factor= 4;//tunable
+	u8 expand_pad= 1;
 	
 	arr<slot> heap;
 	sizt entry_count=0;//only for debug and profiling
@@ -29,7 +29,7 @@ struct hash_map: container{
 	hash_map();
 	~hash_map();
 
-	sizt expand_reserve= 2;//upon expansion, the number of ensured free slots
+	sizt expand_reserve= 1;//upon expansion, the number of ensured free slots
 	//adjustable member so maps can choose smol:greed
 	//recommend 1:2:3 :: lazy:normal:greedy
 	void expand();
@@ -95,43 +95,40 @@ void hash_map<K,V>::expand(){
 	}
 
 	siz nbucks= heap.size()/DEPTH;
+	print(heap.size());
 	
 	u8 expand_tries= 0;
 	//fit depth
-	while(true){//monte carlo
+	bool done= false;//goto doesnt like raii
+	while(!done){//monte carlo
 		//grow until <= DEPTH-RESERVE collisions occur on any bucket
 		if(expand_tries>4)
-			warn("unreasonable hashmap expansion, increase grow factor or unfuck hash algo");
-		if(expand_tries>8)
-			err("hashmap failure");
+			warn("hashmap unreasonable expansion, increase grow factor, decrease pad, or unfuck hash algo");
 		expand_tries++;
 
 		nbucks*= grow_factor;
 		arr_raii<u8> bcounts(nbucks);
 		zero(bcounts);
-		bool exp= false;
+		done= true;
 		EACH(entry,t_entries){
 			hash_t h= hash(entry.k);
 			u8& c= bcounts[h%nbucks];//bucket's member count
 			c++;
 			if(c+expand_pad>=DEPTH){//must reserve at least 1
-				exp= true;
-				goto scan_end;
+				done= false;
+				break;
 			}
 		}
-		scan_end:
-		if(!exp)
-			break;
 	}
 
-	realloc(heap.base,nbucks*DEPTH);
+	realloc(heap,nbucks*DEPTH);
 	ass(heap.size()%DEPTH==0);
 	EACH(e,heap)
 		e.empty= true;
 
 	//repopulate
 	EACH(e,t_entries)
-		copy(*_alloc(e.k), e.v);
+		copy(*_alloc(e.k), e.v);//will not recurse
 }
 
 template<typename K, typename V> 

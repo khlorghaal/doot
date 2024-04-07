@@ -194,7 +194,8 @@ console cerr= {&console_stream::_stderr};
 std::mutex console_mut= std::mutex();
 console& console::operator()(str const& x){
 	console_mut.lock();
-	fprintf(stream->self,"%s\n",(cstr)x);
+	fprintf(stream->self,"%s",(cstr)x);
+	//fprintf(stdout,"%s\n",(cstr)x);
 	console_mut.unlock();
 	rett;
 };
