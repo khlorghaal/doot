@@ -95,7 +95,6 @@ void hash_map<K,V>::expand(){
 	}
 
 	siz nbucks= heap.size()/DEPTH;
-	print(heap.size());
 	
 	u8 expand_tries= 0;
 	//fit depth

@@ -47,7 +47,7 @@ tplt struct vector: arr<T>, container{
 	}
 	void addv(arr<T> cst& b){
 		realloc_greed(size()+b.size());
-		for(T& e:b)
+		EACH(e,b)
 			add<T>(e);
 	}
 	
@@ -127,33 +127,27 @@ tplt vector<T>::~vector(){
 	doot::free(*this);
 }
 
-tplt void vector<T>::realloc(sizt l){
+tplt void vector<T>::realloc(sizt n){
 	sizt siz= size();
-	ass(l>=siz);
+	ass(n>=siz);
 
 	if(!!base)
-		doot::realloc<T>(*this, l);//violates namespace, swap cap and stop
+		doot::realloc<T>(*this, n);//violates namespace, swap cap and stop
 	else
-		base= doot::alloc<T>(l).base;
+		base= doot::alloc<T>(n).base;
 
-	cap= base+l;
+	cap= base+n;
 	stop= base+siz;
 	ass(stop<=cap);
 }
 
-tplt void vector<T>::realloc_greed(sizt c){
-	if(c<capacity())
+tplt void vector<T>::realloc_greed(sizt n){
+	siz c= capacity();
+	if(n<c)
 		return;
-	c*= GROW_FACTOR;
-	T* n= doot::alloc<T>(c).base;
-	sizt s= size();
-	copy<T>({n,n+s},*this);
-	_free(base);
-	base= n;
-	stop= n+s;
-	cap = n+c;
-	
-	ass(stop<=cap);
+	c= c*GROW_FACTOR;
+	n= n>c?n:c;
+	realloc(n);
 };
 tplt void vector<T>::expand(){
 	sizt c= capacity()*GROW_FACTOR;

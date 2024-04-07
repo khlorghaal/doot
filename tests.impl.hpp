@@ -167,11 +167,9 @@ void run_tests(){
 	
 	{//hashmap
 		hash_map<int, int> map;
-		RA(i,512){
-			print(i);
+		RA(i,0x1000)
 			map.add(i,i);
-		}
-		RA(i,512){
+		RA(i,0x1000){
 			int* p= map[i];
 			ass(!!p);
 			ass(*p==i);
@@ -223,6 +221,6 @@ void run_tests(){
 
 	}
 	*/
-	cout("tests completed");
+	cout("tests pass");
 };
 }
