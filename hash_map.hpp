@@ -154,7 +154,7 @@ V* hash_map<K,V>::_alloc(K k){
 			if(at.empty){//empty slot found
 				entry_count++;
 				at.empty= false;
-				at.k= k;
+				new(&at.k)K(k);//keys may be nontrivial
 				return &(at.v);
 			}
 			else if(at.k==k){//entry with key already present

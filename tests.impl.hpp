@@ -5,8 +5,17 @@
 #include "hash_map.hpp"
 #include "idheap.hpp"
 #include "ringbuffer.hpp"
+#include "thread.hpp"
+#include "array_algos.hpp"
 
 namespace doot{
+
+void test_warp(arr<u32>& a, vector<u32>& b){
+	EACH(o,a)
+		o= 1;
+	b+= sum(a);
+}
+
 void run_tests(){
 	cout("tests");
 	profiler pf;
@@ -200,7 +209,9 @@ void run_tests(){
 		hash_map<str,vector<str>>& a= wew.add(0);
 		vector<str>& b= a.add("a");
 		str& c= b.add("b");
-		ass((*(*wew[0])["a"])[0]=="b");
+		hash_map<str,vector<str>>& d= *wew[0];
+		vector<str>& e= *d["a"];
+		ass(e[0][0]=='b');
 	}
 
 	
@@ -214,6 +225,22 @@ void run_tests(){
 			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);
+	}
+
+	{//thread
+		lock lock;//raii
+		latch latch;
+		latch.set(2);
+		latch.tick();
+		latch.tick();
+		latch.tick();//underflow
+		latch.wait();
+
+		arr_raii<u32> a(0x1000);
+		vector<u32> b(0x1000);
+		warp::dispatch<u32,u32,&test_warp>(a,b);
+		u32 s= sum(b);
+		ass(s==0x1000);
 	}
 	/*
 	

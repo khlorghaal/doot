@@ -38,8 +38,6 @@
 #define dtyp decltype
 #define print(x) cout(strfmt("%s\n",str(x).dat.base))
 
-#define FPTR(SYM,ARG,RET) RET(*SYM)(ARG)
-
 #endif
 
 #ifndef DOOT_NOCOMBINATORIAL
@@ -236,6 +234,27 @@ struct triad{
 	C c;
 };
 
+
+#define quot(s) s
+
+
+tpl<typn... V        > struct tail;
+tpl<typn T           > struct tail<T      >{
+	using type = T; };
+tpl<typn T, typn... V> struct tail<T, V...>{
+    using type = typn tail<V...>::type;
+};
+
+
+
+tpl<typn T...>
+struct fptr{
+	B (*f)(A);
+	B op()(A a){ re f(a); }
+}
+
+#define fptr(SYM,ARG,RET) typedef RET (*SYM##_FP)(ARG); SYM##_FP 
+
 /*these are to
 -declaration doesnt need implementation header
 -implementation doesnt need declaration header
@@ -318,7 +337,9 @@ delete ( (T*)(*( (void**)v )) );
 #define OPAQ_T_DEREF(v,T,s) \
 T& s= *((T*)(*((void**)v)));
 //some of the most horrendous code ive ever written
-//this WILL be purged
+//i want to purge this, however
+//i dont know how else to opaquify generics
+#define OPAQ_M_CDTOR_DECL(s) OPAQ_M(_); OPAQ_CDTOR_DECL(s);
 
 #define OPAQEXTRN_M(T,F) \
 extern void T##_##F(void*); \
@@ -327,6 +348,7 @@ inline void T::F(){ T##_##F(_);}
 //T::F the member function callforwarding to the opaque
 #define OPAQIMPL_F(T,F) \
 void T##_##F(void* p){ ((T*)p)->F(); }
+
 
 /*(A->void)->(B->void)
 used to opaquify a function pointer
@@ -337,23 +359,31 @@ the opaqueness is bidirectional
 	the implementation neednt know header 
 useful for passing an op to a thread
 
+taking the address of the templated function
+does not call the function, in most sane uses
+it will be interepred as returning a fptr
+
 header
 	extern _f(void* a, void*->void f)
 	called by
-	g<T,f>{ _f( void*, &voidpfunct<A,f> ) }
+	g<T,f>{ _f( void*, &voidpfn<A,f> ) }
 implementation
 	f(a) invoked, presumed async
 	where a may be mutated
-*/
-template<typename T, FPTR(f,T,void)>
-void voidpfunct(void* a){ f(*(T*)a); }
 
-#define CALL_T(SYM,ARG,RET) \
-struct SYM{\
-	FPTR(f,ARG,RET);\
-	ARG x;\
-	RET invoke(){ return f(x); }\
+^ ive rewritten a lot and dont know if this is still accurate
+*/
+#define SVOID //symbolic void
+using lambda_opaq_t= fptr(SVOID,void*,void*);
+#define CALL_T(S,A,B) \
+struct S{\
+	fptr(f,A,B);\
+	A x;\
+	B invoke(){ return f(x); }\
 };
+CALL_T( call_opaq_t, void*, void )
+//the void* does returnness; mut void*->void
+#define CALL_PACK(S,binds) void _CALL_##S()
 
 //used for loopy macros to prevent parents mismatch
 //horribly renegade
