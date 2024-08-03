@@ -197,7 +197,7 @@ console& console::operator()(str const& x){
 	fprintf(stream->self,"%s",(cstr)x);
 	//fprintf(stdout,"%s\n",(cstr)x);
 	console_mut.unlock();
-	rett;
+	reth;
 };
 
 

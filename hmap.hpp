@@ -1,13 +1,13 @@
 #pragma once
-#include "vector.hpp"
+#include "list.hpp"
 #include "array_algos.hpp"
 
 namespace doot{
 	
 //all pointers returned are invalidated upon next nonconst method invocation
 //buckets of fixed depth, expands once a bucket overflows
-template<typename K, typename V>
-struct hash_map: container{
+tpl<typn K, typn V>
+struct hmap: container{
 	struct slot{
 		V v;
 		K k;
@@ -25,24 +25,22 @@ struct hash_map: container{
 	slot* begin(){ return heap.base; };
 	slot* end(){ return heap.stop; };
 
-	hash_map(sizt init_len);
-	hash_map();
-	~hash_map();
+	hmap(sizt init_len);
+	hmap();
+	~hmap();
 
 	sizt expand_reserve= 1;//upon expansion, the number of ensured free slots
 	//adjustable member so maps can choose smol:greed
 	//recommend 1:2:3 :: lazy:normal:greedy
 	void expand();
 
-	sizt bucket(K k) const{ return hash(k)%(heap.size()/DEPTH); };
-	//return null if not contained
-	V* operator[](K k) const;
+	inl siz bucket(K k) const{ re hash(k)%(heap.size()/DEPTH); };
+	maybe<V> operator[](K k) const;
 	
 	V* _alloc(K k);
 
 	//places a key and invokes ctor(E...)
-	template<typename... E>
-	V& add(K k, E... v);
+	tples V& add(K k, E... v);
 	//return bool was contained
 	bool sub(K k);
 	OPADDSUB;
@@ -50,12 +48,12 @@ struct hash_map: container{
 	//remove all elements
 	void clear();
 
-	void keys_cpy(vector<K>&);
-	void values_cpy(vector<V>&);
-	void key_values_cpy(vector<pair<K,V>>&);
+	void keys_cpy(list<K>&);
+	void values_cpy(list<V>&);
+	void key_values_cpy(list<pair<K,V>>&);
 
 };
-#define hmap hash_map
+#define hmap hmap
 
 //expensive, avoid
 #define EACH_HMAP(e,M) \
@@ -63,27 +61,27 @@ struct hash_map: container{
 			if(unlikely(!_S_##e.empty))\
 				fauto( e= _S_##e.v )
 
-template<typename K, typename V>
-hash_map<K,V>::hash_map(sizt init_len){
+tpl<typn K, typn V>
+hmap<K,V>::hmap(sizt init_len){
 	ass(DEPTH>=2);
 	heap= alloc<slot>(init_len*DEPTH);
 	for(auto& e : heap)
 		e.empty= true;
 }
-template<typename K, typename V>
-hash_map<K,V>::hash_map(): hash_map(hash_map<K,V>::DEFAULT_LEN){
+tpl<typn K, typn V>
+hmap<K,V>::hmap(): hmap(hmap<K,V>::DEFAULT_LEN){
 };
-template<typename K, typename V>
-hash_map<K,V>::~hash_map(){
+tpl<typn K, typn V>
+hmap<K,V>::~hmap(){
 	free(heap);
 }
 
-template<typename K, typename V> 
-void hash_map<K,V>::expand(){
+tpl<typn K, typn V> 
+void hmap<K,V>::expand(){
 	if(expand_pad<0)//must increase or is pointless
-		err("hash_map::expand() this.expand_reserve must be >0, to increase the number of free slots");
+		err("hmap::expand() this.expand_reserve must be >0, to increase the number of free slots");
 	if(expand_pad>DEPTH-1)
-		err("hash_map::expand() this.expand_reserve must =< DEPTH-1, or expansion will bottom");
+		err("hmap::expand() this.expand_reserve must =< DEPTH-1, or expansion will bottom");
 
 	//move all !null slots
 	arr_raii<slot> t_entries(heap.size());
@@ -130,23 +128,23 @@ void hash_map<K,V>::expand(){
 		copy(*_alloc(e.k), e.v);//will not recurse
 }
 
-template<typename K, typename V> 
-V* hash_map<K,V>::operator[](K k) const{
+tpl<typn K, typn V> 
+maybe<V> hmap<K,V>::operator[](K k) const{
 	sizt i= bucket(k)*DEPTH;
 	sizt b= 0;
 	while(b!=DEPTH){
 		slot& at= heap[i+b++];
 		if(at.empty)//not contained
-			return (V*)0;
+			nope;
 		if(at.k==k)
-			return &at.v;
+			re {at.v};
 	}
 	//not contained
-	return (V*)0;
+	nope;
 }
 
-template<typename K,typename V>
-V* hash_map<K,V>::_alloc(K k){
+tpl<typn K,typn V>
+V* hmap<K,V>::_alloc(K k){
 	RA(expansion,2){
 		idx i= bucket(k)*DEPTH;
 		RA(b,DEPTH){
@@ -171,16 +169,16 @@ V* hash_map<K,V>::_alloc(K k){
 }
 
 
-template<typename K, typename V> 
-template<typename... E>
-V& hash_map<K,V>::add(K k, E... e){
+tpl<typn K, typn V> 
+tpl<typn... E>
+V& hmap<K,V>::add(K k, E... e){
 	//ppack will handle move ctor properly
-	//do not confuse c++ template ppack with c variadic function
+	//do not confuse c++ tpl ppack with c variadic function
 	return *new(_alloc(k))V(e...);
 }
 
-template<typename K, typename V> 
-bool hash_map<K,V>::sub(K k){
+tpl<typn K, typn V> 
+bool hmap<K,V>::sub(K k){
 	idx i= bucket(k)*DEPTH;
 	RA(b,DEPTH){
 		slot& at= heap[i+b];
@@ -207,24 +205,32 @@ bool hash_map<K,V>::sub(K k){
 	return false;
 }
 
-template<typename K, typename V> 
-void hash_map<K,V>::clear(){
+tpl<typn K, typn V> 
+void hmap<K,V>::clear(){
 	for(auto& e: heap)
 		e.empty= true;
 	entry_count= 0;
 }
 
-template<typename K, typename V> 
-void hash_map<K,V>::keys_cpy(vector<K>& r){
+tpl<typn K, typn V> 
+void hmap<K,V>::keys_cpy(list<K>& r){
 	EACH(s,heap)
 		if(!s.empty)
 			r+=s.k;
 }
-template<typename K, typename V> 
-void hash_map<K,V>::values_cpy(vector<V>& v){
+tpl<typn K, typn V> 
+void hmap<K,V>::values_cpy(list<V>& v){
 	EACH(s,heap)
 		if(!s.empty)
 			v+=s.v;
 }
 
+tpl<typn K, typn V> 
+void hmap<K,V>::key_values_cpy(list<pair<K,V>>& v){
+	EACH(s,heap){
+		if(!s.empty)
+			v+=pair{s.k,s.v};
+	}
 }
+
+};

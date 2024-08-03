@@ -29,8 +29,8 @@ Freeing must always be done within the same scope as its matching allocation.
 Memory ownership transfers may only be done for thread communication.  
 
 Don't use copy or move constructors ever.  
- Containers do construction by being passed a template<E...> for a placement new.  
- Internally, str is the only exception.
+ Containers do construction by being passed a tples (template<E...>) for a placement new.  
+ Exceptions are made internally, such that externals dont need to.
 
 Raw memory reallocs of an object must always be valid.  
  Pointer field assignments must not be relative to this.  
@@ -38,8 +38,14 @@ Raw memory reallocs of an object must always be valid.
 
 Pointers to objects in containers are invalidated whenever the container is modified.  
 Never use pointers to objects in a container outside of local scope.  
+IDpointers will never be indexes.  
+Pointy types are persistent, while indices must not persist outside a system op.  
 
 Methods may only modify fields of this, and function ref params.  
+
+Function pamameters which determine behavior, should have their behavior affecting fields at lowest scope,  
+ ie array division uses explicit ``siz denom`` and does not rely on the size of the list b
+ this makes apis more quickly comprehensible
 
 Constructors and destructors are fine.  
  Containers call default ctor and dtor.  

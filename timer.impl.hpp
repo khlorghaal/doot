@@ -56,4 +56,4 @@ void profiler::stop(){
 	cout(strfmt("profiler: %20s: %5lli ms", (cstr)name, msec(end-beg)));
 };
 
-}
+};

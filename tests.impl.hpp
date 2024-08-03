@@ -1,16 +1,17 @@
 #pragma once
 #include "time.hpp"
 #include "math.hpp"
-#include "vector.hpp"
-#include "hash_map.hpp"
+#include "list.hpp"
+#include "hmap.hpp"
 #include "idheap.hpp"
 #include "ringbuffer.hpp"
 #include "thread.hpp"
 #include "array_algos.hpp"
+#include "2d.hpp"
 
 namespace doot{
 
-void test_warp(arr<u32>& a, vector<u32>& b){
+void test_warp(arr<u32>& a, list<u32>& b){
 	EACH(o,a)
 		o= 1;
 	b+= sum(a);
@@ -158,16 +159,16 @@ void run_tests(){
 		ass(nxpo2(0x0fffffff)==0x10000000);
 	}
 	
-	{//vector
-		vector<int> vec(1);
+	{//list
+		list<int> vec(1);
 		RA(i,512)
 			vec.add(i);
 		RA(i,512){
 			ass(vec[i]==i);
 			ass(vec.ptr_idx(vec.base+i)==i);
 		}
-		vector<int> vecb;
-		vecb.addv(vec);
+		list<int> vecb;
+		vecb.addl(vec);
 		RA(i,512)
 			ass(vec.sub_eq(i));
 		RD(i,512)
@@ -175,13 +176,13 @@ void run_tests(){
 	}
 	
 	{//hashmap
-		hash_map<int, int> map;
+		hmap<int, int> map;
 		RA(i,0x1000)
 			map.add(i,i);
 		RA(i,0x1000){
-			int* p= map[i];
+			auto p= map[i];
 			ass(!!p);
-			ass(*p==i);
+			ass(p.un()==i);
 		}
 	}
 	
@@ -190,28 +191,35 @@ void run_tests(){
 		RA(i,512)
 			heap.add(i,i);
 		RA(i,512){
-			auto& e= *heap[i];
+			int& e= heap[i].un();
 			ass(e==i);
 			ass(heap.ptr_id(&e)==i);
-			ass(heap.index(i)==i);
+			ass(heap.index(i).un()==i);
 		}
 		RA(i,512)
 			heap.sub(i);
 		RA(i,512)
 			ass(heap.map[i]==NULLIDX);
 		RD(i,511)
-			heap.add(i,0);//??? what?
+			heap.add(i,0);//??? what? why?
 	}
 
 	
 	{//kitchen sink container
-		idheap<hash_map<str,vector<str>>> wew;
-		hash_map<str,vector<str>>& a= wew.add(0);
-		vector<str>& b= a.add("a");
+		idheap<hmap<str,list<str>>> wew;
+		hmap<str,list<str>>& a= wew.add(0);
+		print(a);
+		list<str>& b= a.add("a");
+		print(b);
 		str& c= b.add("b");
-		hash_map<str,vector<str>>& d= *wew[0];
-		vector<str>& e= *d["a"];
-		ass(e[0][0]=='b');
+		print(c);
+		hmap<str,list<str>>& d= wew[0].un();
+		print(d);
+		list<str>& e= d["a"].un();
+		print(e);
+		str& f= e[0];
+		print(f);
+		ass(f[0]=='b');
 	}
 
 	
@@ -221,14 +229,14 @@ void run_tests(){
 			rb<<i;
 		RA(i,512)
 			ass(rb[i]==i);	
-		RA2(i,512,1024)
-			rb<<i;
+		RA2(i,512,1024
+)			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);
 	}
 
 	{//thread
-		lock lock;//raii
+		lock lock;//raii`
 		latch latch;
 		latch.set(2);
 		latch.tick();
@@ -237,7 +245,7 @@ void run_tests(){
 		latch.wait();
 
 		arr_raii<u32> a(0x1000);
-		vector<u32> b(0x1000);
+		list<u32> b(0x1000);
 		warp::dispatch<u32,u32,&test_warp>(a,b);
 		u32 s= sum(b);
 		ass(s==0x1000);

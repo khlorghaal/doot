@@ -1,6 +1,6 @@
 #pragma once
 #include "doot.hpp"
-#include "vector.hpp"
+#include "list.hpp"
 
 //DEPRECATED - the presence of deleted elements makes this much less useful than idheap
 
@@ -9,8 +9,8 @@ namespace doot{
 //maintains order such that indices (but not pointers) remain valid
 template<typename T>
 struct linear_heap{
-	vector<T> heap;
-	vector<sizt> freed;
+	list<T> heap;
+	list<sizt> freed;
 	
 	T* alloc(){
 		if(freed.empty())

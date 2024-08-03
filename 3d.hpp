@@ -1,5 +1,5 @@
 /*
-basis vectors: x horizon-right, y up, z forward
+basis lists: x horizon-right, y up, z forward
 */
 #pragma once
 #include "math.hpp"

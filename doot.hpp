@@ -12,9 +12,8 @@
 #define TSIZ sizeof(T)
 
 #define re return
-#define retthis return *this
-#define retth   return *this
-#define rett    return *this
+#define rethis return *this
+#define reth   return *this
 #define retr   return r
 #define retret return ret;
 
@@ -22,9 +21,10 @@
 #define op operator
 #define tpl template
 #define typn typename
-#define tplt template<typename T>
-#define tple template<typename E>
+#define tplt  template<typename T>
+#define tple  template<typename E>
 #define tples template<typename... E>
+#define kind tpl<typn> typn
 #define cst const
 #define cre const&
 #define acs auto const
@@ -33,9 +33,11 @@
 #define cex constexpr
 #define sex static constexpr
 #define ass assert
-#define rcas reinterpret
 #define extc extern "C"
 #define dtyp decltype
+#define lis list
+#define may maybe
+#define nope return {}
 #define print(x) cout(strfmt("%s\n",str(x).dat.base))
 
 #endif
@@ -84,7 +86,7 @@ extern void _warn(cstr,cstr);
 //warn the user the application errored and may have invalid state
 extern void _bad(cstr,cstr);
 #define bad(s) _bad((SRCLOC),s);
-//crash this program with no survivors
+//panic. crash this program with no survivors.
 extern void _err(cstr,cstr);
 #define err(s) _err((SRCLOC),s);
 #define unreachable err("unreachable")
@@ -175,9 +177,10 @@ tplt inline void bump(T& t0, T& t1, T& t2, T& t){
 	t2= t;
 }
 
-tpl<typn B, typn A> B reinterpret(A a){
+//reference cast
+tpl<typn B,typn A> B& rcas(A& a){
 	ass(sizeof(A)==sizeof(B));
-	return *((B*)(&a));
+	re *((B*)(&a));
 }
 
 
@@ -195,10 +198,10 @@ tpl<> inl cex u64 INTMAX<u64> = 0xffffffffffffffff;
 
 tplt cex T HUGE;
 tplt cex T TINY;
-tpl<> inline cex f32 HUGE<f32> = 1e32f;
-tpl<> inline cex f32 TINY<f32> = 1e-32f;
-tpl<> inline cex f64 HUGE<f64> = 1e300 ;
-tpl<> inline cex f64 TINY<f64> = 1e-300;
+tpl<> inl cex f32 HUGE<f32> = 1e32f;
+tpl<> inl cex f32 TINY<f32> = 1e-32f;
+tpl<> inl cex f64 HUGE<f64> = 1e300 ;
+tpl<> inl cex f64 TINY<f64> = 1e-300;
 cex f32 ETA= 1.e-5;//kinda small but not really
 
 
@@ -235,25 +238,14 @@ struct triad{
 };
 
 
-#define quot(s) s
+#define L2S(A,B) A   B
+#define L2C(A,B) A , B
+#define L2M(A,B) A ; B ;
+//lists for macro parameters
+//ie passing a list parameter to avoid variadics
 
-
-tpl<typn... V        > struct tail;
-tpl<typn T           > struct tail<T      >{
-	using type = T; };
-tpl<typn T, typn... V> struct tail<T, V...>{
-    using type = typn tail<V...>::type;
-};
-
-
-
-tpl<typn T...>
-struct fptr{
-	B (*f)(A);
-	B op()(A a){ re f(a); }
-}
-
-#define fptr(SYM,ARG,RET) typedef RET (*SYM##_FP)(ARG); SYM##_FP 
+#define FPTR(ARG,RET)         RET (*   )(ARG)
+#define FPTR_VAR(SYM,ARG,RET) RET (*SYM)(ARG)
 
 /*these are to
 -declaration doesnt need implementation header
@@ -340,7 +332,6 @@ T& s= *((T*)(*((void**)v)));
 //i want to purge this, however
 //i dont know how else to opaquify generics
 #define OPAQ_M_CDTOR_DECL(s) OPAQ_M(_); OPAQ_CDTOR_DECL(s);
-
 #define OPAQEXTRN_M(T,F) \
 extern void T##_##F(void*); \
 inline void T::F(){ T##_##F(_);}
@@ -349,7 +340,7 @@ inline void T::F(){ T##_##F(_);}
 #define OPAQIMPL_F(T,F) \
 void T##_##F(void* p){ ((T*)p)->F(); }
 
-
+#define OPAQ_FPTR_VAR(SYM) FPTR_VAR(SYM,void*,void)
 /*(A->void)->(B->void)
 used to opaquify a function pointer
 by wrapping T into f(void*)
@@ -374,16 +365,18 @@ implementation
 ^ ive rewritten a lot and dont know if this is still accurate
 */
 #define SVOID //symbolic void
-using lambda_opaq_t= fptr(SVOID,void*,void*);
 #define CALL_T(S,A,B) \
 struct S{\
-	fptr(f,A,B);\
+	using F = FPTR(A,B);\
+	F f;\
 	A x;\
 	B invoke(){ return f(x); }\
 };
 CALL_T( call_opaq_t, void*, void )
 //the void* does returnness; mut void*->void
 #define CALL_PACK(S,binds) void _CALL_##S()
+
+#define uses() tplt struct{ using type=T; }
 
 //used for loopy macros to prevent parents mismatch
 //horribly renegade
@@ -398,9 +391,9 @@ CALL_T( call_opaq_t, void*, void )
 #define EACHD(o,v) \
 	for(idx _i##o= v.size(); _i##o-->0;)\
 		fauto(o= v[_i##o])
-//um okay so uh yea
-// the secondary for is a way of creating a statement
-// without the need for a bracket mismatch
+#define EACH2(o,vv) \
+	EACH(vv##o,vv)\
+		EACH(o,vv##o)
 
 //enumerate
 #define EN(i,o,v) \
@@ -415,7 +408,7 @@ CALL_T( call_opaq_t, void*, void )
 		fauto(a=la[_i##a##b])\
 			fauto(b=lb[_i##a##b])
 
-//symcats must use the symbol names not the vectors, as the vector symbols may be expressions
+//symcats must use the symbol names not the lists, as the list symbols may be expressions
 
 //#define ZIP3(a,b,c, la,lb,lc) \
 //for(int _i=0; _i!=la.size(); _i++){ \
@@ -424,11 +417,15 @@ CALL_T( call_opaq_t, void*, void )
 //	auto& c= lc[_i];
 
 
-
 #define OPADDSUB \
-	tpl<typn... E> void op+=(E cst&... e){ add(e...); }\
-	tpl<typn... E> void op-=(E cst&... e){ sub(e...); }
+	tpl<typn... E> void op+=(E cre... e){ add(e...); }\
+	tpl<typn... E> void op-=(E cre... e){ sub(e...); }
 
+#define LVAL  
+#define RVAL const&
+#define XVAL &&
+#define VTYP_LRX L(LVAL) L(RVAL) L(XVAL)
+#define VTYP_RX  L(RVAL) L(XVAL)
 
 /*functional macros
  DANGER see examples before hurting yourself
@@ -453,18 +450,6 @@ but mostly i find template syntax arbitrary and incomprehensible.
 #define VOIDMAP(vec,f,a...) EACH(_e,vec){ _e.f(a); }
 
 
-/*a primitive that enforces casting
-ie seconds and miliseconds, degrees and radians
-T: the underlying primitive
-C: crtp leaf class
-BASIS: the subtype within the scalar-kind with unit = 1
-*/
-tpl<typn T, typn S> struct scalar{
-	T v=0;
-	op T(){ re v; }
-};
-#define SCALAR_RATIO(A,B) *B::unit/A::unit
-
 #define _FUNCTOR_INVOKE_T0_A1(T) EVAL(T< >(x));
 #define _FUNCTOR_INVOKE_T1_A0(T) EVAL(T<x>( ));
 
@@ -473,14 +458,54 @@ tpl<typn T, typn S> struct scalar{
 //MAP_INVOKE_TEMPLATE(T,a,b,c) => T<a>(); T<b>(); T<c>();
 #define MAP_INVOKE_TEMPLATE(T,...) MAP(_FUNCTOR_INVOKE_T1_A0(T), __VA_ARGS__)
 
-tpl<typn T> struct maybe{
-	T* t;
-	static maybe<T> yes(T* t){ ass(t!=null); return {   t}; };
-	static maybe<T>  no(){                   return {null}; };
-	bool op!(){ return !t; }
-	T& op()(T& none){ return !!t?*t:none; }
+tpl<typn... E>
+struct void_variad_t {
+  sex bool v= false;};
+tpl<>
+struct void_variad_t<void> {
+  sex bool v = true;};
+#define VOID_VARIAD(E) void_variad_t<E ...>::v
+
+
+//not elegant, but robust
+tplt struct maybe{
+	T* t= null;
+	maybe(T& t_):t( &t_){}
+	maybe(     ):t(null){}
+
+	bool op!(){ re !t; }
+	op bool(){ re !op!();}
+	T& op()(T&& none){ re !!t?*t:none; }
+	T& op()(T & none){ re !!t?*t:none; }
+	//using (void) -> T::none would require SFINAE which i dont fuck with
+	T& un(){ ass(!!t); re *t; }
 };
 
+//control flowing unwrappers
+//bracketed unwrap
+#define ifm(s,m)\
+	if(likely(!!m))\
+		fauto(s= m.un())
+//if null return
+#define ifm_re(s,m)\
+	if(unlikely(!m)) re;\
+	auto& s= m.un();
+//if null return v
+#define ifm_re_v(s,m,v)\
+	if(unlikely(!m)) re v;\
+	auto& s= m.un();
+//if null return false
+#define ifm_re_f(s,m)\
+	if(unlikely(!m)) re false;\
+	auto& s= m.un();
+//if null continue
+#define ifm_cont(s,m)\
+	if(unlikely(!m)) continue;\
+	auto& s= m.un();
+//if null nope
+#define ifm_nope(s,m)\
+	if(!m) nope;\
+	auto& s= m.un();
 
 //essential math
 
@@ -520,18 +545,18 @@ inl hash_t hash(i32   x){ re hash((u32) x); };
 inl hash_t hash(i64   x){ re hash((u64) x); };
 
 inl u32 rand(u32 x){
-	return hash(x);
+	re hash(x);
 }
 inl float rand(float in){
-	return (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
+	re (float)rand(rcas<u32>(in)) / (float)INTMAX<u32>;
 }
 
 
 
 //intrinsics
 
-#define   likely(x) __builtin_expect(x, 1)
-#define unlikely(x) __builtin_expect(x, 0)
+#define   likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 
 
 #ifdef _MSVC_LANG
@@ -545,6 +570,7 @@ inl float rand(float in){
 #endif
 
 }//namespace end
+//namespace doot::doot= ::doot;//hack, it sometimes gets nested i dont know why, -E didnt show it
 
 
 #ifndef _DOOT_NO_NEW_

@@ -1,6 +1,7 @@
 #pragma once
 #include "arr.hpp"
-#include "vector.hpp"
+#include "list.hpp"
+#include "math.hpp"
 
 namespace doot{
 
@@ -31,7 +32,7 @@ tplt T average(arr<T> a){
 
 //the additions and removals preformed on a to result in b
 //a+adds-rems = b
-tplt void difference(arr<T> a, arr<T> b, vector<T> adds, vector<T> rems){
+tplt void difference(arr<T> a, arr<T> b, list<T> adds, list<T> rems){
 	ass(false);
 	//todo
 }
@@ -44,33 +45,49 @@ tplt T sum(arr<T> a){
 }
 
 //remainder is given to last segment
-tplt void div(arr<T> a, siz denom, vector<arr<T>>& b){
-	siz n= a.size();
-	siz d= denom;
+tplt void div(arr<T> a, siz divisor, list<arr<T>>& b){
+	//todo testcases
+
+	T* base= a.base;
+	siz n= a.size();//elements
+	siz d= divisor;//segment size
 	if(d==0 || n==0)
 		re;
-	siz rem= n%d;
+	siz rem= n%d;//distributed heuristically
 
-	if(d>n){
 
+	//distribute
+	if(n>d){
+		//normal case
+		// denomination more than elements
+		siz span= n/d;//per thread, not stride
+		ass(rem>=0);
+	
+		RA(i,d){
+			b.add(arr<T>{
+				base+ i*span,
+				base+ i*span+d,
+			});
+		}
+		//give remainder to last thread
+		//worstcase: n= d*2-1
+		//	todo the remainder should be dsitributed evenly
+		(b.stop-1)->stop+= rem;//b:=stop
+	
+	}else{
+		//output size will be equal to elements, less than divisor
+		RA(i,n){
+			b.add(arr<T>{
+				base+ i  ,
+				base+ i+1
+			});
+		}
 	}
-	else{
 
-	}
-
-	RA(i,n){
-		b+= arr<T>{
-			base + i,
-			base + i+d
-		};
-	}
-	retr;
 }
 
-tplt void flatten(arr<arr<T>> aa, vector<T>& r){
-	r.realloc_greed(aa.size()*8);
-	EACH(a,aa)
-		r+= a;
-}
+#define FLAT(aa,r) \
+	r.prealloc(aa.size()*4);\
+	EACH(a,aa) r+= a;
 
 }

@@ -78,7 +78,7 @@ void create_console(){
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "hash_map.hpp"
+#include "hmap.hpp"
 
 
 namespace doot{
@@ -91,17 +91,18 @@ void file_unlock(str& name){
 	FILE* file= fopen(name, "rw");
 	funlockfile(file);
 }
-bool file_dump(vector<u8>& ret, str& name){
+bool file_dump(list<u8>& ret, str& name){
 	FILE* file= fopen(name, "r");
 	//char* errstr= strerror(ferr);
 	if(!!errno)
 		return true;
 
-	ret.realloc_greed(0x1000);
+	ret.prealloc(0x1000);
 	//todo use filesize metadata
 
 	//SEEK_END doesnt always work, therefore
 	//preallocation is unpossible but unnecessary
+	//todo opt stride
 	char buf;
 	while(fread(&buf,1,1,file))
 		ret.add(buf);
@@ -115,7 +116,7 @@ bool file_dump(vector<u8>& ret, str& name){
 	return false;
 }
 bool file_dump(str& ret, str& name){
-	vector<u8> res;
+	list<u8> res;
 	if(file_dump(res,name))
 		return true;
 	EACH(r,res)
@@ -130,12 +131,12 @@ struct fchgcall{
 		call(obj);
 	}
 };
-hash_map<char const*, fchgcall> fchgmap;
-void fchg_(char const* fnam){
-	if(fchgcall* call= fchgmap[fnam])
-		call->invoke();
+hmap<str, fchgcall> fchgmap;
+void fchg_(str fnam){
+	ifm(call, fchgmap[fnam])
+		call.invoke();
 	else
-		throw;
+		err("fook fnam findn't");//future self will HATE this
 }
 bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
 	#ifdef _WIN32

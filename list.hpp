@@ -9,47 +9,58 @@ template checks if object has init function or not, calls upon allocation
 
 subtractions and insertions fuck sorting
 
-TODO heap container that is a generic allocation owner as a superclass of vector
+TODO heap container that is a generic allocation owner as a superclass of list
 */
-tplt struct vector: arr<T>, container{
+tplt struct list: arr<T>, container{
 	using arr<T>::base;
 	using arr<T>::stop;
 	T* cap;
 
-	static cex sizt GROW_FACTOR= 4;
-	static cex sizt CAP_DEFAULT= 16;//8*16=128
+	static cex siz GROW_FACTOR= 4;
+	static cex siz CAP_DEFAULT= 16;//8*16=128
 
-	vector(sizt init_cap);
-	vector(): vector(CAP_DEFAULT){};
-	vector(vector&& b){ waive(*this, b);}
-	~vector();
+	list(siz init_cap);
+	list(): list(CAP_DEFAULT){};
+	list(list<T>&& b){
+		waive(*this, b); }
+	list(list<T> cre b):
+		list(b.size()){
+		addl(b);}
+	list<T>& op=(list<T>&& b){
+		clear();
+		waive(*this, b); reth; }
+	list<T>& op=(list<T> cre b){
+		clear();
+		addl(b); reth; }
+	~list();
 	
-	sizt size() const{     return stop-base;  }
-	sizt capacity() const{ return cap-base;   }
-	bool empty() const{    return base==stop; }
+	siz size() cst{     re stop-base;  }
+	siz capacity() cst{ re  cap-base;   }
+	bool empty() cst{   re base==stop; }
 
 	//sets capacity, copies elements
-	void realloc(sizt);
+	void realloc(siz);
 	//will only grow and never shrink
-	void realloc_greed(sizt c);
+	void prealloc(siz c);
 	//realloc capacity*grow_factor
 	void expand();
 
 	//args forward to ctor
-	tpl<typn... E>
-	T& add(E cre... e);
-	tpl<typn... E>
-	T& op+=(E cre... e){ return add(e...); };
+	tples T& add( E&&... e);
+	tples T& op+=(E&&... e){ re add(e...); };
 
 	//appends b to this
-	void addv(vector<T> cst& b){
-		addv((arr<T>&)b);
-	}
-	void addv(arr<T> cst& b){
-		realloc_greed(size()+b.size());
+	//this must be explicitly seperate from add
+	//	i dont remember why but im quite sure
+	//	something to do with variad disambiguation?
+	void addl(arr<T> cre b){
+		prealloc(size()+b.size());
 		EACH(e,b)
-			add<T>(e);
-	}
+			add(e);}
+
+
+	//container placement requires forwarding
+	//this is evitablent,
 	
 	//pushes if element is not contained
 	void push_nodup(T cre e);
@@ -73,15 +84,29 @@ tplt struct vector: arr<T>, container{
 	void clear();
 };
 
-tpl<typn T, auto cond> void filter_sub(vector<T>& v){
-	vector<idx> d;
+tpl<> struct list<void>{
+	void* base;
+	void* stop;
+	void* cap;
+	list(void)= default;
+	tple list(list<E>& b){
+		*this= rcas<list<void>>(b);
+	}
+	tplt op list<T>&(){
+		re     rcas<list<T>   >(*this); }
+};
+tplt list<void>& vcas(list<T>& a){
+		re rcas<list<void>>(a); }
+
+tpl<typn T, auto cond> void filter_sub(list<T>& v){
+	list<idx> d;
 	EN(i,e,v){
 		if(cond(e))
 			d+=i;
 	}
 	v-=d;
 };
-tplt void vector<T>::sub(arr<idx> d){
+tplt void list<T>::sub(arr<idx> d){
 	u64 pi= -1;
 	EACHD(e,d){//descending, remove from end
 		#ifdef DEBUG
@@ -95,21 +120,21 @@ tplt void vector<T>::sub(arr<idx> d){
 
 //s relinquishes its allocation, stowing d
 //d MUST NOT be initialized, as it will not be destructed
-tplt void waive(vector<T>& d, vector<T>& s){
+tplt void waive(list<T>& d, list<T>& s){
 	if(d.base!=null && d.size()==0)
-		warn("vector waive destination not empty");
+		warn("list waive destination not empty");
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;
 	s.base= s.stop= s.cap= 0;
 };
-tplt void waive(arr<T>& d,vector<T>& s){
+tplt void waive(arr<T>& d,list<T>& s){
 	d.base= s.base;
 	d.stop= s.stop;
 	s.base= s.stop= s.cap= 0;
 };
 
-tplt vector<T>::vector(sizt init_cap){
+tplt list<T>::list(siz init_cap){
 	if(init_cap!=0){
 		auto a= doot::alloc<T>(init_cap);
 		base= a.base;
@@ -120,15 +145,15 @@ tplt vector<T>::vector(sizt init_cap){
 		base= stop= cap= 0;
 }
 
-tplt vector<T>::~vector(){
-	ass(!!base);//temporary for detecting freed vectors
+tplt list<T>::~list(){
+	ass(!!base);//temporary for detecting freed lists
 	if(!!base)//MUST NOT be invoked on uninitialized memory
 		clear();
 	doot::free(*this);
 }
 
-tplt void vector<T>::realloc(sizt n){
-	sizt siz= size();
+tplt void list<T>::realloc(siz n){
+	siz siz= size();
 	ass(n>=siz);
 
 	if(!!base)
@@ -141,7 +166,7 @@ tplt void vector<T>::realloc(sizt n){
 	ass(stop<=cap);
 }
 
-tplt void vector<T>::realloc_greed(sizt n){
+tplt void list<T>::prealloc(siz n){
 	siz c= capacity();
 	if(n<c)
 		return;
@@ -149,34 +174,33 @@ tplt void vector<T>::realloc_greed(sizt n){
 	n= n>c?n:c;
 	realloc(n);
 };
-tplt void vector<T>::expand(){
-	sizt c= capacity()*GROW_FACTOR;
+tplt void list<T>::expand(){
+	siz c= capacity()*GROW_FACTOR;
 	if(c==0)
 		c= CAP_DEFAULT;
 	realloc(c);
 	ass(cap>stop);
 }
 
-tplt
-tpl<typn... E>
-T& vector<T>::add(E cre... e){
+tplt tples
+T& list<T>::add(E&&... e){
 	if(stop==cap)
 		expand();
 	ass(stop<cap);
-	return *new(stop++)T(e...);
+	re *new(stop++)T(e...);
 }
 
 
 //pushes if element is not contained
-tplt void vector<T>::push_nodup(T cre e){
+tplt void list<T>::push_nodup(T cre e){
 	if(find(*this,e)==NULLIDX)
 		make(e);
 }
 
-tplt void vector<T>::insert(idx i, T cre e){
+tplt void list<T>::insert(idx i, T cre e){
 	ass(false);//lol
 }
-tplt T vector<T>::pop_front(){
+tplt T list<T>::pop_front(){
 	ass(size()>0);
 	T ret= base[0];
 	sub_idx(0);
@@ -184,21 +208,21 @@ tplt T vector<T>::pop_front(){
 }
 
 //swaps element with last and shortens
-tplt void vector<T>::sub_idx(idx i){
+tplt void list<T>::sub_idx(idx i){
 	ass(i>=0&i<size());
 	base[i].~T();
 	base[i]= *--stop;
 }
 //ret true if contained element
-tplt bool vector<T>::sub_eq(T cre e){
-	sizt i= find(*this,e);
+tplt bool list<T>::sub_eq(T cre e){
+	siz i= find(*this,e);
 	if(i==NULLIDX)
 		return false;
 	sub_idx(i);
 	return true;
 }
 
-tplt void vector<T>::clear(){
+tplt void list<T>::clear(){
 	for(auto& e: *this)
 		e.~T();
 	stop= base;

@@ -11,7 +11,8 @@ message queues explicitly consumed within thread loop
 #pragma once
 #include "doot.hpp"
 #include "string.hpp"
-#include "vector.hpp"
+#include "list.hpp"
+#include "array_algos.hpp"
 
 namespace doot{
 
@@ -61,35 +62,47 @@ void init();
 
 bool cex WARP_NO_MULTITHREAD= true;
 
-
-struct _invocation_voidp{
-	virtual void op()(void*)=0;
-};
-tpl<typn A, typn B>
-struct _invocation: _invocation_voidp{
-	struct pack{
-		   arr<A>* a;
-		vector<B>* b;
+/*opaque lambda and its functors, purely semantic complexity
+{arr<T>,lis<T>} -> void* -> {arr<void>,lis<void>} -> {arr<T>,lis<T>}
+caller          -> impl  -> dispatch              -> lambda  */
+struct _invocation_void{
+	struct K{
+	    arr<void>& a;
+		lis<void>& b;
 	};
-	fptr<arr<A>&,vector<B>&,void> f;
+	using KF= FPTR(K,void);
+	KF kf;
+	using VF= FPTR(void*,void);
+	VF vf;
+};
+tpl<typn A, typn B, FPTR_VAR(f, L2C(arr<A>&,lis<B>&),void)>
+struct _invocation : _invocation_void{
+	//typed user implementation
+	struct AB{
+		arr<A>& a;
+		lis<B>& b;
+	};
 	
-	virtual void op()(void* p){
-		pack* ab= (pack*)p;
-		f(ab->a,ab->b);
+	static void ftor_AB(AB& ab){
+		f(ab.a,ab.b);
+	}
+	// F->KF
+	static void ftor_k(K k){//K<void>->T
+		ftor_AB( rcas<AB>(k) );}
+	static void ftor_v(void* v){//void*->T
+		ftor_AB( *(AB*)v );}
+
+	_invocation(){
+		_invocation_void::kf= &ftor_k;
+		_invocation_void::vf= &ftor_v;
 	}
 };
-//{arr<T>,vec<T>} -> void* -> {arr<void>,vec<void>} -> {arr<T>,vec<T>}
-//caller          -> impl  -> dispatch              -> lambda
 extern void _invoke(
-	_invocation_void* f,
-	siz stride_a,//stride_b not necessary, the lambda is responsible
-	          arr<void*> ** in,
-	vector<vector<void*>>** out
-	//truly not how the language should be used
-	//"youre fuckin with god"-shika
-	//void* should be considered void, making it a pointer is a hack
-	//it could be any type, since arr and varr members are pointers, all pointers are u64
-);
+	_invocation_void& f,
+       	arr<void> & a,
+	lis<lis<void>>& b,//dispatcher emits sublists
+	siz stride_a); //stride_b omitted as lambda is responsible
+	
 
 
 /*
@@ -97,11 +110,11 @@ In Place Transform
 uses the calling thread + pool
 blocking, no external synchro needed
 
-each thread is given an arr<T> and vector<T>
+each thread is given an arr<T> and list<T>
 	handled by the system
 warp itself does not handle segment iteration
 	allows optimizer unrolling
-the output vector is variable sized
+the output list is variable sized
 	the kernel may output accordingly
 
 void task(arr<IN>,vec<OUT>)
@@ -111,12 +124,12 @@ void task(arr<IN>,vec<OUT>)
 	ret R
 use
 	arr_raii<IN> i
-	vector<OUT> o
+	list<OUT> o
 	dipatch<IN,OUT,&task>(i,o)
 
 arr<arr<>> is not used
-dispatcher passing E implies arr<E>
-the parameter is not arr<E> unless a matrix
+dispatcher passing E implies arr<A>
+the parameter is not arr<A> unless a matrix
  the job division requires an array
  each threads array is a segment of the array, not a scalar object
  the task is aware of segments, it is not a scalar kernel
@@ -127,33 +140,28 @@ jobs must not be reallocated in any way until complete
 	if scoping properly is nonconcern
 
 */
-#define _WARPAR arr<E>&,vector<R>&
-tpl<typn E, typn R, FPTR(task,_WARPAR,void)>
-void dispatch(arr<E>& in, vector<R>& out){
+tpl<typn A, typn B, FPTR_VAR(f, L2C(arr<A>&,lis<B>&), void) >
+void dispatch(arr<A>& in, lis<B>& out){
+
 	//amount of swearing when writing was medium
 
-	//per-thread vector alloced and waived by each thread invocation
+	//per-thread list alloced and waived by each thread invocation
 	//this is a good use of waiving
 	//	it is internal
 	//	the resulting lifetimes are ultimately passed to the caller
 	
-	//basically all semantic complexity due to opaquifying the containers
-	//nested vector due from comptime-unknown thread number
-	vector<vector<    R>>  vv;
-	vector<vector<void*>>& vvv= rcas<vector<vector<void*>>>(&vv);//god is dead i have killed him
-	_invocation<E,R> inv{in,out,task};
+	//basically all semantic complexity due to opaqueness requirement
+	//outer list as thread count comptime-unknown
+	lis<lis<B>> llb;
 
 	//(io -> void) -> (void* -> void)
-	_invoke(
-		&inv,
-		sizeof(E),
-		{(void*)in.base,
-		 (void*)in.stop},
-		vvv);
+	_invocation<A,B,f> inv;
+	auto a= vcas( in);
+	auto b=	vcas(llb);
+	_invoke(inv,a,b,sizeof(A));
 
-	//flatten vector of vectors
-	EACH(v,vv)
-		out+= v;
+	EACH2(b,llb)
+		out+=b;
 }
 
 }

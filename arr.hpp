@@ -8,30 +8,29 @@ arrays are not a container
  they do not have ownership of their data
  ownership is often implemented by subclasses
 */
-template<typename T>
-struct arr{
+tplt struct arr{
 	T* base= 0;
 	T* stop= 0;
-	T* begin() const { return base; }
-	T* end()   const { return stop; }
-	sizt size() const { return stop-base; }
+	T* begin() cst { return base; }
+	T* end()   cst { return stop; }
+	sizt size() cst { return stop-base; }
 
 	arr(){}
 	arr(T* a, T* b){ base= a; stop= b; }
 
-	T& operator[](idx i) const{
+	T& operator[](idx i) cst{
 		ass( i>=0 & i<size() );
 		return base[i];
 	}
 
-	idx ptr_idx(T* t) const{
+	idx ptr_idx(T* t) cst{
 		idx idx= t-base;
 		if(idx<0 || idx>=size() || !base )
 			return nullidx;
 		return idx;
 	}
 
-	idx find(T const& e) const{
+	idx find(T cre e) cst{
 		idx i=0;
 		for(auto& a: *this){
 			if(a==e)
@@ -42,19 +41,30 @@ struct arr{
 	}
 
 	void clear(){ base= stop= null; }
-	bool operator!(){ return !base; }
-};
-template<typename T>
-const arr<T> EMPTY= arr<T>(0,0);
+	bool operator!() cst{ return !base; }
 
-//useful when
+	op arr<void>() const;
+};
+#define EMPTY {0,0}
+
+//useful because
 // something doesnt want to inherit arr's pointers
 // something has multiple arrays and only wants to iterate one
 #define arrayable(b,e) \
-T* begin(){ return b; }\
-T* end(){ return e; }\
-sizt size(){ return end()-begin(); }\
-operator arr<T>(){ return arr<T>{begin(),end()}; }
+T* begin ()const{ re b; }\
+T* end   ()const{ re e; }\
+sizt size()const{ re  e-b ; }\
+op arr<T>(){ re {b,e}; }
+
+tpl<> struct arr<void>{
+	void* base;
+	void* stop;
+	//not arrayable, must be casted
+	tplt op arr<T>() const{ re {(T*)base,(T*)stop}; };
+};
+tplt arr<T>::op arr<void>() const{ re {(void*)base,(void*)stop}; };
+tplt arr<void> vcas(arr<   T> a){ re {(void*)a.base,(void*)a.stop}; }
+tplt arr<   T> rcas(arr<void> a){ re {(   T*)a.base,(   T*)a.stop}; }
 
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness
@@ -62,7 +72,7 @@ operator arr<T>(){ return arr<T>{begin(),end()}; }
 template<typename T, sizt CAP>
 struct fixedarr{
 	T base[CAP];
-	arrayable(base,base+CAP)
+	arrayable(base,(base+CAP))
 
 	T& operator[](idx i){
 		ass(i>=0 & i<CAP);
@@ -71,7 +81,7 @@ struct fixedarr{
 };
 
 
-/*a vector of fixed capacity
+/*a list of fixed capacity
 pronounced dinner
 
 nonconst methods invalidate indices
@@ -82,7 +92,7 @@ template<typename T, sizt CAP>
 struct dynarr: fixedarr<T,CAP>{
 	using fixedarr<T,CAP>::base;
 	sizt stop= 0;//copymove safe
-	arrayable(base, base+stop);
+	arrayable(base, (base+stop));
 
 	//no copy/assign since shallow/deep ambiguous
 
@@ -90,7 +100,7 @@ struct dynarr: fixedarr<T,CAP>{
 		clear();
 	}
 	void clear(){
-		for(T& t : *this)
+		EACH(t, op arr<T>())
 			t.~T();
 		stop= 0;
 	}
@@ -159,7 +169,7 @@ inline void free(arr<T>& a){
 	if(!a.base)
 		return;
 	_free(a.base);
-	a= EMPTY<T>;
+	a= EMPTY;
 }
 
 

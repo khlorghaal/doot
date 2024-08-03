@@ -16,11 +16,11 @@ public:
 	}
 	maybe<T&> pull(T& def){
 		mut.lock();
-		auto ret= head<tail ?
+		auto r= head<tail ?
 			maybe<T&>::yes(heap[tail++]):
 			maybe<T&>::no();
 		mut.locknt();
-		return ret;
+		retr;
 	}
 };
 

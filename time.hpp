@@ -4,14 +4,6 @@
 
 namespace doot{
 
-inl nsec op""_ns(u64 v){ re v; }
-inl nsec op""_us(u64 v){ re v*1000; }
-inl nsec op""_ms(u64 v){ re v*1000000; }
-inl nsec op""_s( u64 v){ re v*1000000000; }
-inl time_t usec(nsec t){ re t/1000; }
-inl time_t msec(nsec t){ re t/1000000; }
-inl time_t  sec(nsec t){ re t/1000000000; }
-
 
 extern nsec current_time();//os.cpp
 extern void sleep(nsec);
@@ -54,4 +46,4 @@ struct profiler{
 	void stop();
 };
 
-}
+};

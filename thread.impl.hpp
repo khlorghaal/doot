@@ -3,7 +3,7 @@
 
 namespace doot{
 
-extern void _thread(char const*, FPTR(_,void*,void),void*);
+extern void _thread(char const*, FPTR(void*,void),void*);
 void thread(str name, call_opaq_t arg){
 	_thread(name, arg.f, arg.x);
 }
@@ -82,7 +82,7 @@ int poolsize;//excludes invoking worker
 volatile bool active= false;
 
 latch ltch;
-vector<thread_loop> warp_threads;
+list<thread_loop> warp_threads;
 //the warp loops as a standby after dispatch
 //as to not reallocate thread
 
@@ -100,91 +100,70 @@ void init(){
 }
 
 struct warp_task_io_t{
-	arr<void*> in;
-	vector<void*>& out;
+	arr<void> in;
+	list<void>& out;
 };
 
 void _invoke(
-			lambda_opaq f,
-			siz stride_a,
-			arr<void*> in,
-			vector<vector<void*>>& out ){
+	_invocation_void& f, 
+       	arr<void> &  in_void,
+	lis<lis<void>>& out_void,//dispatcher emits sublists
+	siz stride_a){
 	if(active){
 		warn("warp double dispatch, check reentrancy");
 		re;
 	}
 	active= true;
 
-	u8* base= (u8*)in.base;
-	u8* stop= (u8*)in.stop;
+	arr<u8> in_u8= in_void;
+	//can do pointer arithmetic
+	//horribly unsafe, remember stride
+	//this is not fine, but it will work.
+
 	siz stride= stride_a;
-
-	sizt total= ((siz)(stop-base))/stride;//number of T
-	sizt denom= poolsize;//denominator, number of threads
-	vector<warp_task_io_t> segs(denom);//segments
-
-	//vec<vec<void> -> vec<vec<u8>>
-	//inner vector doesnt need type for outer vector to have correct stride
-	// as vector members are only pointers, which must be samely sized
-	vector<vector<void*>>& segs_out= *out;
+	siz total= in_u8.size()/stride;//number of T
+	siz denom= poolsize;//denominator, number of threads
+	
+	//vec<vec<void> -> vec<vec<u8>> -> vec<vec<void>> -> vec<void> -> vec<T>
+	//inner list doesnt need type for outer list to have correct stride
+	// as list members are only pointers, which must be samely sized
 
 	if(denom<=0){
 		warn("thread::warp::dispatch:: 0 jobs provided");
-		return;
+		re;
 	}
+	
 	if(
 		WARP_NO_MULTITHREAD
 		|| poolsize==0 || poolsize==1 || total==1 ){
-			vector<void*>& out_= out->add(void);
-			call_opaq_t call{f,warp_task_io_t{in,out_}};
-			re call.invoke();
+			//todo OPAQ_ call{f,warp_task_io_t{in,out_}};
+			list<void>& o= out_void.add();
+			f.kf({in_void,o});
+			re;
 	}
 
-	ass(denom==poolsize & denom==warp_threads.size());
+	ass(poolsize==warp_threads.size());
+	ass(in_u8.size()%stride==0);//if denom isnt divisible by stride that would result in fragmenting
 
-	vector<pair<siz>> indxss;//untyped offsets
+	list<arr<u8>> segs_indiv;
+	div<u8>(in_u8,denom*stride,segs_indiv);
 
-	//distribute
-	if(denom>total){//more jobs than threads
-		siz span= total/denom;//per thread
-		siz rem= total - span*denom;//remainder
-		ass(rem>=0);
-	
-		RA(i,denom){
-			indxss.add({
-				i*span,
-				b+span
-			});
-		}
-		//give remainder to last thread
-		//worstcase: total= denom*2-1
-		//	todo the remainder should be dsitributed evenly
-		indxs[denom-1].b+= rem;//b:=stop
-	
-	}else{//less jobs than threads
-		//remainder of threads will not dispatch
-		RA(i,total){
-			indxss.add({
-				i  ,
-				i+1
-			});
-		}
-	}
+	//multiplying denominator by stride
+	//evits need for post-multiplying offsets
+	//div function does not need to be aware of stride
 
-	EACH(idxs,idxss){
-		segs.add({
-			arr<void>{
-				(void*)(((u8*)idxs.a)*stride + base) ,
-				(void*)(((u8*)idxs.b)*stride + base) },
-			segs_out.add(void)
-		});
+	list<warp_task_io_t> segs;
+	EACH(sii, segs_indiv){
+		arr<void>& siv= rcas<arr<void>>(sii);
+		lis<void>& so= out_void.add();
+		segs.add(siv,so);
 	}
 
 	//woken threads
 	ltch.set(segs.size());
 	EN(i,seg,segs){ //iterate segs not threads since there may be less 
 		bool busy=
-			warp_threads[i].dispatch({ f, &seg });
+			warp_threads[i].dispatch({ f.vf, &seg });
 		if(busy)
 			warn("thread::warp::dispatch thread not free");
 	}
