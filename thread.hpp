@@ -145,7 +145,7 @@ void dispatch(arr<A>& in, lis<B>& out){
 
 	//amount of swearing when writing was medium
 
-	//per-thread list alloced and waived by each thread invocation
+	//per-thread list alloced and acquired by each thread invocation
 	//this is a good use of waiving
 	//	it is internal
 	//	the resulting lifetimes are ultimately passed to the caller

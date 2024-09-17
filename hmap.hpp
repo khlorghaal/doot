@@ -53,13 +53,12 @@ struct hmap: container{
 	void key_values_cpy(list<pair<K,V>>&);
 
 };
-#define hmap hmap
 
 //expensive, avoid
 #define EACH_HMAP(e,M) \
 		EACH(_S_##e,M.heap)\
 			if(unlikely(!_S_##e.empty))\
-				fauto( e= _S_##e.v )
+				ifauto( e= _S_##e.v )
 
 tpl<typn K, typn V>
 hmap<K,V>::hmap(sizt init_len){

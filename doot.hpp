@@ -1,12 +1,11 @@
 #pragma once
 #include "primitives.hpp"
+#include "turing.h"
 
-#ifndef DOOT_NOMACRO
 #ifndef NDEBUG
 	#define DOOT_DEBUG 1
 	#ifndef DEBUG
 		#define DEBUG 1
-	#endif
 #endif
 
 #define TSIZ sizeof(T)
@@ -38,7 +37,10 @@
 #define lis list
 #define may maybe
 #define nope return {}
-#define print(x) cout(strfmt("%s\n",str(x).dat.base))
+#define print(x) cout(str(x))
+
+#define   likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 
 #endif
 
@@ -71,7 +73,16 @@ extern void run_tests();
 
 extern void create_console();
 
-extern cstr strfmt_cstr(cstr,...);
+
+#ifdef _MSVC_LANG
+	inline u64 unendian(u64 i){ return _i8swap_u64(i); };
+	inline u32 unendian(u32 i){ return _i8swap_ulong(i);  };
+	inline u16 unendian(u16 i){ return _i8swap_ushort(i); };
+#else
+	inline u64 unendian(u64 i){ return __builtin_bswap64(i); };
+	inline u32 unendian(u32 i){ return __builtin_bswap32(i); };
+	inline u16 unendian(u16 i){ return __builtin_bswap16(i); };	
+#endif
 
 #define _stringize(s) #s
 #define stringize(s) _stringize(s)
@@ -96,7 +107,7 @@ inline void nop(){}//for setting breakpoints
 
 
 #ifdef DEBUG
-	#define assert(X) {if(!(X)){err("ass failure: " stringize(X));}}
+	#define assert(X) {if(!unlikely(X)){err("ass failure: " stringize(X));}}
 #else
 	#define assert(X) {}
 #endif
@@ -237,6 +248,7 @@ struct triad{
 	C c;
 };
 
+#define VOID //for passing to ##
 
 #define L2S(A,B) A   B
 #define L2C(A,B) A , B
@@ -379,8 +391,9 @@ CALL_T( call_opaq_t, void*, void )
 #define uses() tplt struct{ using type=T; }
 
 //used for loopy macros to prevent parents mismatch
-//horribly renegade
-#define fauto(S) if(auto& S;1)
+//horribly renegade //ive been told this isnt abnormal; that is horrifying
+#define ifauto(S) if(auto& S;1)
+#define ifexpr(S) if( ([&]{ (S); re true;})() ) //=> (S);
 
 //range
 #define RA(o,n) for(i64 o=0; o<(n); o++)
@@ -390,7 +403,7 @@ CALL_T( call_opaq_t, void*, void )
 #define EACH(o,v) for(auto& o : v)
 #define EACHD(o,v) \
 	for(idx _i##o= v.size(); _i##o-->0;)\
-		fauto(o= v[_i##o])
+		ifauto(o= v[_i##o])
 #define EACH2(o,vv) \
 	EACH(vv##o,vv)\
 		EACH(o,vv##o)
@@ -398,15 +411,16 @@ CALL_T( call_opaq_t, void*, void )
 //enumerate
 #define EN(i,o,v) \
 	for(idx i=0; i<v.size(); i++)\
-		fauto(o=v[i])
+		ifauto(o=v[i])
 #define EN_D(i,o,v) \
 	for(idx i=v.size()-1; i>=0; i--)\
-		fauto(o=v[i])
+		ifauto(o=v[i])
 
 #define ZIP(a,b, la,lb) \
-	RA(_i##a##b, la.size())\
-		fauto(a=la[_i##a##b])\
-			fauto(b=lb[_i##a##b])
+	ifexpr( ass(len(la)==len(lb)) )\
+		RA(_i##a##b, la.size())\
+			ifauto(a=la[_i##a##b])\
+				ifauto(b=lb[_i##a##b])
 
 //symcats must use the symbol names not the lists, as the list symbols may be expressions
 
@@ -458,12 +472,8 @@ but mostly i find template syntax arbitrary and incomprehensible.
 //MAP_INVOKE_TEMPLATE(T,a,b,c) => T<a>(); T<b>(); T<c>();
 #define MAP_INVOKE_TEMPLATE(T,...) MAP(_FUNCTOR_INVOKE_T1_A0(T), __VA_ARGS__)
 
-tpl<typn... E>
-struct void_variad_t {
-  sex bool v= false;};
-tpl<>
-struct void_variad_t<void> {
-  sex bool v = true;};
+tpl<typn... E> struct void_variad_t       { sex bool v= false;};
+tpl<         > struct void_variad_t<void> { sex bool v = true;};
 #define VOID_VARIAD(E) void_variad_t<E ...>::v
 
 
@@ -485,7 +495,7 @@ tplt struct maybe{
 //bracketed unwrap
 #define ifm(s,m)\
 	if(likely(!!m))\
-		fauto(s= m.un())
+		ifauto(s= m.un())
 //if null return
 #define ifm_re(s,m)\
 	if(unlikely(!m)) re;\
@@ -506,6 +516,8 @@ tplt struct maybe{
 #define ifm_nope(s,m)\
 	if(!m) nope;\
 	auto& s= m.un();
+
+
 
 //essential math
 
@@ -553,21 +565,6 @@ inl float rand(float in){
 
 
 
-//intrinsics
-
-#define   likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect(!!(x), 0)
-
-
-#ifdef _MSVC_LANG
-	inline u64 unendian(u64 i){ return _i8swap_u64(i); };
-	inline u32 unendian(u32 i){ return _i8swap_ulong(i);  };
-	inline u16 unendian(u16 i){ return _i8swap_ushort(i); };
-#else
-	inline u64 unendian(u64 i){ return __builtin_bswap64(i); };
-	inline u32 unendian(u32 i){ return __builtin_bswap32(i); };
-	inline u16 unendian(u16 i){ return __builtin_bswap16(i); };	
-#endif
 
 }//namespace end
 //namespace doot::doot= ::doot;//hack, it sometimes gets nested i dont know why, -E didnt show it

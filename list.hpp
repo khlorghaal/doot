@@ -16,19 +16,19 @@ tplt struct list: arr<T>, container{
 	using arr<T>::stop;
 	T* cap;
 
-	static cex siz GROW_FACTOR= 4;
-	static cex siz CAP_DEFAULT= 16;//8*16=128
+	sex siz GROW_FACTOR= 4;
+	sex siz CAP_DEFAULT= 16;//4*16=64 cache line size
 
 	list(siz init_cap);
 	list(): list(CAP_DEFAULT){};
 	list(list<T>&& b){
-		waive(*this, b); }
+		acquire(*this, b); }
 	list(list<T> cre b):
 		list(b.size()){
 		addl(b);}
 	list<T>& op=(list<T>&& b){
 		clear();
-		waive(*this, b); reth; }
+		acquire(*this, b); reth; }
 	list<T>& op=(list<T> cre b){
 		clear();
 		addl(b); reth; }
@@ -51,9 +51,8 @@ tplt struct list: arr<T>, container{
 
 	//appends b to this
 	//this must be explicitly seperate from add
-	//	i dont remember why but im quite sure
-	//	something to do with variad disambiguation?
-	void addl(arr<T> cre b){
+	//	dont remember why but quite sure something to do with variad disambiguation?
+	tple void addl(arr<E> cre b){
 		prealloc(size()+b.size());
 		EACH(e,b)
 			add(e);}
@@ -120,15 +119,15 @@ tplt void list<T>::sub(arr<idx> d){
 
 //s relinquishes its allocation, stowing d
 //d MUST NOT be initialized, as it will not be destructed
-tplt void waive(list<T>& d, list<T>& s){
-	if(d.base!=null && d.size()==0)
-		warn("list waive destination not empty");
+tplt void acquire(list<T>& d, list<T>& s){
+	if(!!d.base)
+		warn("list acquire destination not empty");
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;
 	s.base= s.stop= s.cap= 0;
 };
-tplt void waive(arr<T>& d,list<T>& s){
+tplt void acquire(arr<T>& d,list<T>& s){
 	d.base= s.base;
 	d.stop= s.stop;
 	s.base= s.stop= s.cap= 0;
@@ -139,31 +138,31 @@ tplt list<T>::list(siz init_cap){
 		auto a= doot::alloc<T>(init_cap);
 		base= a.base;
 		stop= base;
-		cap= a.stop;
-	}
+		cap= a.stop;}
 	else
 		base= stop= cap= 0;
 }
 
 tplt list<T>::~list(){
 	ass(!!base);//temporary for detecting freed lists
-	if(!!base)//MUST NOT be invoked on uninitialized memory
+	if(!!base)//must not be invoked on uninitialized memory
 		clear();
 	doot::free(*this);
 }
 
 tplt void list<T>::realloc(siz n){
 	siz siz= size();
-	ass(n>=siz);
+	ass(n>=siz);//not worth the leak risk
 
 	if(!!base)
-		doot::realloc<T>(*this, n);//violates namespace, swap cap and stop
+		doot::realloc<T>(*this, n);//violates names, swap cap and stop
 	else
 		base= doot::alloc<T>(n).base;
 
 	cap= base+n;
 	stop= base+siz;
 	ass(stop<=cap);
+	ass(size()<=capacity());
 }
 
 tplt void list<T>::prealloc(siz n){

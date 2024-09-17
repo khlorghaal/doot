@@ -4,7 +4,7 @@
 
 namespace doot{
 
-struct voidstruct{};//used for changing maps into sets, etc
+struct voidstruct{};//for changing maps into sets etc
 
 using siz_t= unsigned long long;
 using sizt = unsigned long long;

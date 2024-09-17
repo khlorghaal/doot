@@ -54,22 +54,3 @@ tplt struct bpt{
 	//todo idk if this even makes sense
 	//needs runtime container ref
 };
-
-
-//distinct from idpt for type safety, for entities
-//may upcast
-tplt struct cmpp{
-	inl static idheap<T>& h= component<T>::heap;
-	eid e= nullid;
-	maybe<T> op()(){ re h[e]; }
-	T& un(){ re op()().un(); }
-
-	cmpp(      ): e(NULLID){};
-	cmpp(eid e_): e(    e_){};
-	op eid(){ re e; }
-	cmpp& op=(eid e_){ e= e_; reth; }
-	cmpp& op=(cmpp p){ e= p;  reth; }
-	bool op!(){ re e==nullid; }
-	
-	void kill(){ T::kill(e); }
-};

@@ -97,10 +97,8 @@ struct index_recycler{
 
 /*not static
 intended for
-	-components which need local heap
-	-static types which shouldnt use entities
-
-todo merge kinds with component*/
+	-local heap on an object
+	-static types which shouldnt use entities*/
 tplt struct bag: idheap<T>{
 	index_recycler rcyc;
 
@@ -131,26 +129,6 @@ tplt struct sbag{
 		rcyc.free(heap.sub(e));}
 };
 
-//killbus per eid
-tplt struct component{
-	inl static idheap<T> heap;
-
-	//secondary inherited types must procede the component inheritance
-	//ordering is vital for intializers
-	tples static T& make(eid eid, E&&... e){
-		if cex (VOID_VARIAD(E)){
-			re heap.add(eid, {
-				component<T>{},
-				e...});
-		}
-		else{
-			re heap.add(eid);
-		};
-	}
-	static void kill(eid eid){    heap.sub(eid); };
-};
-
-
 tplt idheap<T>::idheap(sizt init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
@@ -172,7 +150,7 @@ T& idheap<T>::add(id id, E&&... e){
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		err(strfmt("entry already present %i - %i",id,map[id]));
+		err(str("entry already present ",id," - ",map[id]));
 
 	ass(ids.size()==heap.size());
 	sizt idx= heap.size();

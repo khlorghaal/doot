@@ -96,7 +96,7 @@ void init(){
 	ass(poolsize>=0);
 
 	RA(i,poolsize)
-		warp_threads.add(strfmt("tasker %i",i));
+		warp_threads.add(str("tasker ",i));
 }
 
 struct warp_task_io_t{

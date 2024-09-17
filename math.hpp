@@ -66,8 +66,57 @@ inl f32 trn(rad t){ re t/TAU; }
 inl f32 deg(rad t){ re t/TAU*360; }
 
 
+
+#define cppize_x(y)   inl f64 y(f64 x){ re ::    y   (x); }
+#define cppize_xf(y)  inl f32 y(f32 x){ re :: y##f   (x); }//inty|floaty
+#define cppize_fx(y)  inl f64 y(f64 x){ re :: f##y   (x); }//floaty
+#define cppize_fxf(y) inl f32 y(f32 x){ re :: f##y##f(x); }//inty|floaty
+
+#define cppize_lx(y)  inl i32 y(i32 x){ re :: l##y   (x); }
+#define cppize_llx(y) inl i64 y(i64 x){ re ::ll##y   (x); }
+#define cppize_x_xf(y) cppize_x(y); cppize_xf(y);
+#define cppize_x2_xf2(y) \
+	inl f64 y(f64 x,f64 m){ re ::y(   x,m); }\
+	inl f32 y(f32 x,f32 m){ re ::y##f(x,m); }
+
+cppize_lx(abs) cppize_llx(abs) cppize_fx(abs) cppize_fxf(abs)
+cppize_x_xf(cos) cppize_x_xf(acos)
+cppize_x_xf(sin) cppize_x_xf(asin)
+cppize_x_xf(tan) cppize_x_xf(atan)
+cppize_x_xf(sqrt)
+cppize_x_xf(log)
+cppize_x_xf(log2)
+cppize_x_xf(floor)
+cppize_x_xf(ceil)
+cppize_x2_xf2(pow)
+
+#define imply1(F,A,B) inl B F(A x){ re F((B)x);}
+#define imply1_i_f32(F) \
+	imply1(F,i32,f32)\
+	imply1(F,i64,f32)\
+	imply1(F,u32,f32)\
+	imply1(F,u64,f32)
+
+#define imply2(F,A,B,C) inl C F(A x,B y){ re F((C)x,(C)y);}
+#define imply2_i_f32(F) \
+	///partial combinatorial\
+	imply2(F,i32,i32,f32) imply2(F,i32,f64,f32) imply2(F,f64,i32,f32)\
+	imply2(F,i64,i64,f32) imply2(F,i64,f64,f32) imply2(F,f64,i64,f32)\
+	imply2(F,u32,u32,f32) imply2(F,u32,f64,f32) imply2(F,f64,u32,f32)\
+	imply2(F,u64,u64,f32) imply2(F,u64,f64,f32) imply2(F,f64,u64,f32)
+
+imply1_i_f32(cos) imply1_i_f32(acos)
+imply1_i_f32(sin) imply1_i_f32(asin)
+imply1_i_f32(tan) imply1_i_f32(atan)
+imply1_i_f32(sqrt)
+imply2_i_f32(mod) imply2_i_f32(smod)
+
+
+inl f32 fract(f32 x){ re x-(i32)x; }
+inl f64 fract(f64 x){ re x-(i64)x; }
+
 //epsilon equality
-#define eps(a,b) (abs(f32(a-b))<ETA)
+#define eps(a,b) (abs((a-b))<ETA)
 
 tplt T sign(T cst x){
 	re (x>0)-(x<0);
@@ -213,55 +262,6 @@ inl f64 frand(){
 inl f64 sfrand(){
 	re frand()*2.f-1.f;
 }
-
-inl f32 fract(f32 x){ re x-(i32)x; }
-inl f64 fract(f64 x){ re x-(i64)x; }
-
-
-
-#define cppize_x(y)   inl f64 y(f64 x){ re ::    y   (x); }
-#define cppize_xf(y)  inl f32 y(f32 x){ re :: y##f   (x); }//inty|floaty
-#define cppize_fx(y)  inl f64 y(f64 x){ re :: f##y   (x); }//floaty
-#define cppize_fxf(y) inl f32 y(f32 x){ re :: f##y##f(x); }//inty|floaty
-
-#define cppize_lx(y)  inl i32 y(i32 x){ re :: l##y   (x); }
-#define cppize_llx(y) inl i64 y(i64 x){ re ::ll##y   (x); }
-#define cppize_x_xf(y) cppize_x(y); cppize_xf(y);
-#define cppize_x2_xf2(y) \
-	inl f64 y(f64 x,f64 m){ re ::y(   x,m); }\
-	inl f32 y(f32 x,f32 m){ re ::y##f(x,m); }
-
-cppize_lx(abs) cppize_llx(abs) cppize_fx(abs) cppize_fxf(abs)
-cppize_x_xf(cos) cppize_x_xf(acos)
-cppize_x_xf(sin) cppize_x_xf(asin)
-cppize_x_xf(tan) cppize_x_xf(atan)
-cppize_x_xf(sqrt)
-cppize_x_xf(log)
-cppize_x_xf(log2)
-cppize_x_xf(floor)
-cppize_x_xf(ceil)
-cppize_x2_xf2(pow)
-
-#define imply1(F,A,B) inl B F(A x){ re F((B)x);}
-#define imply1_i_f32(F) \
-	imply1(F,i32,f32)\
-	imply1(F,i64,f32)\
-	imply1(F,u32,f32)\
-	imply1(F,u64,f32)
-
-#define imply2(F,A,B,C) inl C F(A x,B y){ re F((C)x,(C)y);}
-#define imply2_i_f32(F) \
-	///partial combinatorial\
-	imply2(F,i32,i32,f32) imply2(F,i32,f64,f32) imply2(F,f64,i32,f32)\
-	imply2(F,i64,i64,f32) imply2(F,i64,f64,f32) imply2(F,f64,i64,f32)\
-	imply2(F,u32,u32,f32) imply2(F,u32,f64,f32) imply2(F,f64,u32,f32)\
-	imply2(F,u64,u64,f32) imply2(F,u64,f64,f32) imply2(F,f64,u64,f32)
-
-imply1_i_f32(cos) imply1_i_f32(acos)
-imply1_i_f32(sin) imply1_i_f32(asin)
-imply1_i_f32(tan) imply1_i_f32(atan)
-imply1_i_f32(sqrt)
-imply2_i_f32(mod) imply2_i_f32(smod)
 
 
 

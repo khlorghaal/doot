@@ -13,6 +13,11 @@
 
 #ifndef DOOT_NO_MAIN
 	int main(int argc, char** argv){
+		
+		#ifdef DEBUG
+			::doot::run_tests();
+		#endif
+
 		return dootmain(argc,argv);
 	}
 #endif

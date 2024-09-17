@@ -9,10 +9,9 @@
 #include "file.hpp"
 
 #ifdef DEBUG
-#include "tests.impl.hpp"
+	#include "tests.impl.hpp"
 #endif
 
-#include "string.impl.hpp"
 #include "bytebuf.impl.hpp"
 #include "timer.impl.hpp"
 #include "trans2d.impl.hpp"

@@ -53,7 +53,8 @@ void profiler::start(str name_){
 };
 void profiler::stop(){
 	end= current_time();
-	cout(strfmt("profiler: %20s: %5lli ms", (cstr)name, msec(end-beg)));
+	cout(str("profiler: ",name,": ",msec(end-beg))," ms");
+	//"profiler: %20s: %5lli ms", (cstr)name, msec(end-beg)));
 };
 
 };

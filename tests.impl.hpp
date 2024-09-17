@@ -23,21 +23,30 @@ void run_tests(){
 	{
 		ass((str("")+="")=="");
 		ass(str("asdf")=="asdf");
+		ass(str("asdf")!="asd");
+		ass(str("asdf")!="asdfb");
 		ass(str("asdf")!="zxcv");
-		str a= "";
-		ass(a=="");
+		str a= "" ;{ str a( "");
+		ass(a=="");} ass(a==""); //khlor is struck with a possessed mood
 		str b= "asdf";
 		ass(b=="asdf");
-		//str c= b; c+="zxcv";
-		//ass(c=="asdfzxcv");
-		//str d= c; d.clear(); d+= "qwer";
-		//ass(d=="qwer");
-		//str g= str::fmt("a%s","b")+strfmt("%s","c");
-		//ass(g=="abc");
-		str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,1.f);
-		ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
-		//str e= d; e+=strfmt("%s%i",(cstr)d,0);
-		//ass(e=="qwerqwer0");
+		str c= b; c+="zxcv";
+		ass(c=="asdfzxcv");
+		c.cat("vcxz");
+		ass(c=="asdfzxcvvcxz");
+		str d= c; d.clear(); d+= "qwer";
+		ass(d=="qwer");
+		str e= d;
+		ass(e==d);
+		e+=str((cstr)d,0);
+		ass(str("a")=="a");
+		ass(e=="qwerqwer0");
+		str g= str("a","b","c");
+		ass(g=="abc");
+		//str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,-1,1.f);
+		//ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
+		str i(1);
+		ass(i=="1")
 	}
 	
 	{//math
@@ -173,6 +182,15 @@ void run_tests(){
 			ass(vec.sub_eq(i));
 		RD(i,512)
 			ass(vecb.sub_eq(i));
+
+		list<u16> b;
+		b.realloc(256);
+		ass(b.size()==0);
+		ass(b.capacity()==256);
+		b.base[255]=0;
+		b.prealloc(512);
+		b.base[511]=0;
+		ass(b.capacity()>=512);
 	}
 	
 	{//hashmap
@@ -204,22 +222,28 @@ void run_tests(){
 			heap.add(i,0);//??? what? why?
 	}
 
-	
+	print(1);
+	int asdf= 1;
+	print(&asdf);
+
 	{//kitchen sink container
 		idheap<hmap<str,list<str>>> wew;
-		hmap<str,list<str>>& a= wew.add(0);
-		print(a);
-		list<str>& b= a.add("a");
-		print(b);
-		str& c= b.add("b");
-		print(c);
-		hmap<str,list<str>>& d= wew[0].un();
-		print(d);
-		list<str>& e= d["a"].un();
-		print(e);
-		str& f= e[0];
-		print(f);
-		ass(f[0]=='b');
+
+		       hmap<str,list<str>>& a= wew.add(0);
+		       ass(wew[0].t == &a);
+		                 list<str>& b=   a.add("a");
+		       //print(a["a"].t);
+		       ass(a["a"].t == &b);
+		                       str& c=   b.add("b");
+		       ass(&b[0]        == &c);
+		ass( wew[0].un()["a"].un()[0][0] =='b');
+		       hmap<str,list<str>>& a_= wew[0].un();
+		                list<str>&  b_= a_["a"].un();
+		                     str&   c_= b_[0];
+		ass(c_[0]=='b');
+
+		wew.add(1).add("z").add("y");
+		ass( wew[1].un()["z"].un()[0][0] =='y');
 	}
 
 	

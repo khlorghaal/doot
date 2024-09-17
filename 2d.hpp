@@ -26,8 +26,8 @@ tplt struct gvec2{
 	                	         gvec2(T   a, T   b){ x=a     ; y=b     ; };
 	tpl<typn A, typn B> explicit gvec2(A   a, B   b){ x=(T)a  ; y=(T)b  ; };
 	tple                explicit gvec2(gvec2<E> a  ){ x=(T)a.x; y=(T)a.y; };
-	tple                inl gvec2<T> op=(E a       ){ x=(T)a  ; y=(T)a  ; };
-	tple                inl gvec2<T> op=(gvec2<E> a){ x=(T)a.x; y=(T)a.y; };
+	tple                inl gvec2<T> op=(E a       ){ x=(T)a  ; y=(T)a  ; reth; };
+	tple                inl gvec2<T> op=(gvec2<E> a){ x=(T)a.x; y=(T)a.y; reth; };
 	//#define L(V) 
 	//VTYP_RX;
 	//#undef L
@@ -123,7 +123,9 @@ inl  vec2 lerp(  f32 t,  vec2 a,  vec2 b){
 	);
 }
 //unary
-tplt inl T len(gvec2<T> cre a){ re sqrt(a.x*a.x + a.y*a.y); }
+tplt inl T sum( gvec2<T> cre a){ re a.x+a.y; }
+tplt inl T prod(gvec2<T> cre a){ re a.x*a.y; }
+tplt inl T len(gvec2<T> cre a){ re sqrt(sum(a*a)); }
 tplt inl gvec2<T> norm(gvec2<T> cre a){ re a/len(a); }//todo invsqrt
 tplt inl f64 atan(gvec2<T> cre a){ re atan2((f64)a.y,(f64)a.x); }
 

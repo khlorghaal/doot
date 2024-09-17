@@ -11,41 +11,45 @@ arrays are not a container
 tplt struct arr{
 	T* base= 0;
 	T* stop= 0;
-	T* begin() cst { return base; }
-	T* end()   cst { return stop; }
-	sizt size() cst { return stop-base; }
+	T* begin() cst { re base; }
+	T* end()   cst { re stop; }
+	sizt size() cst { re stop-base; }
+	sizt  len() cst { re size(); }
 
 	arr(){}
 	arr(T* a, T* b){ base= a; stop= b; }
 
-	T& operator[](idx i) cst{
-		ass( i>=0 & i<size() );
-		return base[i];
+	T& op[](idx i) cst{
+		ass( i>=0 );
+		ass( i<size() );
+		re base[i];
 	}
 
 	idx ptr_idx(T* t) cst{
 		idx idx= t-base;
 		if(idx<0 || idx>=size() || !base )
-			return nullidx;
-		return idx;
+			re nullidx;
+		re idx;
 	}
 
 	idx find(T cre e) cst{
 		idx i=0;
 		for(auto& a: *this){
 			if(a==e)
-				return i;
+				re i;
 			i++;
 		}
-		return nullidx;
+		re nullidx;
 	}
 
 	void clear(){ base= stop= null; }
-	bool operator!() cst{ return !base; }
+	bool op!() cst{ re !base; }
 
 	op arr<void>() const;
 };
 #define EMPTY {0,0}
+
+tplt siz len(T cre a){ re a.size(); }
 
 //useful because
 // something doesnt want to inherit arr's pointers
@@ -69,14 +73,14 @@ tplt arr<   T> rcas(arr<void> a){ re {(   T*)a.base,(   T*)a.stop}; }
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness
 //copymoveable
-template<typename T, sizt CAP>
+tpl<typn T, sizt CAP>
 struct fixedarr{
 	T base[CAP];
 	arrayable(base,(base+CAP))
 
-	T& operator[](idx i){
+	T& op[](idx i){
 		ass(i>=0 & i<CAP);
-		return base[i];
+		re base[i];
 	}
 };
 
@@ -88,7 +92,7 @@ nonconst methods invalidate indices
 
 uses element constructors
 */
-template<typename T, sizt CAP>
+tpl<typn T, sizt CAP>
 struct dynarr: fixedarr<T,CAP>{
 	using fixedarr<T,CAP>::base;
 	sizt stop= 0;//copymove safe
@@ -105,27 +109,26 @@ struct dynarr: fixedarr<T,CAP>{
 		stop= 0;
 	}
 
-	template<typename E>
-	bool make(E e){
+	tple bool make(E e){
 		if(stop>=CAP)
-			return false;
+			re false;
 		T* a= base+stop++;
 		*a= e;
-		return true;
+		re true;
 	}
 	void make(T e){ make<T>(e); }
 
 	void rem(idx idx){
-		T& e= operator[](idx);
+		T& e= op[](idx);
 		e.~T();
 		ass(stop>0);
 		base[idx]= base[--stop];
 	}
 
 
-	T& operator[](idx i){
+	T& op[](idx i){
 		ass(i>=0 & i<stop);
-		return base[i];
+		re base[i];
 	}
 };
 
@@ -139,7 +142,7 @@ void* _realloc(void*,sizt);
 
 //eschew these for containers
 //containers use these
-tplt inl arr<T> alloc(sizt n){
+tplt arr<T> alloc(sizt n){
 	arr<T> ret;
 	if(n>TOO_BIG)
 		err("alloc TOO_BIG");
@@ -149,7 +152,7 @@ tplt inl arr<T> alloc(sizt n){
 		err("OOM");
 	retret;
 }
-tplt inl void realloc(arr<T>& r, sizt n){
+tplt void realloc(arr<T>& r, sizt n){
 	if(!r){
 		warn("realloc on unalloced array");
 		r= alloc<T>(n);
@@ -164,10 +167,9 @@ tplt inl void realloc(arr<T>& r, sizt n){
 	if(!r.base)
 		err("OOM");
 }
-template<typename T>
-inline void free(arr<T>& a){
+tplt void free(arr<T>& a){
 	if(!a.base)
-		return;
+		re;
 	_free(a.base);
 	a= EMPTY;
 }
@@ -183,44 +185,37 @@ tplt struct arr_raii: arr<T>{
 };
 
 
-template<typename T>
-inline void copy(arr<T> dst, arr<T> src){
+tplt void copy(arr<T> dst, arr<T> src){
 	if(dst.size()!=src.size())
 		err("array copy size mismatch");
 	_memcpy(dst.base,src.base, src.size()*TSIZ);
 }
 
-template<typename T>
-inline void fill(arr<T> a, T val){
-	for(auto& e : a)
+tplt void fill(arr<T> a, T val){
+	EACH(e,a)
 		e= val;
 }
-tplt inline void zero(arr<T> a){
+tplt void zero(arr<T> a){
 	_memclr(a.base, a.size()*TSIZ);
 }
 
-template<typename T>
-inline idx find(arr<T> a, T val){
-	idx i= 0;
-	for(auto& e : a){
-		if(e==val)
-			return i;
-		i++;
-	}
-	return nullidx;
+tplt idx find(arr<T> a, T val){
+	EN(i,e,a)
+		if(unlikely(e==val))
+			re i;
+	re nullidx;
 }
 
-
-tplt bool operator==(arr<T> a, arr<T>b){
+tplt bool op==(arr<T> a, arr<T>b){
 	if(a.size()!=b.size())
-		return false;
+		re false;
 	if(a.base==b.base && a.stop==b.stop)
-		return true;
+		re true;
 
 	ZIP(x,y,a,b)
 		if(unlikely(x!=y))
-			return false;
-	return true;
+			re false;
+	re true;
 }
 
 }

@@ -2,6 +2,9 @@
 
 //the c preprocessor is turing complete if provided with sufficient symbols
 
+#define MAP(...) #error //todo
+
+#define MAP0 (F) 
 #define MAP1 (L0, F) L0(F)
 #define MAP2 (L0,L1, F) L0(F) L1(F)
 #define MAP3 (L0,L1,L2, F) L0(F) L1(F) L2(F) 
