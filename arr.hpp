@@ -66,9 +66,8 @@ tpl<> struct arr<void>{
 	//not arrayable, must be casted
 	tplt op arr<T>() const{ re {(T*)base,(T*)stop}; };
 };
-tplt arr<T>::op arr<void>() const{ re {(void*)base,(void*)stop}; };
-tplt arr<void> vcas(arr<   T> a){ re {(void*)a.base,(void*)a.stop}; }
-tplt arr<   T> rcas(arr<void> a){ re {(   T*)a.base,(   T*)a.stop}; }
+tplt arr<T>::op arr<void>() cst{ re {(void*)  base,(void*)  stop}; };
+tplt arr<T> vcas(arr<void> a){   re {(   T*)a.base,(   T*)a.stop}; };
 
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness

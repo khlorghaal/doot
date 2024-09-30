@@ -11,21 +11,51 @@
 
 namespace doot{
 
-void test_warp(arr<u32>& a, list<u32>& b){
-	EACH(o,a)
-		o= 1;
-	b+= sum(a);
-}
-
 void run_tests(){
 	cout("tests");
 	profiler pf;
 	{
+		ass(sizeof(int )==4);
+		ass(sizeof(long)==8);
+		ass(sizeof(long int )==8);
+		ass(sizeof(long long)==8);
+		ass(sizeof(long long int)==8);
+
+		ass(sizeof(i8 )==1);
+		ass(sizeof(i16)==2);
+		ass(sizeof(i32)==4);
+		ass(sizeof(i64)==8);
+		ass(sizeof(u8 )==1);
+		ass(sizeof(u16)==2);
+		ass(sizeof(u32)==4);
+		ass(sizeof(u64)==8);
+
+		ass(sizeof(' ' )==1);
+		ass(sizeof(0   )==4);
+		ass(sizeof(0l  )==8);
+		ass(sizeof(0ll )==8);
+		ass(sizeof(0u  )==4);
+		ass(sizeof(0ul )==8);
+		ass(sizeof(0ull)==8);
+	}
+	{
 		ass((str("")+="")=="");
+		ass((str(str(""))+="")=="");
+		ass((str(str(""))+=str(""))==str(str("")));
 		ass(str("asdf")=="asdf");
 		ass(str("asdf")!="asd");
 		ass(str("asdf")!="asdfb");
 		ass(str("asdf")!="zxcv");
+		ass(str()+(0   )=="0");
+		ass(str()+(0l  )=="0");
+		ass(str()+(0ll )=="0");
+		ass(str()+(0u  )=="0");
+		ass(str()+(0ul )=="0");
+		ass(str()+(0ull)=="0");
+
+		ass(str()+(0.1f )=="0.1000");
+		ass(str()+(0.1  )=="0.1000");
+		ass(str()+(0   )=="0");
 		str a= "" ;{ str a( "");
 		ass(a=="");} ass(a==""); //khlor is struck with a possessed mood
 		str b= "asdf";
@@ -38,15 +68,16 @@ void run_tests(){
 		ass(d=="qwer");
 		str e= d;
 		ass(e==d);
-		e+=str((cstr)d,0);
-		ass(str("a")=="a");
-		ass(e=="qwerqwer0");
-		str g= str("a","b","c");
+		e+=str(d)+0;
+		e.cat(0);
+		ass(e=="qwerqwer00");
+		str g= str("a")+"b"+"c";
 		ass(g=="abc");
 		//str f= str::fmt("%i %i %u %#x %#.2f 0",0,-1,-1,-1,-1,1.f);
 		//ass(f=="0 -1 4294967295 0xffffffff 1.00 0");
-		str i(1);
-		ass(i=="1")
+		str i;
+		i+= 1;i+= 1.; i+= ""_s+1+1ll+1u+1ull;
+		ass(i=="11.00001111");
 	}
 	
 	{//math
@@ -192,6 +223,22 @@ void run_tests(){
 		b.base[511]=0;
 		ass(b.capacity()>=512);
 	}
+
+	{//algos
+		lis<u32> l;
+		RA(i,5)
+			l+=i;
+		ass( sum(l)==10 );
+		ass( average(l)==2 );
+
+		lis<arr<u32>> r;
+		lis<u32> t0; t0+= 0; t0+= 1;
+		lis<u32> t1; t1+= 2; t1+= 3; t1+= 4;
+		div(l,2,r);
+		ass(r.size()==2);
+		ass(r[0]==t0);
+		ass(r[1]==t1);
+	}
 	
 	{//hashmap
 		hmap<int, int> map;
@@ -221,10 +268,6 @@ void run_tests(){
 		RD(i,511)
 			heap.add(i,0);//??? what? why?
 	}
-
-	print(1);
-	int asdf= 1;
-	print(&asdf);
 
 	{//kitchen sink container
 		idheap<hmap<str,list<str>>> wew;
@@ -260,18 +303,49 @@ void run_tests(){
 	}
 
 	{//thread
-		lock lock;//raii`
-		latch latch;
-		latch.set(2);
-		latch.tick();
-		latch.tick();
-		latch.tick();//underflow
-		latch.wait();
+		int i0= 0;
+		thread("test call_t; should die",{[](void* v){
+			(*(int*)v)++;
+		},&i0});
+
+		mutex mut0;
+		mut0.lock();
+		thread("test mut0; should die",{[](void* v){
+			are mut0= vcas<mutex>(v);
+			mut0.lock();//wait
+			mut0.locknt();
+		},&mut0});
+		mut0.locknt();
+
+		lock lock0;
+		thread("test lock0; should die",{[](void* v){
+			are lock0= vcas<lock>(v);
+			lock0.wait();
+		},&lock0});
+		lock0.wake(true);
+
+		latch latch0;
+		latch0.set(8);
+		thread("test latch0; should die",{[](void* v){
+			are latch0= vcas<latch>(v);
+			RA(i,9)
+				latch0.tick();
+		},&latch0});
+		latch0.wait();
 
 		arr_raii<u32> a(0x1000);
-		list<u32> b(0x1000);
-		warp::dispatch<u32,u32,&test_warp>(a,b);
+		EACH(o,a) o= 69;
+		list<u32> b;
+		warp::dispatch<u32,u32,[](arr<u32>& a, list<u32>& b){
+				print("warp");
+				EACH(o,a)
+					o= 1;
+				b+= sum(a);
+			}>(a,b);
 		u32 s= sum(b);
+		print(a);
+		print(b);
+		print(s);
 		ass(s==0x1000);
 	}
 	/*

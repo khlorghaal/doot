@@ -27,109 +27,98 @@ namespace doot{
 
 extern void _err(char const*, char const*);
 
-struct _mutex:std::mutex{};
-//i dont remember why this isnt a typedef
-//there is probably a reason for that
+
+void sleep(nsec t){
+	std::this_thread::sleep_for(std::chrono::nanoseconds(t));
+}
+
+struct _mutex:std::mutex{
+	void locknt(){ std::mutex::unlock(); }//lol
+};
+
 
 struct _lock{
 	_mutex mut;
 	std::condition_variable cv;
-	volatile bool pred= false;
-	void wait(){
-		std::unique_lock<std::mutex> lck(mut);
-		pred= false;
-		cv.wait(lck, [&]{return pred;});
-	}
-	void wake(){
-		mut.lock();
-		pred= true;
-		cv.notify_all();
-		mut.unlock();
-	}
+	bool awaken= false;
+	bool waiting= false;
+
+    void wait() {
+        std::unique_lock<std::mutex> lck(mut);
+        waiting= true;
+        awaken= false;
+        cv.notify_all();
+        cv.wait(lck, [&]{ re awaken; });
+    }
+    void wake(bool blocking) {
+        std::unique_lock<std::mutex> lck(mut);
+        if(blocking)//block if no threads waiting until one is
+        	cv.wait(lck, [&]{ re waiting; });
+        waiting= false;
+        awaken= true;
+        cv.notify_all();
+    }
 };
 
 
 struct _latch{
 	_mutex mut;
-	_lock lck;
-	std::atomic<int> count= 0;
-	void set(int count){
-		mut.lock();
-		if(count!=0)
-			err("latch:set:impl: count!=0");
-		count= count;
-		mut.unlock();
+	//_lock lck; dont reuse lock
+	//the cv requires the single mut + count as predicate
+	std::condition_variable cv;
+	int count= 0;
+	void set(int count_){
+        mut.lock();
+		if(count>0){//allow negative to allow underflow
+			err("latch:set:impl: count>0");
+			cv.notify_all();
+		}
+		count= count_;
+		mut.locknt();
 	}
 	void tick(){
-		mut.lock();
-		if(count>0)
-			count--;
-		if(count==0)
-			lck.wake();
-		mut.unlock();
+	    mut.lock();
+	    bool done= false;
+	    if(--count>0)
+	    	done= true;
+	    if(count<0)
+	    	warn("latch underflow");
+	    mut.locknt();
+	    if(done)
+	    	cv.notify_all();
 	}
 	void wait(){
-		lck.wait();
+        std::unique_lock<std::mutex> lck(mut);
+        cv.wait(lck, [&]{ return count<=0; });
 	}
 };
 
 
 
-void mutex_CTOR(void* s){
-	OPAQ_M_CTOR(s,_mutex);
-}
-void mutex_DTOR(void* s){
-	OPAQ_M_DTOR(s,_mutex);
-}
-void mutex_lock(void* s){
-	OPAQ_T_DEREF(s,_mutex,m);
-	m.lock();
-}
-void mutex_locknt(void* s){
-	OPAQ_T_DEREF(s,_mutex,m);
-	m.unlock();
-}
+OPAQ_CDTR(mutex);
+OPAQ_MTHD(mutex,lock);
+OPAQ_MTHD(mutex,locknt);
 
-void lock_CTOR(void* s){
-	OPAQ_M_CTOR(s,_lock);
-}
-void lock_DTOR(void* s){
-	OPAQ_M_DTOR(s,_lock);
-}
-void lock_wait(void* s){
-	OPAQ_T_DEREF(s,_lock,l);
-	l.wait();
-}
-void lock_wake(void* s){
-	OPAQ_T_DEREF(s,_lock,l);
-	l.wake();
-}
+OPAQ_CDTR(lock);
+OPAQ_MTHD(lock,wait);
+#define OPAQ_ARGS bool b
+#define OPAQ_ARGN      b
+OPAQ_MTHD(lock,wake);
+#define OPAQ_ARGS void
+#define OPAQ_ARGN
 
-void latch_CTOR(void* s){
-	OPAQ_M_CTOR(s,_latch);
-}
-void latch_DTOR(void* s){
-	OPAQ_M_DTOR(s,_latch);
-}
-
-void latch_set(void* s, int i){
-	OPAQ_T_DEREF(s,_latch,l);
-	l.set(i);
-}
-void latch_tick(void* s){
-	OPAQ_T_DEREF(s,_latch,l);
-	l.tick();
-}
-void latch_wait(void* s){
-	OPAQ_T_DEREF(s,_latch,l);
-	l.tick();
-}
+OPAQ_CDTR(latch);
+#define OPAQ_ARGS int i
+#define OPAQ_ARGN     i
+OPAQ_MTHD(latch,set);
+#define OPAQ_ARGS void
+#define OPAQ_ARGN
+OPAQ_MTHD(latch,tick);
+OPAQ_MTHD(latch,wait);
 
 
 int vcore_count(){
-	return 8;
-	//fixme hack
-	//query the os
+	return std::thread::hardware_concurrency();
 }
 
 //(void*->void)->(void*->int(0))
@@ -142,7 +131,7 @@ int _fntr_vp2i(void* p){
 	f(p);
 	return 0;
 }
-void  _thread(char const* name, void(*f)(void*),void* arg){
+void  _thread(cstr name, void(*f)(void*),void* arg){
 	thrd_t thr;
 	_thr_mut.lock();
 	_fntr_vp2i_map.emplace(arg,f);
@@ -150,9 +139,6 @@ void  _thread(char const* name, void(*f)(void*),void* arg){
 	thrd_create(&thr,&_fntr_vp2i,arg);
 };
 
-void sleep(nsec t){
-	std::this_thread::sleep_for(std::chrono::nanoseconds(t));
-}
 
 void* _malloc(siz s){
 	return ::malloc( s); };
@@ -172,27 +158,25 @@ size_t _strnlen(char const* s, siz n){
 }
 
 #define L(F,T,A) str str::F(T x){\
-	str r;\
-	siz s= snprintf(0,0,A,x);\
-	r.dat.prealloc(s+1);\
+	int s= snprintf(0,0,A,x);\
+	if(s<0){ warn("prin'tf"); re ""; }\
+	str r; r.dat.prealloc(s+1);\
 	r.dat.stop+= s;\
-	siz s= snprintf(r.dat.base,s,A,x);\
-	retr;
-}
-L(itod, u32, "%lu" )  L(itod, i32, "%ld" ) L(itox, u32,"%lx" )
+	snprintf(r.dat.base,s+1,A,x);\
+	retr;}
+L(itod, u32, "%u" )  L(itod, i32, "%d" ) L(itox, u32,"%x" )
 L(itod, u64, "%llu")  L(itod, i64, "%lld") L(itox, u64,"%llx")
-L(ftod, f64, "%4.4g") L(ftox, f64,"%4.4a")
+L(ftod, f64, "%.4f") L(ftox, f64,"%.4f")
 #undef L
 str str::itox(i64 x){
 	str r;
-	cstr a= (x>0)?"%x"?"-%x";
+	cstr a= (x>0)?"%x":"-%x";
 	if(x<0) x= -x;
-	siz s= snprintf(0,0,A,x);
+	int s= snprintf(0,0,a,x);
 	r.dat.prealloc(s+1);
 	r.dat.stop+= s;
-	siz s= snprintf(r.dat.base,s,A,x);
-	retr;
-}
+	snprintf(r.dat.base,s,a,x);
+	retr;}
 str str::itox(i32 x){ re itox((i64)x);}
 
 struct console_stream{
@@ -202,16 +186,16 @@ console_stream _stdout= {stdout};
 console_stream _stderr= {stderr};
 console cout= {&_stdout};
 console cerr= {&_stderr};
-std::mutex console_mut= std::mutex();
 void console::put(str x){
-	console_mut.lock();
+	static std::mutex mut;
+	mut.lock();
 	//interceptor means null
 	ass(!!x.dat.base);
 	ass(_stdout.self==stdout);
 	fputs((cstr)x,stream->self);
 	fputs("\n",stream->self);//terminal-dependent behavior makes flush itself unreliable
 	fflush(stream->self);
-	console_mut.unlock();
+	mut.unlock();
 };
 
 

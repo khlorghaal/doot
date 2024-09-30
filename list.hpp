@@ -144,7 +144,7 @@ tplt list<T>::list(siz init_cap){
 }
 
 tplt list<T>::~list(){
-	ass(!!base);//temporary for detecting freed lists
+	//ass(!!base);//temporary for detecting freed lists
 	if(!!base)//must not be invoked on uninitialized memory
 		clear();
 	doot::free(*this);

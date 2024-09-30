@@ -3,7 +3,7 @@
 #include "array_algos.hpp"
 
 namespace doot{
-	
+
 //all pointers returned are invalidated upon next nonconst method invocation
 //buckets of fixed depth, expands once a bucket overflows
 tpl<typn K, typn V>
@@ -13,17 +13,17 @@ struct hmap: container{
 		K k;
 		bool empty;
 	};
-	static cex siz SLOT_SIZE= sizeof(slot);
-	static cex u16 DEPTH= 4;//depth must be cex for performance
-	static cex siz DEFAULT_LEN= 0x20;
+	sex siz SLOT_SIZE= sizeof(slot);
+	sex u16 DEPTH= 4;//depth must be cex for performance
+	sex siz DEFAULT_LEN= 0x20;
 
 	u8 grow_factor= 4;//tunable
 	u8 expand_pad= 1;
 	
 	arr<slot> heap;
 	sizt entry_count=0;//only for debug and profiling
-	slot* begin(){ return heap.base; };
-	slot* end(){ return heap.stop; };
+	slot* begin(){ re heap.base; };
+	slot*   end(){ re heap.stop; };
 
 	hmap(sizt init_len);
 	hmap();
@@ -34,8 +34,8 @@ struct hmap: container{
 	//recommend 1:2:3 :: lazy:normal:greedy
 	void expand();
 
-	inl siz bucket(K k) const{ re hash(k)%(heap.size()/DEPTH); };
-	maybe<V> operator[](K k) const;
+	inl siz bucket(K k) cst{ re hash(k)%(heap.size()/DEPTH); };
+	maybe<V> op[](K k) cst;
 	
 	V* _alloc(K k);
 
@@ -48,7 +48,7 @@ struct hmap: container{
 	//remove all elements
 	void clear();
 
-	void keys_cpy(list<K>&);
+	void   keys_cpy(list<K>&);
 	void values_cpy(list<V>&);
 	void key_values_cpy(list<pair<K,V>>&);
 

@@ -21,14 +21,14 @@ extc{ void abort(); }
 
 namespace doot{
 
-void _warn(char const* s, char const* m){
+void _warn(cstr s, cstr m){
 	cerr(str(s)+m);
 }
-void _bad(char const* s, char const* m){
+void _bad(cstr s, cstr m){
 	//todo? idk if i like the concept of bad
 	cerr(str(s)+m);
 }
-void _err(char const* s, char const* m){
+void _err(cstr s, cstr m){
 	cerr(str(s)+m);
 	abort();
 };

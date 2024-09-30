@@ -29,25 +29,29 @@ therefore all thread objects allocated as globals
 void thread(str name, call_opaq_t);// mut void*->void
 
 struct mutex{
-	OPAQ_M_CDTOR_DECL(mutex);
+	OPAQ_OBJ(mutex);
 	void lock();
 	void locknt();
 };
+OPAQ_XTRN_OBJ(mutex);
 
 //includes own mutex and predicate. does not wake spuriously
 struct lock{
-	OPAQ_M_CDTOR_DECL(lock);
-	void wait();//multiple threads may await
-	void wake();//all threads waiting
+	OPAQ_OBJ(lock);
+	void wait();//multiple threads may wait
+	void wake(bool blocking= false);//all threads waiting;
+	//blocking: if threads waitnt, until one is
 };
+OPAQ_XTRN_OBJ(lock);
 
 //countdown semaphore
 struct latch{
-	OPAQ_M_CDTOR_DECL(latch);
+	OPAQ_OBJ(latch);
 	void  set(int count);
-	void tick();
+	void tick();//blocknt when threads waitnt
 	void wait();
 };
+OPAQ_XTRN_OBJ(latch);
 
 /*one warp per process, unlike gpu warps
 warps are invoked sequentially from control thread
@@ -58,7 +62,7 @@ threads - init; serial; dispatch; task; gather; task; ...
 */
 namespace warp{
 
-void init();
+extern void init();
 
 bool cex WARP_NO_MULTITHREAD= true;
 
@@ -142,7 +146,6 @@ jobs must not be reallocated in any way until complete
 */
 tpl<typn A, typn B, FPTR_VAR(f, L2C(arr<A>&,lis<B>&), void) >
 void dispatch(arr<A>& in, lis<B>& out){
-
 	//amount of swearing when writing was medium
 
 	//per-thread list alloced and acquired by each thread invocation
@@ -156,8 +159,8 @@ void dispatch(arr<A>& in, lis<B>& out){
 
 	//(io -> void) -> (void* -> void)
 	_invocation<A,B,f> inv;
-	auto a= vcas( in);
-	auto b=	vcas(llb);
+	arr<void> a= in;
+	lis<lis<void>>& b= rcas<lis<lis<void>>>(llb);
 	_invoke(inv,a,b,sizeof(A));
 
 	EACH2(b,llb)

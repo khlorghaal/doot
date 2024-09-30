@@ -150,7 +150,7 @@ T& idheap<T>::add(id id, E&&... e){
 		fill({map.base+mapsiz, map.stop}, NULLIDX);
 	}
 	if(map[id]!=NULLIDX)//entry already present
-		err(str("entry already present ",id," - ",map[id]));
+		err(str("entry already present ")+id+" - "+map[id]);
 
 	ass(ids.size()==heap.size());
 	sizt idx= heap.size();

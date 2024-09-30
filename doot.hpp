@@ -1,6 +1,6 @@
 #pragma once
 #include "primitives.hpp"
-#include "turing.h"
+#include "pp.h"
 
 #ifndef NDEBUG
 	#define DOOT_DEBUG 1
@@ -32,12 +32,13 @@
 #define cex constexpr
 #define sex static constexpr
 #define ass assert
+#define ext  extern
 #define extc extern "C"
 #define dtyp decltype
 #define lis list
 #define may maybe
 #define nope return {}
-#define print(x) cout(str(x))
+#define print(x) cout((str)x)
 
 #define   likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -107,7 +108,7 @@ inline void nop(){}//for setting breakpoints
 
 
 #ifdef DEBUG
-	#define assert(X) {if(!unlikely(X)){err("ass failure: " stringize(X));}}
+	#define assert(X) if(!unlikely(X)){err("ass failure");}
 #else
 	#define assert(X) {}
 #endif
@@ -169,32 +170,29 @@ void  _memclr( void* dst, sizt len);
 
 //these dont give a fuck about move semantics
 tplt inline void copy(T& dst,T& src){
-	_memcpy(&dst,&src,TSIZ);
-}
+	_memcpy(&dst,&src,TSIZ);}
 tplt void swap(T& a, T& b){
 	constexpr int s= TSIZ;
 	u8 c[s];
 	_memcpy(&c,&a,s);
 	_memcpy(&a,&b,s);
-	_memcpy(&b,&c,s);
-}
+	_memcpy(&b,&c,s);}
 tplt inline void bump(T& t0, T& t1, T& t){
 	t0= t1;
-	t1= t;
-}
+	t1= t;}
 tplt inline void bump(T& t0, T& t1, T& t2, T& t){
 	t0= t1;
 	t1= t2;
-	t2= t;
-}
+	t2= t;}
 
 //reference cast
 tpl<typn B,typn A> B& rcas(A& a){
 	ass(sizeof(A)==sizeof(B));
-	re *((B*)(&a));
-}
-
-
+	re *((B*)(&a));}
+//voidpointer to reference
+tplt T& vcas(void* p){
+	ass(!!p);
+	re *(T*)p;}
 
 
 tplt cex T INTMAX;
@@ -248,8 +246,6 @@ struct triad{
 	C c;
 };
 
-#define VOID //for passing to ##
-
 #define L2S(A,B) A   B
 #define L2C(A,B) A , B
 #define L2M(A,B) A ; B ;
@@ -271,86 +267,62 @@ blessed by his divine intellect
 subjugate and contain unholy
 may thine codebase be minimized of voodoo
 
-use
+was some of most horrendous code ive ever written
+but now decent, not needing comment
 
-//header
+#.hpp
 struct A{
-	OPAQUE_DECL(A) => void* _;
+	OPAQ_OBJ(A);
 	void f();
+	int g(float);
 }
+OPAQ_XTRN_OBJ(A);
 
-//impl lib ; within doot namespace
-#import "doot..."
-OPAQEXTRN_CDTOR(A)
-OPAQEXTRN(A,f)
-
-//impl ext ; within std|stl|windows namespace
-#import <std...>
-OPAQIMPL_CDTOR(A)
-OPAQIMPL_F(A,f)
-
-output
-
-//header
-struct A{
-	void* _;
-	 A();
-	~A();
+#.cpp
+struct _A{
 	void f();
+	int g(float);
 }
-//impl lib
-extern void A_CTOR(void*);
-extern void A_DTOR(void*);
-A:: A(){ A_CTOR(_); }
-A::~A(){ A_DTOR(_); }
-extern void A_f(void*);
-void A::f(){ A_f(_); }
-
-//impl ext
-#include <thingA>
-using _A= thingA
-or
-struct _A{ thingA a; void f(){ a.g(); }; }
-
-void A_CTOR(void* p){ new((_A*)p)_A(); };//placement
-void A_DTOR(void* p){ ((_A*)p)->~_A(); };
-void A_f(void* p){ ((_A*)p)->f(); };
+OPAQ_CDTR(A);
+OPAQ_MTHD(A,f);
+#define OPAQ_RETT int
+#define OPAQ_ARGS float f
+#define OPAQ_ARGN       f
+OPAQ_MTHD(A,g);
+#define OPAQ_RETT void
+#define OPAQ_ARGS void
+#define OPAQ_ARGN
 */
-#define OPAQ_CDTOR_DECL(T) T(); ~T();
+#define OPAQ_OBJ(T) \
+	void* opaq=nullptr; T(); ~T();
+#define OPAQ_XTRN_OBJ(T) \
+    ext void     T##_##CTOR(void**);\
+    ext void     T##_##DTOR(void* );\
+	inl T:: T(){ T##_##CTOR(&opaq);};\
+	inl T::~T(){ T##_##DTOR( opaq);};
+#define OPAQ_CDTR(T) \
+	void T##_##CTOR(void** v){\
+		ass(!*v);\
+		*v= (void*)( new _##T() ); }\
+	void T##_##DTOR(void* v){ \
+		ass(!!v);\
+		delete ((_##T*)v); }
+#define OPAQ_ARGS void//must X for commas
+#define OPAQ_RETT void
+#define OPAQ_ARGN
+#define OPAQ_MTHD(T,M)\
+	OPAQ_RETT T::M(OPAQ_ARGS){ \
+		ass(!!opaq);\
+		re ((_##T*)opaq)->M( OPAQ_ARGN);}
 
-#define OPAQ_CDTOR_DEFR(T) \
-extern void     T##_##CTOR(void*);\
-extern void     T##_##DTOR(void*);\
-T:: T(){ T##_##CTOR(this);  };\
-T::~T(){ T##_##DTOR(this);  };
+//#define OPAQ_T_DEREF(v,T,s)
+//	auto _t= ((_##T*)v);\
+//	T& s= *((T*)(*((void**)v)));
 
-#define OPAQ_M(M) void* M;
-//opaque member to be refereed to
-// and casted by implementation
-//must be first member of struct
-// void* badness requires this
-
-//self void*, member name, typn
-#define OPAQ_M_CTOR(v,T) \
-*((void**)v)= new T();
-#define OPAQ_M_DTOR(v,T) \
-delete ( (T*)(*( (void**)v )) );
-//the void * is a struct with a void*
-//new the T and pass its location
-//into the member values
-#define OPAQ_T_DEREF(v,T,s) \
-T& s= *((T*)(*((void**)v)));
-//some of the most horrendous code ive ever written
-//i want to purge this, however
-//i dont know how else to opaquify generics
-#define OPAQ_M_CDTOR_DECL(s) OPAQ_M(_); OPAQ_CDTOR_DECL(s);
-#define OPAQEXTRN_M(T,F) \
-extern void T##_##F(void*); \
-inline void T::F(){ T##_##F(_);}
 //T_F  the opaque function
-//T::F the member function callforwarding to the opaque
+//T::F the member function forwarding to the opaque
 #define OPAQIMPL_F(T,F) \
-void T##_##F(void* p){ ((T*)p)->F(); }
+	void T##_##F(void* p){ ((T*)p)->F(); }
 
 #define OPAQ_FPTR_VAR(SYM) FPTR_VAR(SYM,void*,void)
 /*(A->void)->(B->void)
@@ -417,7 +389,7 @@ CALL_T( call_opaq_t, void*, void )
 		ifauto(o=v[i])
 
 #define ZIP(a,b, la,lb) \
-	ifexpr( ass(len(la)==len(lb)) )\
+	if( la.size()==lb.size() )\
 		RA(_i##a##b, la.size())\
 			ifauto(a=la[_i##a##b])\
 				ifauto(b=lb[_i##a##b])

@@ -4,16 +4,18 @@
 #ifndef DOOT_NO_MAIN
 	extern int dootmain(int, char**);
 #endif
-// DOOT_NO_MAIN used for linked libs
-// whom havent main
+// DOOT_NO_MAIN for main't-ed linked libs
 
 #ifdef __linux__
 #include <time.h>
 #include <sys/termios.h>
+#import <pthread.h>
 
 #ifndef DOOT_NO_MAIN
+	#import "thread.hpp"
 	int main(int argc, char** argv){
-		
+		doot::warp::init();
+
 		#ifdef DEBUG
 			::doot::run_tests();
 		#endif
@@ -32,6 +34,10 @@ nsec current_time(){
 	return t.tv_nsec;
 }
 
+void namethread(cstr s){
+    pthread_setname_np(pthread_self(), s);
+}
+
 }
 #endif
 
@@ -40,15 +46,18 @@ nsec current_time(){
 #include <Windows.h>
 
 #ifndef DOOT_NO_MAIN
+	#import "thread.hpp"
 	int main(int argc, char* argv[], char* envp[]){
+		doot::warp::init();
+
 		#ifdef DEBUG
 		//this is for a VS setup
 		//assume windows users wont launch from term even when debug build
 		doot::create_console();
 		#elif
 		#error
-		freopen("log.txt", "w", stdout);
-		freopen("log.txt", "w", stderr);
+		freopen("stdout.txt", "w", stdout);
+		freopen("stderr.txt", "w", stderr);
 		#endif
 
 		return dootmain(argc, argv);
@@ -71,6 +80,11 @@ void create_console(){
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
+}
+
+void namethread(cstr s){
+	//fixme link Kernel32.lib
+	SetThreadDescription(GetCurrentThread(), s);
 }
 
 }
@@ -141,7 +155,7 @@ void fchg_(str fnam){
 	ifm(call, fchgmap[fnam])
 		call.invoke();
 	else
-		err("fook fnam findn't");//future self will HATE this
+		err("fook fnam findn't");//future self will HATE this //future self: lmoa
 }
 bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
 	#ifdef _WIN32

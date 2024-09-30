@@ -23,11 +23,12 @@ inline void sort_bubble(arr<T> a){
 
 tplt T average(arr<T> a){
 	if(a.size()==0)
-		return 0;
+		re 0;
 	T r= 0;
-	for(auto& i: a)
-		r+= i;
+	EACH(e,a)
+		r+= e;
 	r/= a.size();
+	retr;
 }
 
 //the additions and removals preformed on a to result in b
@@ -38,7 +39,7 @@ tplt void difference(arr<T> a, arr<T> b, list<T> adds, list<T> rems){
 }
 
 tplt T sum(arr<T> a){
-	T r;
+	T r=0;
 	EACH(o,a)
 		r+= o;
 	retr;

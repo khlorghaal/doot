@@ -3,28 +3,13 @@
 
 namespace doot{
 
-extern void _thread(char const*, FPTR(void*,void),void*);
+extern void _thread(cstr, FPTR(void*,void),void*);
+extern void namethread(cstr); thread_local str thread_name;
 void thread(str name, call_opaq_t arg){
 	_thread(name, arg.f, arg.x);
+	namethread(name);
 }
 
-
-
-OPAQ_CDTOR_DEFR(mutex);
-OPAQEXTRN_M(mutex,lock);
-OPAQEXTRN_M(mutex,locknt);
-
-
-OPAQ_CDTOR_DEFR(lock);
-OPAQEXTRN_M(lock,wait);
-OPAQEXTRN_M(lock,wake);
-
-
-OPAQ_CDTOR_DEFR(latch);
-extern void latch_set(void*,int);
-void latch::set(int i){ latch_set(this,i); };
-OPAQEXTRN_M(latch,tick);
-OPAQEXTRN_M(latch,wait);
 
 //used to make threads standby after operating
 //either for background threads like net/audio
@@ -32,7 +17,7 @@ OPAQEXTRN_M(latch,wait);
 struct thread_loop{
 	lock lck;
 	mutex mut;
-	volatile bool aktiv= true;
+	bool aktiv= true;
 	call_opaq_t order;
 
 	static void loop_static(void* that){
@@ -87,6 +72,11 @@ list<thread_loop> warp_threads;
 //as to not reallocate thread
 
 void init(){
+	if cex(WARP_NO_MULTITHREAD){
+		poolsize= 0;
+		re;
+	}
+
 	poolsize= vcore_count();
 	
 	if(poolsize>2)//more than 2 vcores
@@ -95,8 +85,10 @@ void init(){
 		poolsize--;//invoker runs a task on itself
 	ass(poolsize>=0);
 
+	poolsize*=2;//improves worstcase scheduling
+
 	RA(i,poolsize)
-		warp_threads.add(str("tasker ",i));
+		warp_threads.add(str("tasker ")+i);
 }
 
 struct warp_task_io_t{
@@ -128,8 +120,15 @@ void _invoke(
 	//inner list doesnt need type for outer list to have correct stride
 	// as list members are only pointers, which must be samely sized
 
-	if(denom<=0){
-		warn("thread::warp::dispatch:: 0 jobs provided");
+	if cex(!WARP_NO_MULTITHREAD)
+		if(denom<=0 && vcore_count()!=1){
+			err("thread::warp::dispatch:: no threadpool");
+			re;
+		}
+	if(in_u8.size()==0){
+		#ifdef DEBUG
+			warn("thread::warp::dispatch:: 0 jobs provided");
+		#endif
 		re;
 	}
 	
