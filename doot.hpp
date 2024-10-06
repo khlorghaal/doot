@@ -423,31 +423,9 @@ but mostly i find template syntax arbitrary and incomprehensible.
 */
 
 //puts memeber into scope
-#define usem(o,m) auto& m= (o).m;
+#define usem(o,m) are m= (o).m;
 
-//#define FWD_CAST(R,M,A,B) R M(A a){ return M((B)a); }
-
-//TODO test? did i what these?? uh????
-#define _CURRY2_h(F) F(y)
-#define _CURRY2_g(F) F(x)
-//CURRY2(F) => F( g(h(x)) )
-#define CURRY2(F) _CURRY2_x(F)
-
-#define VOIDMAP(vec,f,a...) EACH(_e,vec){ _e.f(a); }
-
-
-#define _FUNCTOR_INVOKE_T0_A1(T) EVAL(T< >(x));
-#define _FUNCTOR_INVOKE_T1_A0(T) EVAL(T<x>( ));
-
-//MAP_INVOKE_UNARY(f,a,b,c) => f(a); f(b); f(c);
-#define MAP_INVOKE_UNARY(T,...)    MAP(_FUNCTOR_INVOKE_T0_A1(T), __VA_ARGS__)
-//MAP_INVOKE_TEMPLATE(T,a,b,c) => T<a>(); T<b>(); T<c>();
-#define MAP_INVOKE_TEMPLATE(T,...) MAP(_FUNCTOR_INVOKE_T1_A0(T), __VA_ARGS__)
-
-tpl<typn... E> struct void_variad_t       { sex bool v= false;};
-tpl<         > struct void_variad_t<void> { sex bool v = true;};
-#define VOID_VARIAD(E) void_variad_t<E ...>::v
-
+#define voidmap(vec,f,a...) EACH(_e,vec){ _e.f(a); }
 
 //not elegant, but robust
 tplt struct maybe{
@@ -462,32 +440,34 @@ tplt struct maybe{
 	//using (void) -> T::none would require SFINAE which i dont fuck with
 	T& un(){ ass(!!t); re *t; }
 };
-
-//control flowing unwrappers
-//bracketed unwrap
-#define ifm(s,m)\
+//unwrappers
+//bracketed
+#define may_if(s,m)\
 	if(likely(!!m))\
 		ifauto(s= m.un())
+//if null => {}; discouraged, use ({}) directly
+#define may_emp(s,m)\
+	are s= m({});
 //if null return
-#define ifm_re(s,m)\
+#define may_re(s,m)\
 	if(unlikely(!m)) re;\
-	auto& s= m.un();
+	are s= m.un();
 //if null return v
-#define ifm_re_v(s,m,v)\
+#define may_re_v(s,m,v)\
 	if(unlikely(!m)) re v;\
-	auto& s= m.un();
+	are s= m.un();
 //if null return false
-#define ifm_re_f(s,m)\
+#define may_re_f(s,m)\
 	if(unlikely(!m)) re false;\
-	auto& s= m.un();
+	are s= m.un();
 //if null continue
-#define ifm_cont(s,m)\
+#define may_cont(s,m)\
 	if(unlikely(!m)) continue;\
-	auto& s= m.un();
+	are s= m.un();
 //if null nope
-#define ifm_nope(s,m)\
+#define may_nope(s,m)\
 	if(!m) nope;\
-	auto& s= m.un();
+	are s= m.un();
 
 
 

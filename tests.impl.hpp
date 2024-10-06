@@ -58,6 +58,9 @@ void run_tests(){
 		ass(str()+(0   )=="0");
 		str a= "" ;{ str a( "");
 		ass(a=="");} ass(a==""); //khlor is struck with a possessed mood
+		ass(!a);
+		a.cat(0); a.cat(str(0));//make sure not converted to cstr
+		ass(a=="00");
 		str b= "asdf";
 		ass(b=="asdf");
 		str c= b; c+="zxcv";
@@ -175,6 +178,7 @@ void run_tests(){
 				racc+= (i32)hash((u32)i);
 			}
 			ass( abs(racc/0x1000ll) < INTMAX<hash_t> );
+			//fixme doesnt lgtm
 		}
 		{//modular
 			//i64 a= 0;
@@ -222,6 +226,16 @@ void run_tests(){
 		b.prealloc(512);
 		b.base[511]=0;
 		ass(b.capacity()>=512);
+
+		list<u8> m(1);
+		m.realloc(0);
+		m.prealloc(8);
+		m.base[7]=0;
+
+		list<u8> m2= list<u8>(list<u8>(1));
+		m2.realloc(0);
+		m2.prealloc(8);
+		m2.base[7]=0;		
 	}
 
 	{//algos
@@ -275,10 +289,10 @@ void run_tests(){
 		       hmap<str,list<str>>& a= wew.add(0);
 		       ass(wew[0].t == &a);
 		                 list<str>& b=   a.add("a");
-		       //print(a["a"].t);
 		       ass(a["a"].t == &b);
 		                       str& c=   b.add("b");
 		       ass(&b[0]        == &c);
+		//these dont invalidate refs as additions are subobjects
 		ass( wew[0].un()["a"].un()[0][0] =='b');
 		       hmap<str,list<str>>& a_= wew[0].un();
 		                list<str>&  b_= a_["a"].un();
@@ -328,7 +342,7 @@ void run_tests(){
 		latch0.set(8);
 		thread("test latch0; should die",{[](void* v){
 			are latch0= vcas<latch>(v);
-			RA(i,9)
+			RA(i,8)
 				latch0.tick();
 		},&latch0});
 		latch0.wait();
@@ -337,15 +351,11 @@ void run_tests(){
 		EACH(o,a) o= 69;
 		list<u32> b;
 		warp::dispatch<u32,u32,[](arr<u32>& a, list<u32>& b){
-				print("warp");
 				EACH(o,a)
 					o= 1;
 				b+= sum(a);
 			}>(a,b);
 		u32 s= sum(b);
-		print(a);
-		print(b);
-		print(s);
 		ass(s==0x1000);
 	}
 	/*

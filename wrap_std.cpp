@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
 
@@ -70,7 +71,7 @@ struct _latch{
 	void set(int count_){
         mut.lock();
 		if(count>0){//allow negative to allow underflow
-			err("latch:set:impl: count>0");
+			warn("latch:set:impl: count>0");
 			cv.notify_all();
 		}
 		count= count_;
@@ -78,18 +79,15 @@ struct _latch{
 	}
 	void tick(){
 	    mut.lock();
-	    bool done= false;
-	    if(--count>0)
-	    	done= true;
+	    if(--count<=0)
+	    	cv.notify_all();
 	    if(count<0)
 	    	warn("latch underflow");
 	    mut.locknt();
-	    if(done)
-	    	cv.notify_all();
 	}
 	void wait(){
         std::unique_lock<std::mutex> lck(mut);
-        cv.wait(lck, [&]{ return count<=0; });
+        cv.wait(lck, [&]{ re count<=0; });
 	}
 };
 
@@ -164,9 +162,9 @@ size_t _strnlen(char const* s, siz n){
 	r.dat.stop+= s;\
 	snprintf(r.dat.base,s+1,A,x);\
 	retr;}
-L(itod, u32, "%u" )  L(itod, i32, "%d" ) L(itox, u32,"%x" )
-L(itod, u64, "%llu")  L(itod, i64, "%lld") L(itox, u64,"%llx")
-L(ftod, f64, "%.4f") L(ftox, f64,"%.4f")
+L(itod, u32, "%u" )  L(itod, i32, "%d"  ) L(itox, u32,"%x"  )
+L(itod, u64, "%llu") L(itod, i64, "%lld") L(itox, u64,"%llx")
+L(ftod, f64, "%.4f") L(ftox, f64, "%.4f")
 #undef L
 str str::itox(i64 x){
 	str r;
@@ -181,22 +179,52 @@ str str::itox(i32 x){ re itox((i64)x);}
 
 struct console_stream{
 	decltype(stdout) self;
+	std::mutex mut;
 };
 console_stream _stdout= {stdout};
 console_stream _stderr= {stderr};
 console cout= {&_stdout};
 console cerr= {&_stderr};
 void console::put(str x){
-	static std::mutex mut;
-	mut.lock();
-	//interceptor means null
 	ass(!!x.dat.base);
-	ass(_stdout.self==stdout);
+	ass(!!stream);
+	stream->mut.lock();
+	//interceptor means null
 	fputs((cstr)x,stream->self);
-	fputs("\n",stream->self);//terminal-dependent behavior makes flush itself unreliable
-	fflush(stream->self);
-	mut.unlock();
+	fputs("\n",   stream->self);//terminal-dependent behavior makes flush itself unreliable
+	stream->mut.unlock();
+	fflush(       stream->self);
 };
+
+bool file_dump(list<u8>& ret, str& name){
+	print("fdump\""+name+"\"");
+	errno= 0;
+	//errno must manual reset
+	//glfw et al may set after success
+	FILE* file= fopen(name, "r");
+	if(!file)
+		re true;
+	if(!!errno){
+		warn(name+" file errno "+strerror(errno));
+		fclose(file);
+		re true;
+	}
+    fseek(file, 0, SEEK_END);
+    siz size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    ret.prealloc(ret.size()+size);
+    if(fread(ret.base, 1, size, file) != size){
+        fclose(file);
+        re true;
+    }
+    ret.stop+= size;
+    fclose(file);
+    re false;
+}
+bool file_dump(str& ret, str& name){
+	ass(sizeof(ret.dat.base[0])==sizeof(u8));//no wchar support
+	re file_dump(rcas<list<u8>>(ret),name);
+}
 
 
 };

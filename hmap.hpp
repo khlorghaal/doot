@@ -4,7 +4,7 @@
 
 namespace doot{
 
-//all pointers returned are invalidated upon next nonconst method invocation
+//all pointers reed are invalidated upon next nonconst method invocation
 //buckets of fixed depth, expands once a bucket overflows
 tpl<typn K, typn V>
 struct hmap: container{
@@ -34,15 +34,15 @@ struct hmap: container{
 	//recommend 1:2:3 :: lazy:normal:greedy
 	void expand();
 
-	inl siz bucket(K k) cst{ re hash(k)%(heap.size()/DEPTH); };
-	maybe<V> op[](K k) cst;
+	inl siz bucket(K cre k) cst{ re hash(k)%(heap.size()/DEPTH); };
+	maybe<V> op[](K cre k) cst;
 	
-	V* _alloc(K k);
+	V* _alloc(K cre k);
 
 	//places a key and invokes ctor(E...)
-	tples V& add(K k, E... v);
-	//return bool was contained
-	bool sub(K k);
+	tples V& add(K cre k, E&&... v);
+	//re bool was contained
+	bool sub(K cre k);
 	OPADDSUB;
 
 	//remove all elements
@@ -64,7 +64,7 @@ tpl<typn K, typn V>
 hmap<K,V>::hmap(sizt init_len){
 	ass(DEPTH>=2);
 	heap= alloc<slot>(init_len*DEPTH);
-	for(auto& e : heap)
+	EACH(e,heap)
 		e.empty= true;
 }
 tpl<typn K, typn V>
@@ -72,6 +72,7 @@ hmap<K,V>::hmap(): hmap(hmap<K,V>::DEFAULT_LEN){
 };
 tpl<typn K, typn V>
 hmap<K,V>::~hmap(){
+	clear();
 	free(heap);
 }
 
@@ -125,10 +126,11 @@ void hmap<K,V>::expand(){
 	//repopulate
 	EACH(e,t_entries)
 		copy(*_alloc(e.k), e.v);//will not recurse
+		//V must be raw-movable
 }
 
 tpl<typn K, typn V> 
-maybe<V> hmap<K,V>::operator[](K k) const{
+maybe<V> hmap<K,V>::operator[](K cre k) cst{
 	sizt i= bucket(k)*DEPTH;
 	sizt b= 0;
 	while(b!=DEPTH){
@@ -143,7 +145,7 @@ maybe<V> hmap<K,V>::operator[](K k) const{
 }
 
 tpl<typn K,typn V>
-V* hmap<K,V>::_alloc(K k){
+V* hmap<K,V>::_alloc(K cre k){
 	RA(expansion,2){
 		idx i= bucket(k)*DEPTH;
 		RA(b,DEPTH){
@@ -151,12 +153,16 @@ V* hmap<K,V>::_alloc(K k){
 			if(at.empty){//empty slot found
 				entry_count++;
 				at.empty= false;
-				new(&at.k)K(k);//keys may be nontrivial
-				return &(at.v);
+				new(&at.k)K();
+				at.k= k;
+				//keys may be nontrivial
+				//-move ctors must work lest woe
+				re &(at.v);
 			}
 			else if(at.k==k){//entry with key already present
 				warn("hmap overwrite");
-				return &(at.v);
+				at.v.~V();
+				re &(at.v);
 			}
 		}
 		//could not fit in bucket
@@ -164,25 +170,25 @@ V* hmap<K,V>::_alloc(K k){
 		//expansion guarantees >=1 free slot per bucket
 		expand();
 	}
-	unreachable; return null;
+	unreachable; re null;
 }
 
 
 tpl<typn K, typn V> 
 tpl<typn... E>
-V& hmap<K,V>::add(K k, E... e){
+V& hmap<K,V>::add(K cre k, E&&... e){
 	//ppack will handle move ctor properly
 	//do not confuse c++ tpl ppack with c variadic function
-	return *new(_alloc(k))V(e...);
+	re *new(_alloc(k))V(e...);
 }
 
 tpl<typn K, typn V> 
-bool hmap<K,V>::sub(K k){
+bool hmap<K,V>::sub(K cre k){
 	idx i= bucket(k)*DEPTH;
 	RA(b,DEPTH){
 		slot& at= heap[i+b];
 		if(at.empty)//empty always procedes unempty
-			return false;
+			re false;
 		if(at.k==k){//match
 			//start at end, walking back until finding
 			//a bucket that is non null. may be self
@@ -193,7 +199,7 @@ bool hmap<K,V>::sub(K k){
 				copy(at,swap);
 				swap.empty= true;
 				entry_count-=1;
-				return true;
+				re true;
 			}
 			//there will not be a scenario where
 			//b2<b || b2>depth; as at must be non null
@@ -201,13 +207,18 @@ bool hmap<K,V>::sub(K k){
 		}
 	}
 	//not contained
-	return false;
+	re false;
 }
 
 tpl<typn K, typn V> 
 void hmap<K,V>::clear(){
-	for(auto& e: heap)
+	EACH(e, heap){
+		if(!e.empty){
+			e.k.~K();
+			e.v.~V();
+		}
 		e.empty= true;
+	}
 	entry_count= 0;
 }
 

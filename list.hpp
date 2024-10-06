@@ -22,6 +22,7 @@ tplt struct list: arr<T>, container{
 	list(siz init_cap);
 	list(): list(CAP_DEFAULT){};
 	list(list<T>&& b){
+		base=0;
 		acquire(*this, b); }
 	list(list<T> cre b):
 		list(b.size()){
@@ -121,7 +122,7 @@ tplt void list<T>::sub(arr<idx> d){
 //d MUST NOT be initialized, as it will not be destructed
 tplt void acquire(list<T>& d, list<T>& s){
 	if(!!d.base)
-		warn("list acquire destination not empty");
+		warn("list::acquire destination not empty");
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;
@@ -167,8 +168,8 @@ tplt void list<T>::realloc(siz n){
 
 tplt void list<T>::prealloc(siz n){
 	siz c= capacity();
-	if(n<c)
-		return;
+	if(n<=c)
+		re;
 	c= c*GROW_FACTOR;
 	n= n>c?n:c;
 	realloc(n);

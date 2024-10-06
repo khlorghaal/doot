@@ -1,5 +1,4 @@
 //OS specific stuff
-#import "time.hpp"
 
 #ifndef DOOT_NO_MAIN
 	extern int dootmain(int, char**);
@@ -9,94 +8,107 @@
 #ifdef __linux__
 #include <time.h>
 #include <sys/termios.h>
-#import <pthread.h>
-
-#ifndef DOOT_NO_MAIN
-	#import "thread.hpp"
-	int main(int argc, char** argv){
-		doot::warp::init();
-
-		#ifdef DEBUG
-			::doot::run_tests();
-		#endif
-
-		return dootmain(argc,argv);
-	}
-#endif
-namespace doot{
-
-void create_console(){
-	//TODO
-}
-nsec current_time(){
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC,&t);
-	return t.tv_nsec;
-}
-
-void namethread(cstr s){
-    pthread_setname_np(pthread_self(), s);
-}
-
-}
+#include <pthread.h>
+#include <stdio.h>
 #endif
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#endif
+
+/*
+#ifdef _WIN32
+#endif
+#ifdef __linux__
+#endif
+*/
 
 #ifndef DOOT_NO_MAIN
 	#import "thread.hpp"
-	int main(int argc, char* argv[], char* envp[]){
-		doot::warp::init();
+	#ifdef _WIN32
+		int main(int argc, char* argv[], char* envp[]){
+	#endif
+	#ifdef __linux__
+		int main(int argc, char** argv){
+	#endif
 
-		#ifdef DEBUG
-		//this is for a VS setup
-		//assume windows users wont launch from term even when debug build
-		doot::create_console();
-		#elif
-		#error
-		freopen("stdout.txt", "w", stdout);
-		freopen("stderr.txt", "w", stderr);
-		#endif
+			doot::warp::init();
 
-		return dootmain(argc, argv);
-	}
+			#ifdef DEBUG
+				#ifdef _WIN32
+					//this is for a VS setup
+					//assume windows users wont launch from term even when debug build
+					doot::create_console();
+					freopen("stdout.txt", "w", stdout);
+					freopen("stderr.txt", "w", stderr);
+				#endif
+
+				#ifdef __linux__
+					//gdb doesnt like stdio being rerouted, this is easier
+					freopen("stdout", "w", stdout);
+					freopen("stderr", "w", stderr);
+				#endif
+
+				::doot::run_tests();
+
+			#endif
+
+			return dootmain(argc,argv);
+		}
 #endif
 
+#import "time.hpp"
 
 namespace doot{
 
-nsec current_time(){
-	LARGE_INTEGER f;
-	QueryPerformanceFrequency(&f);
-	LARGE_INTEGER t;
-	QueryPerformanceCounter(&t);
-	return t.QuadPart/(f.QuadPart/1000000000ll);
-}
-
 void create_console(){
-	//FreeConsole();
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
+	#ifdef _WIN32
+		//FreeConsole();
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+	#endif
+	#ifdef __linux__
+		//todo what even
+	#endif
+}
+nsec current_time(){
+	#ifdef _WIN32
+		LARGE_INTEGER f;
+		QueryPerformanceFrequency(&f);
+		LARGE_INTEGER t;
+		QueryPerformanceCounter(&t);
+		return t.QuadPart/(f.QuadPart/1000000000ll);
+	#endif
+	#ifdef __linux__
+		timespec t;
+		clock_gettime(CLOCK_MONOTONIC,&t);
+		return t.tv_nsec;
+	#endif
 }
 
 void namethread(cstr s){
-	//fixme link Kernel32.lib
-	SetThreadDescription(GetCurrentThread(), s);
+	#ifdef _WIN32
+		//fixme link Kernel32.lib
+		#error
+		SetThreadDescription(GetCurrentThread(), s);
+	#endif
+	#ifdef __linux__
+	    pthread_setname_np(pthread_self(), s);
+	#endif
 }
 
 }
 
-#endif
 
-
-#include "file.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <string.h>
+
+#include "file.hpp"
 #include "hmap.hpp"
 
 
@@ -104,46 +116,31 @@ namespace doot{
 
 bool file_lock(str& name){
 	FILE* file= fopen(name, "rw");
-	return !!ftrylockfile(file);
+	#ifdef _WIN32
+		#error
+	#endif
+	#ifdef __linux__
+		bool r= !!ftrylockfile(file);
+	#endif
+	fclose(file);
+	retr;
 }
 void file_unlock(str& name){
 	FILE* file= fopen(name, "rw");
-	funlockfile(file);
-}
-bool file_dump(list<u8>& ret, str& name){
-	FILE* file= fopen(name, "r");
-	//char* errstr= strerror(ferr);
-	if(!!errno)
-		return true;
-
-	ret.prealloc(0x1000);
-	//todo use filesize metadata
-
-	//SEEK_END doesnt always work, therefore
-	//preallocation is unpossible but unnecessary
-	//todo opt stride
-	char buf;
-	while(fread(&buf,1,1,file))
-		ret.add(buf);
-	ret.add(0);//null terminator
-	
-	if(ferror(file)){
-		fclose(file);
-		return true;
-	}
+	#ifdef _WIN32
+		#error
+	#endif
+	#ifdef __linux__
+		funlockfile(file);
+	#endif
 	fclose(file);
-	return false;
-}
-bool file_dump(str& ret, str& name){
-	list<u8> res;
-	if(file_dump(res,name))
-		return true;
-	EACH(r,res)
-		ret+= r;
-	return false;
 }
 
 struct fchgcall{
+	#ifdef _WIN32
+	#endif
+	#ifdef __linux__
+	#endif
 	void (*call)(void*);
 	void* obj;
 	void invoke(){
@@ -152,16 +149,15 @@ struct fchgcall{
 };
 hmap<str, fchgcall> fchgmap;
 void fchg_(str fnam){
-	ifm(call, fchgmap[fnam])
+	may_if(call, fchgmap[fnam])
 		call.invoke();
 	else
 		err("fook fnam findn't");//future self will HATE this //future self: lmoa
 }
 bool file_change_listen(str fname, void (*callback)(void*), void* callbackarg){
 	#ifdef _WIN32
-
-	#elif UNIX
-
+	#endif
+	#ifdef __linux__
 	#endif
 	fchgmap.add<fchgcall>(fname, {callback,callbackarg});
 	return false;

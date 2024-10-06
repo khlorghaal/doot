@@ -158,12 +158,14 @@ tplt void realloc(arr<T>& r, sizt n){
 		re;
 	}
 	ass(!!r);
+	if(n==0)
+		warn("0 size realloc");
 	sizt s= n*TSIZ;
 	if(s>TOO_BIG)
 		err("alloc TOO_BIG");
 	r.base= (T*)_realloc(r.base,s);
 	r.stop= r.base+n;
-	if(!r.base)
+	if(!r.base && n!=0)//n==0 may null or freeable addr
 		err("OOM");
 }
 tplt void free(arr<T>& a){

@@ -19,6 +19,8 @@ struct str{
 	str(cstr    b):dat(){ cat(b); }
 	str(str cre b):dat(){  dat.addl(b.dat); }
 	str(str &&  b):dat((lis<char>&&)b.dat){}
+	str(i64 x):str(itod(x)){};//to prevent cast to cstr
+	str(u64 x):str(itod(x)){};
 	tple str(E* e) :str(itox( (u64)(void*)e )){};
 	tple explicit str(E&& x):dat(){ cat(x); };
 	str& op=(str cre  b){ dat.clear();  dat.addl(b.dat); reth; }
@@ -55,7 +57,7 @@ struct str{
 	bool op!() cst { re !dat.base || dat.size()==0; };
 	bool op==(str cre that) cst{
 		re op==<char>((arr<char>)dat, (arr<char>)that.dat);}
-	bool op==(cstr    b) cst{ re op==(str(b));};
+	bool op==(cstr b) cst{ re op==(str(b));};
 
 	op cstr(){
 		ass(dat.base);

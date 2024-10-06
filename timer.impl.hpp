@@ -28,7 +28,7 @@ void Timer::invoke(){
 
 	nsec wait= targetTime-tProcess;
 	waiting= true;
-	if(wait>250_us)
+	if(wait>200_us)
 		sleep(wait);
 	else
 		;
