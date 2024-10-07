@@ -137,6 +137,10 @@ struct no_default_ctor{
 	no_default_ctor()= delete;
 };
 struct inplace: no_copy,no_move,no_new,no_assign{};
+struct no_ref{
+	no_ref&    operator&() = delete;
+    no_ref cre operator&() cst = delete;
+};
 
 /*containers
 may never have their heap owned by two objects
@@ -364,11 +368,12 @@ CALL_T( call_opaq_t, void*, void )
 
 //used for loopy macros to prevent parents mismatch
 //horribly renegade //ive been told this isnt abnormal; that is horrifying
-#define ifauto(S) if(auto& S;1)
+#define ifauto(S) if(are S;1)
+#define ifare ifauto
+#define ifacr(S) if(acr S;1)
 #define ifexpr(S) if( ([&]{ (S); re true;})() ) //=> (S);
-
 //range
-#define ra(o,n) for(i64 o=0; o<(n); o++)
+#define ra( o,n    ) for(i64 o=0   ; o<(n ); o++)
 #define ra2(o,n1,n2) for(i64 o=(n1); o<(n2); o++)
 //range descending
 #define rd(o,n) for(i64 o=(n); o-->0;)
@@ -382,11 +387,11 @@ CALL_T( call_opaq_t, void*, void )
 
 //enumerate
 #define en(i,o,v) \
-	for(idx i=0; i<v.size(); i++)\
-		ifauto(o=v[i])
+	ra(i,v.size())\
+		ifare(o=v[i])
 #define en_d(i,o,v) \
-	for(idx i=v.size()-1; i>=0; i--)\
-		ifauto(o=v[i])
+	rd(i,v.size())\
+		ifare(o=v[i])
 
 #define zip(a,b, la,lb) \
 	if( la.size()==lb.size() )\
@@ -431,6 +436,7 @@ but mostly i find template syntax arbitrary and incomprehensible.
 tplt struct maybe{
 	T* t= null;
 	maybe(T& t_):t( &t_){}
+	maybe(T* t_):t(  t_){}
 	maybe(     ):t(null){}
 
 	bool op!(){ re !t; }
@@ -469,6 +475,16 @@ tplt struct maybe{
 #define may_nope(s,m)\
 	if(!m) nope;\
 	are s= m.un();
+
+tplt struct cons{
+     may<T>  a;
+    cons<T>* b;
+};
+tplt cons<T>* tail(cons<T>* r){
+	for(cons<T>* i= r; i; i=i->b)
+		 r= i;
+	retr;
+}
 
 
 

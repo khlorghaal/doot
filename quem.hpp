@@ -1,26 +1,34 @@
-#include "idheap.hpp"
 #include "thread.hpp"
 namespace doot{
 
 //threadsafe queue
 tplt class quem{
 	mutex mut;
-	idheap<arr<T>> heap;
-	siz tail= 0;
-	siz head= 0;
+	cons<T>* car;
 public:
-	tples void push(E cst&... e){
+	void push(T* e){
+		ass(!!e);
+		auto* n= new cons<T>{e,{null}};
 		mut.lock();
-		heap.add(head++,e...);
+		if(auto* t= tail(car))
+		   t->b= n;
+		else
+		   car= n;
 		mut.locknt();
 	}
-	maybe<T&> pull(T& def){
+	maybe<T> pull(){
 		mut.lock();
-		auto r= head<tail ?
-			maybe<T&>::yes(heap[tail++]):
-			maybe<T&>::no();
+		if(!car){
+			mut.locknt();
+			nope;
+		}
+		 may<T>  a= car->a;
+		cons<T>* b= car->b;
+		delete car;
+		car= b;
+
 		mut.locknt();
-		retr;
+		re a;
 	}
 };
 

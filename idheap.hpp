@@ -55,13 +55,13 @@ tplt struct idheap: container{
 	void prealloc(siz);
 };
 
-#define ZIP_HEAP(o,id_,h) \
-auto& _lh= h.heap;\
-auto& _li= h.ids;\
-for(idx _i##o=0; _i##o!=_lh.size(); _i##o++)\
-	for(    auto&   o= _lh[_i##o];0;)\
-	for(id cst& id_= _li[_i##o];0;)
-
+#define zip_heap(o,id_,h) \
+ifare(_lh= h.heap)\
+ifare(_li= h.ids)\
+ra(_i##o,_lh.size())\
+	ifare(  o=     _lh[_i##o])\
+	ifacr(id_= (id)_li[_i##o])
+//distince from en, since this is not a sequence
 
 //#define ZIP_MULTIHEAP(o,id,h) {\
 //auto& _lh= h.heap.heap;\
