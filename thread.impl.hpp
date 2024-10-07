@@ -1,5 +1,5 @@
 #include "thread.hpp"
-#include "array_algos.hpp"
+#include "algos.hpp"
 
 namespace doot{
 
@@ -87,7 +87,7 @@ void init(){
 
 	poolsize*=2;//improves worstcase scheduling
 
-	RA(i,poolsize)
+	ra(i,poolsize)
 		warp_threads.add(str("tasker ")+i);
 }
 
@@ -152,7 +152,7 @@ void _invoke(
 	//div function does not need to be aware of stride
 
 	list<warp_task_io_t> segs;
-	EACH(sii, segs_indiv){
+	each(sii, segs_indiv){
 		arr<void>& siv= rcas<arr<void>>(sii);
 		lis<void>& so= out_void.add();
 		segs.add(siv,so);
@@ -160,7 +160,7 @@ void _invoke(
 
 	//woken threads
 	ltch.set(segs.size());
-	EN(i,seg,segs){ //iterate segs not threads since there may be less 
+	en(i,seg,segs){ //iterate segs not threads since there may be less 
 		bool busy=
 			warp_threads[i].dispatch({ f.vf, &seg });
 		if(busy)

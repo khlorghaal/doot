@@ -2,7 +2,7 @@
 
 namespace doot{
 
-void mat3x2::operator=(mat3x2 const& b){
+void mat3x2::operator=(mat3x2 cre b){
 	mxx= b.mxx; mxy= b.mxy; tx= b.tx;
 	myx= b.myx; myy= b.myy; ty= b.ty;
 }
@@ -48,19 +48,19 @@ void mat3x2::trans_rot_scl(f32 tx_, f32 ty_, f32 theta, f32 sx, f32 sy){
 	tx= tx_;
 	ty= ty_;
 }
-vec2 mat3x2::operator*(vec2 const& p) const{
+vec2 mat3x2::operator*(vec2 cre p) cst{
 	return {
 		p.x*mxx + p.y*mxy + tx,
 		p.x*myx + p.y*myy + ty
 	};
 }
-vec2 mat3x2::mul_atrans(vec2 const& p) const{
+vec2 mat3x2::mul_atrans(vec2 cre p) cst{
 	return {
 		p.x*mxx + p.y*mxy,
 		p.x*myx + p.y*myy
 	};
 }
-mat3x2 mat3x2::operator*(mat3x2 const& b) const{
+mat3x2 mat3x2::operator*(mat3x2 cre b) cst{
 	mat3x2 ret;
 	ret.mxx= mxx*b.mxx + mxy*b.myx;
 	ret.mxy= mxx*b.mxy + mxy*b.myy;
@@ -95,7 +95,7 @@ void mat3x2::colMajor(f32 ret[6]){
 	ret[1]= myx; ret[3]= myy; ret[5]= ty;
 }
 
-void mat3x2::unit_box(vec2(&r)[4]) const{
+void mat3x2::unit_box(vec2(&r)[4]) cst{
 	r[0].x= -mxx-mxy+tx;//nn
 	r[0].y= -myx-myy+ty;
 	r[1].x= -mxx+mxy+tx;//np

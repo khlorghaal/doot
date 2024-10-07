@@ -5,14 +5,13 @@
 
 namespace doot{
 
-template<typename T>
-inline void sort_bubble(arr<T> a){
+tplt void sort_bubble(arr<T> a){
 	if(a.size()<=1)
-		return;
+		re;
 	bool done= false;
 	while(1){
 		done= true;
-		for(int i=0; i!=a.size()-1; i++){
+		ra(i,a.size()-1){
 			if(a[i]>a[i+1]){
 				swap(a[i],a[i+1]);
 				done= false;
@@ -25,7 +24,7 @@ tplt T average(arr<T> a){
 	if(a.size()==0)
 		re 0;
 	T r= 0;
-	EACH(e,a)
+	each(e,a)
 		r+= e;
 	r/= a.size();
 	retr;
@@ -40,7 +39,7 @@ tplt void difference(arr<T> a, arr<T> b, list<T> adds, list<T> rems){
 
 tplt T sum(arr<T> a){
 	T r=0;
-	EACH(o,a)
+	each(o,a)
 		r+= o;
 	retr;
 }
@@ -64,7 +63,7 @@ tplt void div(arr<T> a, siz divisor, list<arr<T>>& b){
 		siz span= n/d;//per thread, not stride
 		ass(rem>=0);
 	
-		RA(i,d){
+		ra(i,d){
 			b.add(arr<T>{
 				base+ i*span,
 				base+ i*span+d,
@@ -77,7 +76,7 @@ tplt void div(arr<T> a, siz divisor, list<arr<T>>& b){
 	
 	}else{
 		//output size will be equal to elements, less than divisor
-		RA(i,n){
+		ra(i,n){
 			b.add(arr<T>{
 				base+ i  ,
 				base+ i+1
@@ -89,6 +88,6 @@ tplt void div(arr<T> a, siz divisor, list<arr<T>>& b){
 
 #define FLAT(aa,r) \
 	r.prealloc(aa.size()*4);\
-	EACH(a,aa) r+= a;
+	each(a,aa) r+= a;
 
 }

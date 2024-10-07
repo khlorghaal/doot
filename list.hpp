@@ -55,7 +55,7 @@ tplt struct list: arr<T>, container{
 	//	dont remember why but quite sure something to do with variad disambiguation?
 	tple void addl(arr<E> cre b){
 		prealloc(size()+b.size());
-		EACH(e,b)
+		each(e,b)
 			add(e);}
 
 
@@ -100,7 +100,7 @@ tplt list<void>& vcas(list<T>& a){
 
 tpl<typn T, auto cond> void filter_sub(list<T>& v){
 	list<idx> d;
-	EN(i,e,v){
+	en(i,e,v){
 		if(cond(e))
 			d+=i;
 	}
@@ -108,7 +108,7 @@ tpl<typn T, auto cond> void filter_sub(list<T>& v){
 };
 tplt void list<T>::sub(arr<idx> d){
 	u64 pi= -1;
-	EACHD(e,d){//descending, remove from end
+	eachd(e,d){//descending, remove from end
 		#ifdef DEBUG
 			//ordering is crucial
 			ass(e<pi);

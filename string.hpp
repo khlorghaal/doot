@@ -56,8 +56,8 @@ struct str{
 	
 	bool op!() cst { re !dat.base || dat.size()==0; };
 	bool op==(str cre that) cst{
-		re op==<char>((arr<char>)dat, (arr<char>)that.dat);}
-	bool op==(cstr b) cst{ re op==(str(b));};
+		re ((arr<char>)dat)==((arr<char>)that.dat);}
+	bool op==(cstr b) cst{ re op==(str(b) );};
 
 	op cstr(){
 		ass(dat.base);
@@ -69,19 +69,19 @@ struct str{
 
 
 	tple str(arr<E> cre l){
-		EACH(e,l){
+		each(e,l){
 			cat(e);cat(",");}
 		cat(";");
 	};
 	tple str(lis<E> cre l){
-		EACH(e,l){
+		each(e,l){
 			cat(e);cat(",");}
 		cat(";");
 	};
 	tpl<typn K, typn V> str(hmap<K,V> cre h){
 		list<pair<K,V>> a;
 		h.key_values_cpy(a);//slow but so is console
-		EACH(e,a){
+		each(e,a){
 			cat(e.a)+cat(":")+cat(e.b)+cat(",");}//i hunger for fstrings
 		cat(";");
 	};
@@ -90,7 +90,7 @@ struct str{
 inl hash_t hash(str cre str){
 	//djb2
 	unsigned int r= 5381;
-	EACH(c,str.dat)
+	each(c,str.dat)
 		r= r+(r<<5)+c;
 	retr;
 }

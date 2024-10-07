@@ -1,13 +1,13 @@
 #pragma once
-#include "time.hpp"
 #include "math.hpp"
+#include "2d.hpp"
+#include "time.hpp"
 #include "list.hpp"
 #include "hmap.hpp"
 #include "idheap.hpp"
 #include "ringbuffer.hpp"
+#include "algos.hpp"
 #include "thread.hpp"
-#include "array_algos.hpp"
-#include "2d.hpp"
 
 namespace doot{
 
@@ -166,14 +166,14 @@ void run_tests(){
 	{//rng
 		{//global
 			float racc= 0;
-			RA(i,0x1000)
+			ra(i,0x1000)
 				racc+= sfrand();
 			racc/=0x1000;
 			ass(abs(racc)<.01);
 		}
 		{//average
 			i64 racc= 0;
-			RA(i,0x1000){//
+			ra(i,0x1000){//
 				racc+= (i32)hash((u64)i);
 				racc+= (i32)hash((u32)i);
 			}
@@ -182,9 +182,9 @@ void run_tests(){
 		}
 		{//modular
 			//i64 a= 0;
-			//RA(k,0x10){
-			//RA(j,0x10){
-			//	RA(i,0x100){
+			//ra(k,0x10){
+			//ra(j,0x10){
+			//	ra(i,0x100){
 			//		a+= (hash(i*j*k)%(k+2));
 			//	}
 			//	//print(a/(k+2));
@@ -205,17 +205,17 @@ void run_tests(){
 	
 	{//list
 		list<int> vec(1);
-		RA(i,512)
+		ra(i,512)
 			vec.add(i);
-		RA(i,512){
+		ra(i,512){
 			ass(vec[i]==i);
 			ass(vec.ptr_idx(vec.base+i)==i);
 		}
 		list<int> vecb;
 		vecb.addl(vec);
-		RA(i,512)
+		ra(i,512)
 			ass(vec.sub_eq(i));
-		RD(i,512)
+		rd(i,512)
 			ass(vecb.sub_eq(i));
 
 		list<u16> b;
@@ -228,19 +228,19 @@ void run_tests(){
 		ass(b.capacity()>=512);
 
 		list<u8> m(1);
-		m.realloc(0);
+		m.realloc(1);
 		m.prealloc(8);
 		m.base[7]=0;
 
 		list<u8> m2= list<u8>(list<u8>(1));
-		m2.realloc(0);
+		m2.realloc(1);
 		m2.prealloc(8);
 		m2.base[7]=0;		
 	}
 
 	{//algos
 		lis<u32> l;
-		RA(i,5)
+		ra(i,5)
 			l+=i;
 		ass( sum(l)==10 );
 		ass( average(l)==2 );
@@ -256,9 +256,9 @@ void run_tests(){
 	
 	{//hashmap
 		hmap<int, int> map;
-		RA(i,0x1000)
+		ra(i,0x1000)
 			map.add(i,i);
-		RA(i,0x1000){
+		ra(i,0x1000){
 			auto p= map[i];
 			ass(!!p);
 			ass(p.un()==i);
@@ -267,19 +267,19 @@ void run_tests(){
 	
 	{//idheap
 		idheap<int> heap;
-		RA(i,512)
+		ra(i,512)
 			heap.add(i,i);
-		RA(i,512){
+		ra(i,512){
 			int& e= heap[i].un();
 			ass(e==i);
 			ass(heap.ptr_id(&e)==i);
 			ass(heap.index(i).un()==i);
 		}
-		RA(i,512)
+		ra(i,512)
 			heap.sub(i);
-		RA(i,512)
+		ra(i,512)
 			ass(heap.map[i]==NULLIDX);
-		RD(i,511)
+		rd(i,511)
 			heap.add(i,0);//??? what? why?
 	}
 
@@ -306,11 +306,11 @@ void run_tests(){
 	
 	{//ringbuffer
 		ringbuffer<int, 512> rb;
-		RA(i,512)
+		ra(i,512)
 			rb<<i;
-		RA(i,512)
+		ra(i,512)
 			ass(rb[i]==i);	
-		RA2(i,512,1024
+		ra2(i,512,1024
 )			rb<<i;
 		for(int i=512; i!= 1024; i++)
 			ass(rb[i]==i);
@@ -342,16 +342,16 @@ void run_tests(){
 		latch0.set(8);
 		thread("test latch0; should die",{[](void* v){
 			are latch0= vcas<latch>(v);
-			RA(i,8)
+			ra(i,8)
 				latch0.tick();
 		},&latch0});
 		latch0.wait();
 
 		arr_raii<u32> a(0x1000);
-		EACH(o,a) o= 69;
+		each(o,a) o= 69;
 		list<u32> b;
 		warp::dispatch<u32,u32,[](arr<u32>& a, list<u32>& b){
-				EACH(o,a)
+				each(o,a)
 					o= 1;
 				b+= sum(a);
 			}>(a,b);
@@ -366,4 +366,4 @@ void run_tests(){
 	*/
 	cout("tests pass");
 };
-}
+};

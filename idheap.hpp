@@ -1,6 +1,6 @@
 #pragma once
 #include "doot.hpp"
-#include "array_algos.hpp"
+#include "algos.hpp"
 
 namespace doot{
 /*
@@ -51,6 +51,8 @@ tplt struct idheap: container{
 	void getarr(arr<id>,arr<T*>);
 
 	void purge();
+
+	void prealloc(siz);
 };
 
 #define ZIP_HEAP(o,id_,h) \
@@ -114,6 +116,7 @@ tplt struct bag: idheap<T>{
 };
 
 //bag but static
+//i dont remember why this isnt entities
 tplt struct sbag{
 	inl static index_recycler rcyc;
 	inl static idheap<T> heap;
@@ -207,7 +210,7 @@ tplt maybe<T> idheap<T>::op[](id id) cst{
 	re {heap[idx.un()]};
 }
 tplt void idheap<T>::getarr(arr<id> in, arr<T*> out){
-	ZIP(i,o,in,out){
+	zip(i,o,in,out){
 		o= op[](i);
 	}
 }
@@ -217,4 +220,10 @@ tplt void idheap<T>::purge(){
 	fill(map, NULLIDX);
 }
 
+tplt void idheap<T>::prealloc(siz s){
+	heap.prealloc(s);
+	ids.prealloc(s);
+	map.prealloc(s);
 }
+
+};

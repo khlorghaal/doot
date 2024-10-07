@@ -1,6 +1,6 @@
 #pragma once
 #include "arr.hpp"
-#include "array_algos.hpp"
+#include "algos.hpp"
 
 namespace doot{
 

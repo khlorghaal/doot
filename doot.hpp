@@ -101,7 +101,7 @@ extern void _bad(cstr,cstr);
 //panic. crash this program with no survivors.
 extern void _err(cstr,cstr);
 #define err(s) _err((SRCLOC),s);
-#define unreachable err("unreachable")
+#define unreachable err("unreachable");
 
 
 inline void nop(){}//for setting breakpoints
@@ -368,29 +368,29 @@ CALL_T( call_opaq_t, void*, void )
 #define ifexpr(S) if( ([&]{ (S); re true;})() ) //=> (S);
 
 //range
-#define RA(o,n) for(i64 o=0; o<(n); o++)
-#define RA2(o,n1,n2) for(i64 o=n1; o<(n2); o++)
+#define ra(o,n) for(i64 o=0; o<(n); o++)
+#define ra2(o,n1,n2) for(i64 o=(n1); o<(n2); o++)
 //range descending
-#define RD(o,n) for(i64 o=(n); o-->0;)
-#define EACH(o,v) for(auto& o : v)
-#define EACHD(o,v) \
+#define rd(o,n) for(i64 o=(n); o-->0;)
+#define each(o,v) for(auto& o : v)
+#define eachd(o,v) \
 	for(idx _i##o= v.size(); _i##o-->0;)\
 		ifauto(o= v[_i##o])
-#define EACH2(o,vv) \
-	EACH(vv##o,vv)\
-		EACH(o,vv##o)
+#define each2(o,vv) \
+	each(vv##o,vv)\
+		each(o,vv##o)
 
 //enumerate
-#define EN(i,o,v) \
+#define en(i,o,v) \
 	for(idx i=0; i<v.size(); i++)\
 		ifauto(o=v[i])
-#define EN_D(i,o,v) \
+#define en_d(i,o,v) \
 	for(idx i=v.size()-1; i>=0; i--)\
 		ifauto(o=v[i])
 
-#define ZIP(a,b, la,lb) \
+#define zip(a,b, la,lb) \
 	if( la.size()==lb.size() )\
-		RA(_i##a##b, la.size())\
+		ra(_i##a##b, la.size())\
 			ifauto(a=la[_i##a##b])\
 				ifauto(b=lb[_i##a##b])
 
@@ -425,7 +425,7 @@ but mostly i find template syntax arbitrary and incomprehensible.
 //puts memeber into scope
 #define usem(o,m) are m= (o).m;
 
-#define voidmap(vec,f,a...) EACH(_e,vec){ _e.f(a); }
+#define voidmap(vec,f,a...) each(_e,vec){ _e.f(a); }
 
 //not elegant, but robust
 tplt struct maybe{
@@ -438,7 +438,8 @@ tplt struct maybe{
 	T& op()(T&& none){ re !!t?*t:none; }
 	T& op()(T & none){ re !!t?*t:none; }
 	//using (void) -> T::none would require SFINAE which i dont fuck with
-	T& un(){ ass(!!t); re *t; }
+	T& un(){
+		ass(!!t); re *t; }
 };
 //unwrappers
 //bracketed

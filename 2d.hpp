@@ -79,6 +79,7 @@ using ulvec2= gvec2<u64>;
 //inl ivec2 abs(ivec2 a){ re ivec2(::doot::abs((i32)a.x),::doot::abs((i32)a.y)); }
 
 //needed as template overload causes issues with non-template scalar declarations
+//lval helps coercion issues
 #define vec2ize_1_(F,V) \
 	inl V F(V a){ V r; r.x= F((V::type)a.x); r.y= F((V::type)a.y); retr; }
 #define vec2ize_2_(F,V) \

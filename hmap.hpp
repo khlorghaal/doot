@@ -1,6 +1,6 @@
 #pragma once
 #include "list.hpp"
-#include "array_algos.hpp"
+#include "algos.hpp"
 
 namespace doot{
 
@@ -56,7 +56,7 @@ struct hmap: container{
 
 //expensive, avoid
 #define EACH_HMAP(e,M) \
-		EACH(_S_##e,M.heap)\
+		each(_S_##e,M.heap)\
 			if(unlikely(!_S_##e.empty))\
 				ifauto( e= _S_##e.v )
 
@@ -64,7 +64,7 @@ tpl<typn K, typn V>
 hmap<K,V>::hmap(sizt init_len){
 	ass(DEPTH>=2);
 	heap= alloc<slot>(init_len*DEPTH);
-	EACH(e,heap)
+	each(e,heap)
 		e.empty= true;
 }
 tpl<typn K, typn V>
@@ -86,7 +86,7 @@ void hmap<K,V>::expand(){
 	//move all !null slots
 	arr_raii<slot> t_entries(heap.size());
 	siz i= 0;
-	EACH(e,heap){
+	each(e,heap){
 		if(!e.empty){//todo opt skip rest of bucket if empty
 			copy(t_entries[i++],e);
 		}
@@ -107,7 +107,7 @@ void hmap<K,V>::expand(){
 		arr_raii<u8> bcounts(nbucks);
 		zero(bcounts);
 		done= true;
-		EACH(entry,t_entries){
+		each(entry,t_entries){
 			hash_t h= hash(entry.k);
 			u8& c= bcounts[h%nbucks];//bucket's member count
 			c++;
@@ -120,11 +120,11 @@ void hmap<K,V>::expand(){
 
 	realloc(heap,nbucks*DEPTH);
 	ass(heap.size()%DEPTH==0);
-	EACH(e,heap)
+	each(e,heap)
 		e.empty= true;
 
 	//repopulate
-	EACH(e,t_entries)
+	each(e,t_entries)
 		copy(*_alloc(e.k), e.v);//will not recurse
 		//V must be raw-movable
 }
@@ -146,9 +146,9 @@ maybe<V> hmap<K,V>::operator[](K cre k) cst{
 
 tpl<typn K,typn V>
 V* hmap<K,V>::_alloc(K cre k){
-	RA(expansion,2){
+	ra(expansion,2){
 		idx i= bucket(k)*DEPTH;
-		RA(b,DEPTH){
+		ra(b,DEPTH){
 			slot& at= heap[i+b];
 			if(at.empty){//empty slot found
 				entry_count++;
@@ -185,14 +185,14 @@ V& hmap<K,V>::add(K cre k, E&&... e){
 tpl<typn K, typn V> 
 bool hmap<K,V>::sub(K cre k){
 	idx i= bucket(k)*DEPTH;
-	RA(b,DEPTH){
+	ra(b,DEPTH){
 		slot& at= heap[i+b];
 		if(at.empty)//empty always procedes unempty
 			re false;
 		if(at.k==k){//match
 			//start at end, walking back until finding
 			//a bucket that is non null. may be self
-			RD(b2,DEPTH){
+			rd(b2,DEPTH){
 				slot& swap= heap[i+b2];//may == at
 				if(swap.empty)//end element to be moved
 					continue;
@@ -212,7 +212,7 @@ bool hmap<K,V>::sub(K cre k){
 
 tpl<typn K, typn V> 
 void hmap<K,V>::clear(){
-	EACH(e, heap){
+	each(e, heap){
 		if(!e.empty){
 			e.k.~K();
 			e.v.~V();
@@ -224,20 +224,20 @@ void hmap<K,V>::clear(){
 
 tpl<typn K, typn V> 
 void hmap<K,V>::keys_cpy(list<K>& r){
-	EACH(s,heap)
+	each(s,heap)
 		if(!s.empty)
 			r+=s.k;
 }
 tpl<typn K, typn V> 
 void hmap<K,V>::values_cpy(list<V>& v){
-	EACH(s,heap)
+	each(s,heap)
 		if(!s.empty)
 			v+=s.v;
 }
 
 tpl<typn K, typn V> 
 void hmap<K,V>::key_values_cpy(list<pair<K,V>>& v){
-	EACH(s,heap){
+	each(s,heap){
 		if(!s.empty)
 			v+=pair{s.k,s.v};
 	}

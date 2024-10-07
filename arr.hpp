@@ -34,7 +34,7 @@ tplt struct arr{
 
 	idx find(T cre e) cst{
 		idx i=0;
-		for(auto& a: *this){
+		each(a,*this){
 			if(a==e)
 				re i;
 			i++;
@@ -45,7 +45,7 @@ tplt struct arr{
 	void clear(){ base= stop= null; }
 	bool op!() cst{ re !base; }
 
-	op arr<void>() const;
+	op arr<void>() cst;
 };
 #define EMPTY {0,0}
 
@@ -55,16 +55,16 @@ tplt siz len(T cre a){ re a.size(); }
 // something doesnt want to inherit arr's pointers
 // something has multiple arrays and only wants to iterate one
 #define arrayable(b,e) \
-T* begin ()const{ re b; }\
-T* end   ()const{ re e; }\
-sizt size()const{ re  e-b ; }\
+T* begin ()cst{ re b; }\
+T* end   ()cst{ re e; }\
+sizt size()cst{ re  e-b ; }\
 op arr<T>(){ re {b,e}; }
 
 tpl<> struct arr<void>{
 	void* base;
 	void* stop;
 	//not arrayable, must be casted
-	tplt op arr<T>() const{ re {(T*)base,(T*)stop}; };
+	tplt op arr<T>() cst{ re {(T*)base,(T*)stop}; };
 };
 tplt arr<T>::op arr<void>() cst{ re {(void*)  base,(void*)  stop}; };
 tplt arr<T> vcas(arr<void> a){   re {(   T*)a.base,(   T*)a.stop}; };
@@ -103,7 +103,7 @@ struct dynarr: fixedarr<T,CAP>{
 		clear();
 	}
 	void clear(){
-		EACH(t, op arr<T>())
+		each(t, op arr<T>())
 			t.~T();
 		stop= 0;
 	}
@@ -193,7 +193,7 @@ tplt void copy(arr<T> dst, arr<T> src){
 }
 
 tplt void fill(arr<T> a, T val){
-	EACH(e,a)
+	each(e,a)
 		e= val;
 }
 tplt void zero(arr<T> a){
@@ -201,7 +201,7 @@ tplt void zero(arr<T> a){
 }
 
 tplt idx find(arr<T> a, T val){
-	EN(i,e,a)
+	en(i,e,a)
 		if(unlikely(e==val))
 			re i;
 	re nullidx;
@@ -213,7 +213,7 @@ tplt bool op==(arr<T> a, arr<T>b){
 	if(a.base==b.base && a.stop==b.stop)
 		re true;
 
-	ZIP(x,y,a,b)
+	zip(x,y,a,b)
 		if(unlikely(x!=y))
 			re false;
 	re true;

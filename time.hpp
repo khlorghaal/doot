@@ -4,7 +4,6 @@
 
 namespace doot{
 
-
 extern nsec current_time();//os.cpp
 extern void sleep(nsec);
 

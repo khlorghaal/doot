@@ -12,7 +12,7 @@ message queues explicitly consumed within thread loop
 #include "doot.hpp"
 #include "string.hpp"
 #include "list.hpp"
-#include "array_algos.hpp"
+#include "algos.hpp"
 
 namespace doot{
 
@@ -163,7 +163,7 @@ void dispatch(arr<A>& in, lis<B>& out){
 	lis<lis<void>>& b= rcas<lis<lis<void>>>(llb);
 	_invoke(inv,a,b,sizeof(A));
 
-	EACH2(b,llb)
+	each2(b,llb)
 		out+=b;
 }
 

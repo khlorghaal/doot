@@ -3,8 +3,6 @@
 //idpointers will never be indexes
 //as pointy types are persistent, while indices must not persist outside a system op
 //may not upcast to id types
-
-//for non-entities
 tpl<typn T> struct idpt{
 	id i= nullid;
 	maybe<T> op()(){ re T::heap[i]; };
@@ -21,6 +19,7 @@ tpl<typn T> struct idpt{
 
 
 tpl<typn T, idheap<idheap<T>>& h= T::heap> struct idptpt{
+	//todo is this shit?
 	id i0= nullid;
 	id i1= nullid;
 

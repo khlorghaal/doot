@@ -5,7 +5,7 @@
 #include "bytebuf.hpp"
 #include "time.hpp"
 #include "math.hpp"
-#include "thread.hpp"
+#include "2d.hpp"
 #include "file.hpp"
 
 #ifdef DEBUG
