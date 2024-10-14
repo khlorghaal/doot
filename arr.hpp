@@ -194,11 +194,12 @@ tplt void copy(arr<T> dst, arr<T> src){
 
 tplt void fill(arr<T> a, T val){
 	each(e,a)
-		e= val;
-}
+		e= val;}
+tplt void fill(arr<maybe<T>> a, T val){
+	each(e,a)
+		e= {val};}
 tplt void zero(arr<T> a){
-	_memclr(a.base, a.size()*TSIZ);
-}
+	_memclr(a.base, a.size()*TSIZ);}
 
 tplt idx find(arr<T> a, T val){
 	en(i,e,a)

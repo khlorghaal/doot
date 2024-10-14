@@ -2,6 +2,8 @@
 #include "primitives.hpp"
 #include "pp.h"
 
+//extern int dootmain(list<str>& args); //commented because list<str> dep
+
 #ifndef NDEBUG
 	#define DOOT_DEBUG 1
 	#ifndef DEBUG
@@ -26,13 +28,16 @@
 #define kind tpl<typn> typn
 #define cst const
 #define cre const&
-#define acs auto const
+#define ato auto
+#define atc auto const
+#define acs acs
 #define acr auto const&
 #define are auto&
 #define cex constexpr
 #define sex static constexpr
 #define ass assert
 #define ext  extern
+#define xtrn extern
 #define extc extern "C"
 #define dtyp decltype
 #define lis list
@@ -62,10 +67,6 @@
 	#define DOOt doot
 	#define DOOT doot
 	#define DOOOT doot;
-#endif
-
-#ifndef DOOT_NO_MAIN
-	extern int dootmain(int argc, char** argv);
 #endif
 
 namespace doot{
@@ -115,31 +116,31 @@ inline void nop(){}//for setting breakpoints
 
 
 
-struct no_copy{
-	no_copy()= default;
-	no_copy(no_copy const&)= delete;
-	void operator=(no_copy const&)= delete;
+struct nocopy{
+	nocopy()= default;
+	nocopy(  nocopy const&)= delete;
+	void op=(nocopy const&)= delete;
 };
-struct no_move{
-	no_move()= default;
-	no_move(no_move const&&)= delete;
-	void operator=(no_move const&&)= delete;
+struct nomove{
+	nomove()= default;
+	nomove(  nomove const&&)= delete;
+	void op=(nomove const&&)= delete;
 };
-struct no_new{
-	static void* operator new  (unsigned long)= delete;
-	static void* operator new[](unsigned long)= delete;
+struct nonew{
+	static void* op new  (unsigned long)= delete;
+	static void* op new[](unsigned long)= delete;
 };
-struct no_assign{
-	void operator=(no_assign const&)= delete;
-	void operator=(no_assign &&)=     delete;
+struct noassign{
+	void op=(noassign const&)= delete;
+	void op=(noassign &&)=     delete;
 };
-struct no_default_ctor{
-	no_default_ctor()= delete;
+struct nodefaultctor{
+	nodefaultctor()= delete;
 };
-struct inplace: no_copy,no_move,no_new,no_assign{};
-struct no_ref{
-	no_ref&    operator&() = delete;
-    no_ref cre operator&() cst = delete;
+struct inplace: nocopy,nomove,nonew,noassign{};
+struct noref{
+	noref&    op&() = delete;
+    noref cre op&() cst = delete;
 };
 
 /*containers
@@ -166,30 +167,28 @@ should only be used by containers
 dont use unless know what doing*/
 
 void  _thread(char const* name, void(*f)(void*),void* arg);
-void* _malloc( sizt  s);
+void* _malloc( siz  s);
 void  _free(   void* p);
-void* _realloc(void* p,   sizt s);
-void  _memcpy( void* dst, void* src, sizt len);
-void  _memclr( void* dst, sizt len);
+void* _realloc(void* p,   siz s);
+void  _memcpy( void* dst, void* src, siz len);
+void  _memclr( void* dst, siz len);
+void  _memset( void* dst, u8 v, sizt len);
 
 //these dont give a fuck about move semantics
-tplt inline void copy(T& dst,T& src){
+tplt void copy(T& dst,T& src){
 	_memcpy(&dst,&src,TSIZ);}
 tplt void swap(T& a, T& b){
-	constexpr int s= TSIZ;
+	cex int s= TSIZ;
 	u8 c[s];
 	_memcpy(&c,&a,s);
 	_memcpy(&a,&b,s);
 	_memcpy(&b,&c,s);}
-tplt inline void bump(T& t0, T& t1, T& t){
-	t0= t1;
-	t1= t;}
-tplt inline void bump(T& t0, T& t1, T& t2, T& t){
-	t0= t1;
-	t1= t2;
-	t2= t;}
+inl void bump(are a, are b, are c){
+	a=b;b=c;}
+inl void bump(are a, are b, are c, are d){
+	a=b;b=c;c=d;}
 
-//reference cast
+//reinterpret cast
 tpl<typn B,typn A> B& rcas(A& a){
 	ass(sizeof(A)==sizeof(B));
 	re *((B*)(&a));}
@@ -231,11 +230,11 @@ cex f32 ETA= 1.e-5;//kinda small but not really
 //next power of 2
 inl sizt nxpo2(sizt x){
 	if(x==0)//UB
-		return 1;
+		re 1;
 	x= __builtin_clzll(x);
 	x= 64-x;
 	ass(x<63);
-	return 1<<x;
+	re 1<<x;
 }
 
 tpl<typn A, typn B=A>
@@ -368,19 +367,19 @@ CALL_T( call_opaq_t, void*, void )
 
 //used for loopy macros to prevent parents mismatch
 //horribly renegade //ive been told this isnt abnormal; that is horrifying
-#define ifauto(S) if(are S;1)
-#define ifare ifauto
-#define ifacr(S) if(acr S;1)
-#define ifexpr(S) if( ([&]{ (S); re true;})() ) //=> (S);
+#define let(S) if(S;1)
+#define let(S) if(S;1)
+#define let(S) if(S;1)
+#define let_expr(S) if( ([&]{ (S); re true;})() ) //=> (S);
 //range
 #define ra( o,n    ) for(i64 o=0   ; o<(n ); o++)
 #define ra2(o,n1,n2) for(i64 o=(n1); o<(n2); o++)
 //range descending
 #define rd(o,n) for(i64 o=(n); o-->0;)
-#define each(o,v) for(auto& o : v)
+#define each(o,v) for(are o : v)
 #define eachd(o,v) \
 	for(idx _i##o= v.size(); _i##o-->0;)\
-		ifauto(o= v[_i##o])
+		let(are o= v[_i##o])
 #define each2(o,vv) \
 	each(vv##o,vv)\
 		each(o,vv##o)
@@ -388,16 +387,16 @@ CALL_T( call_opaq_t, void*, void )
 //enumerate
 #define en(i,o,v) \
 	ra(i,v.size())\
-		ifare(o=v[i])
+		let(are o=v[i])
 #define en_d(i,o,v) \
 	rd(i,v.size())\
-		ifare(o=v[i])
+		let(are o=v[i])
 
 #define zip(a,b, la,lb) \
 	if( la.size()==lb.size() )\
 		ra(_i##a##b, la.size())\
-			ifauto(a=la[_i##a##b])\
-				ifauto(b=lb[_i##a##b])
+			let(are a=la[_i##a##b])\
+				let(are b=lb[_i##a##b])
 
 //symcats must use the symbol names not the lists, as the list symbols may be expressions
 
@@ -447,37 +446,49 @@ tplt struct maybe{
 	T& un(){
 		ass(!!t); re *t; }
 };
+tpl<> struct maybe<id>{//i think theres a better way to do this
+	id t= nullid;
+	         bool op!(){  re t==nullid; }
+	id un(){ ass(!op!()); re t; }
+};
+tpl<> struct maybe<siz>{
+	siz t= nullsiz;
+	          bool op!(){  re t==nullsiz; }
+	siz un(){ ass(!op!()); re t; }
+};
+
 //unwrappers
 //bracketed
 #define may_if(s,m)\
-	if(likely(!!m))\
-		ifauto(s= m.un())
-//if null => {}; discouraged, use ({}) directly
+	let(ato _may=m)\
+	if(likely(!!_may))\
+		let(s=  _may.un())
+//if null => {}; discouraged, use ({})
 #define may_emp(s,m)\
-	are s= m({});
+	s= m({});
 //if null return
 #define may_re(s,m)\
 	if(unlikely(!m)) re;\
-	are s= m.un();
+	s= m.un();
 //if null return v
 #define may_re_v(s,m,v)\
-	if(unlikely(!m)) re v;\
-	are s= m.un();
+	if(!m) re v;\
+	s=  m.un();
 //if null return false
 #define may_re_f(s,m)\
-	if(unlikely(!m)) re false;\
-	are s= m.un();
+	if(!m) re false;\
+	s=  m.un();
 //if null continue
 #define may_cont(s,m)\
 	if(unlikely(!m)) continue;\
-	are s= m.un();
+	s=  m.un();
 //if null nope
 #define may_nope(s,m)\
 	if(!m) nope;\
-	are s= m.un();
+	s=  m.un();
 
 tplt struct cons{
-     may<T>  a;
+         T   a;
     cons<T>* b;
 };
 tplt cons<T>* tail(cons<T>* r){

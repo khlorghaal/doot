@@ -43,7 +43,7 @@ void Timer::invoke(){
 
 /**thisrate * k = thatrate*/
 f32 Timer::getRelativeRate(Timer& that){
-	return that.spf/spf;
+	re that.spf/spf;
 }
 
 

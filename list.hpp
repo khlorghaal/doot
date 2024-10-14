@@ -40,6 +40,7 @@ tplt struct list: arr<T>, container{
 	bool empty() cst{   re base==stop; }
 
 	//sets capacity, copies elements
+	//does not round up, stop==cap
 	void realloc(siz);
 	//will only grow and never shrink
 	void prealloc(siz c);
@@ -153,16 +154,17 @@ tplt list<T>::~list(){
 
 tplt void list<T>::realloc(siz n){
 	siz siz= size();
-	ass(n>=siz);//not worth the leak risk
+	if(n<siz)
+		ra2(i,n,siz)
+			base[i].~T();
 
 	if(!!base)
 		doot::realloc<T>(*this, n);//violates names, swap cap and stop
 	else
 		base= doot::alloc<T>(n).base;
 
-	cap= base+n;
 	stop= base+siz;
-	ass(stop<=cap);
+	 cap= base+n;
 	ass(size()<=capacity());
 }
 
@@ -176,7 +178,7 @@ tplt void list<T>::prealloc(siz n){
 };
 tplt void list<T>::expand(){
 	siz c= capacity()*GROW_FACTOR;
-	if(c==0)
+	if(c<=CAP_DEFAULT)
 		c= CAP_DEFAULT;
 	realloc(c);
 	ass(cap>stop);
@@ -204,7 +206,7 @@ tplt T list<T>::pop_front(){
 	ass(size()>0);
 	T ret= base[0];
 	sub_idx(0);
-	return ret;
+	re ret;
 }
 
 //swaps element with last and shortens
@@ -217,13 +219,13 @@ tplt void list<T>::sub_idx(idx i){
 tplt bool list<T>::sub_eq(T cre e){
 	siz i= find(*this,e);
 	if(i==NULLIDX)
-		return false;
+		re false;
 	sub_idx(i);
-	return true;
+	re true;
 }
 
 tplt void list<T>::clear(){
-	for(auto& e: *this)
+	each(e,*this)
 		e.~T();
 	stop= base;
 }

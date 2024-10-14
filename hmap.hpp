@@ -55,10 +55,10 @@ struct hmap: container{
 };
 
 //expensive, avoid
-#define EACH_HMAP(e,M) \
+#define each_hmap(e,M) \
 		each(_S_##e,M.heap)\
 			if(unlikely(!_S_##e.empty))\
-				ifauto( e= _S_##e.v )
+				let(are e= _S_##e.v )
 
 tpl<typn K, typn V>
 hmap<K,V>::hmap(sizt init_len){

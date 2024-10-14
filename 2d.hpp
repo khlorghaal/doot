@@ -33,23 +33,23 @@ tplt struct gvec2{
 	//#undef L
 
 	//list
-	inl gvec2<T> op+(gvec2<T> a) const { re gvec2<T>(x+a.x, y+a.y); }
-	inl gvec2<T> op-(gvec2<T> a) const { re gvec2<T>(x-a.x, y-a.y); }
-	inl gvec2<T> op*(gvec2<T> a) const { re gvec2<T>(x*a.x, y*a.y); }
-	inl gvec2<T> op/(gvec2<T> a) const { re gvec2<T>(x/a.x, y/a.y); }
+	inl gvec2<T> op+(gvec2<T> a) cst { re gvec2<T>(x+a.x, y+a.y); }
+	inl gvec2<T> op-(gvec2<T> a) cst { re gvec2<T>(x-a.x, y-a.y); }
+	inl gvec2<T> op*(gvec2<T> a) cst { re gvec2<T>(x*a.x, y*a.y); }
+	inl gvec2<T> op/(gvec2<T> a) cst { re gvec2<T>(x/a.x, y/a.y); }
 
 	inl gvec2<T>& op+=(gvec2<T> a){ x+=a.x, y+=a.y; reth; }
 	inl gvec2<T>& op-=(gvec2<T> a){ x-=a.x, y-=a.y; reth; }
 	inl gvec2<T>& op*=(gvec2<T> a){ x*=a.x, y*=a.y; reth; }
 	inl gvec2<T>& op/=(gvec2<T> a){ x/=a.x, y/=a.y; reth; }
 
-	inl gvec2<T> op-() const { re gvec2<T>(-x,-y); }
+	inl gvec2<T> op-() cst { re gvec2<T>(-x,-y); }
 
 	//scalar
-	tple inl gvec2<T> op+(E a) const { re gvec2<T>(x+a,y+a); }
-	tple inl gvec2<T> op-(E a) const { re gvec2<T>(x-a,y-a); }
-	tple inl gvec2<T> op*(E a) const { re gvec2<T>(x*a,y*a); }
-	tple inl gvec2<T> op/(E a) const { re gvec2<T>(x/a,y/a); }
+	tple inl gvec2<T> op+(E a) cst { re gvec2<T>(x+a,y+a); }
+	tple inl gvec2<T> op-(E a) cst { re gvec2<T>(x-a,y-a); }
+	tple inl gvec2<T> op*(E a) cst { re gvec2<T>(x*a,y*a); }
+	tple inl gvec2<T> op/(E a) cst { re gvec2<T>(x/a,y/a); }
 
 	tple inl gvec2<T>& op+=(E a){ x+=a; y+=a; reth; }
 	tple inl gvec2<T>& op-=(E a){ x-=a; y-=a; reth; }
@@ -60,6 +60,8 @@ tplt struct gvec2{
 	tpl<typn A> inl bool op!=(A a){ re a.x!=x || a.y!=y; }
 
 	//tple op gvec2<E>(){ re gvec2<E>(x,y);}
+
+	op str() cst{ re "v["_s+x+","+y+"]"; }
 };
 
 using   vec2= gvec2<f32>;
@@ -158,8 +160,8 @@ struct line{
 	}
 };
 //(a[x|y]+c)/-b = c = [y|x] = 0
-const line LINE_X={0,1,0};
-const line LINE_Y={1,0,0};
+cst line LINE_X={0,1,0};
+cst line LINE_Y={1,0,0};
 */
 
 struct point{
@@ -186,16 +188,18 @@ struct mat3x2{
 	void trans_rot_scl(vec2 t, f32 theta, vec2 s);
 	void inverse_trans_rot_scl(vec2 t, f32 r, vec2 s);//scale^-1 * rot^-1 * trans^-1
 
-	vec2 op*(vec2 cre p) const;
-	vec2 mul_atrans(vec2 cre) const;//multiply without translation
-	mat3x2 op*(mat3x2 cre) const;
+	vec2 op*(vec2 cre p) cst;
+	vec2 mul_atrans(vec2 cre) cst;//multiply without translation
+	mat3x2 op*(mat3x2 cre) cst;
 
 	void colMajor(f32 ret[6]);
 
 	//these elide all multiplications
-	inl vec2 unitX()  const{ re {mxx    +tx,myx    +ty}; };//mul by [1,0]
-	inl vec2 unit11() const{ re {mxx+mxy+tx,myx+myy+ty}; };//mul by [1,1]
-	void unit_box(vec2(&)[4]) const;//multiply by vec2 permutations [-1,1]
+	inl vec2 unitX()  cst{ re {mxx    +tx,myx    +ty}; };//mul by [1,0]
+	inl vec2 unit11() cst{ re {mxx+mxy+tx,myx+myy+ty}; };//mul by [1,1]
+	void unit_box(vec2(&)[4]) cst;//multiply by vec2 permutations [-1,1]
+
+	op str() cst{ re str(arr<f32 cst>{&mxx,(&ty)+1}); };
 };
 inl mat3x2 lerp(f32 t, mat3x2 cre a, mat3x2 cre b){
 	re {
@@ -226,8 +230,8 @@ struct trans2{
 	};
 	trans2(vec2 t_, vec2 s_, f32 th_): t(t_), s(s_), theta(th_){}
 
-	inl op mat3x2() const{ re mat; };
-	//inl op rect() const{ re {mat,mat_inverse,s}; }
+	inl op mat3x2() cst{ re mat; };
+	//inl op rect() cst{ re {mat,mat_inverse,s}; }
 
 	inl vec2 rotate(vec2 in){ mat3x2 m; m.rot(theta); re m*in; }
 
@@ -235,6 +239,8 @@ struct trans2{
 		mat.           trans_rot_scl(t, theta, s);
 		matinv.inverse_trans_rot_scl(t, theta, s);
 	};
+
+	op str() cst{ re "tr:"_s+t.op str()+",s:"+s.op str()+",th:"+theta+";"; }
 };
 inl trans2 lerp(f32 t,trans2 cre a,trans2 cre b){
 	trans2 ret;

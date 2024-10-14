@@ -13,12 +13,12 @@ class Timer{
 
 	volatile bool waiting= false;
 
-	f32 spf_avg;//lerped average
+	f32 spf_avg=60.;//lerped average
 
 public:
 	nsec total_time=0_ns;//ms since start
 	u64 tick=0;//number of invocations
-	f32 spf=0;//seconds per frame
+	f32 spf=60.;//seconds per frame since last
 
 	Timer(f32 fps);
 

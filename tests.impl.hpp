@@ -39,6 +39,12 @@ void run_tests(){
 		ass(sizeof(0ull)==8);
 	}
 	{
+		{ may<u8>  a;    ass(!a); }
+		{ may<id>  a;    ass(!a); }
+		{ may<u8>  a={}; ass(!a); }
+		{ may<id>  a={}; ass(!a); }
+	}
+	{
 		ass((str("")+="")=="");
 		ass((str(str(""))+="")=="");
 		ass((str(str(""))+=str(""))==str(str("")));
@@ -266,32 +272,40 @@ void run_tests(){
 	}
 	
 	{//idheap
-		idheap<int> heap;
+		idheap<i32> heap;
+		ra(i,512)
+			ass(!heap.index(i));
 		ra(i,512)
 			heap.add(i,i);
 		ra(i,512){
-			int& e= heap[i].un();
+			i32& e= heap[i].un();
 			ass(e==i);
 			ass(heap.ptr_id(&e)==i);
 			ass(heap.index(i).un()==i);
 		}
-		ra(i,512)
+		ra(i,512){
+			ass(!!heap[i]);
+			ass(!!heap.index(i));
 			heap.sub(i);
+		}
 		ra(i,512)
-			ass(heap.map[i]==NULLIDX);
-		rd(i,511)
-			heap.add(i,0);//??? what? why?
+			ass(!heap.index(i));
+		rd(i,512)
+			heap.add(i,0);//check still intact
+
+		ass(!heap[-1]);
+		ass(!heap.index(-1));
 	}
 
 	{//kitchen sink container
 		idheap<hmap<str,list<str>>> wew;
 
 		       hmap<str,list<str>>& a= wew.add(0);
-		       ass(wew[0].t == &a);
+		           ass(wew[0].t == &a);
 		                 list<str>& b=   a.add("a");
-		       ass(a["a"].t == &b);
+		           ass(a["a"].t == &b);
 		                       str& c=   b.add("b");
-		       ass(&b[0]        == &c);
+		           ass(&b[0]    == &c);
 		//these dont invalidate refs as additions are subobjects
 		ass( wew[0].un()["a"].un()[0][0] =='b');
 		       hmap<str,list<str>>& a_= wew[0].un();
@@ -302,7 +316,6 @@ void run_tests(){
 		wew.add(1).add("z").add("y");
 		ass( wew[1].un()["z"].un()[0][0] =='y');
 	}
-
 	
 	{//ringbuffer
 		ringbuffer<int, 512> rb;
@@ -310,9 +323,9 @@ void run_tests(){
 			rb<<i;
 		ra(i,512)
 			ass(rb[i]==i);	
-		ra2(i,512,1024
-)			rb<<i;
-		for(int i=512; i!= 1024; i++)
+		ra2(i,512,1024)
+			rb<<i;
+		ra2(i,512,1024)
 			ass(rb[i]==i);
 	}
 

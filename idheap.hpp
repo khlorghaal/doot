@@ -1,6 +1,7 @@
 #pragma once
 #include "doot.hpp"
 #include "algos.hpp"
+#include "string.hpp"
 
 namespace doot{
 /*
@@ -22,9 +23,9 @@ tplt struct idheap: container{
 	sex siz INIT_CAP= 0x20;
 	sex siz GROW_FACTOR= 4;
 
-	list<T  > heap;
-	list<id > ids;//index->id. element-aligned with heap
-	list<idx> map;//id->index. associative array.
+	list<T > heap;
+	list<id> ids;//index->id. element-aligned with heap
+	arr<maybe<idx>> map;//id->index. associative array.
 
 	arrayable( heap.base, heap.stop );
 	//arr<id> id_iter(){ re ids; };
@@ -40,15 +41,14 @@ tplt struct idheap: container{
 	void sub(id);
 	id sub(T* t);
 
-	may<idx> index(id) cst;
+	may<idx> index(id) cst;//generally private
 	id ptr_id(T* t) cst{
-		sizt i= t-heap.base;
-		ass(i>=0&&i<heap.size());//boundcheck
+		siz i= t-heap.base;
+		ass(i>=0&&i<heap.size());
 		re ids[i];
 	}
 	may<T> op[](id) cst;
 	T& getormake(id);
-	void getarr(arr<id>,arr<T*>);
 
 	void purge();
 
@@ -56,12 +56,12 @@ tplt struct idheap: container{
 };
 
 #define zip_heap(o,id_,h) \
-ifare(_lh= h.heap)\
-ifare(_li= h.ids)\
-ra(_i##o,_lh.size())\
-	ifare(  o=     _lh[_i##o])\
-	ifacr(id_= (id)_li[_i##o])
-//distince from en, since this is not a sequence
+	let(are _lh= h.heap)\
+	let(are _li= h.ids)\
+	ra(_i##o,_lh.size())\
+		let(are   o=     _lh[_i##o])\
+		let(acr id_= (id)_li[_i##o])
+//distinct from en, as is not sequence
 
 //#define ZIP_MULTIHEAP(o,id,h) {\
 //auto& _lh= h.heap.heap;\
@@ -97,10 +97,8 @@ struct index_recycler{
 	}
 };
 
-/*not static
-intended for
-	-local heap on an object
-	-static types which shouldnt use entities*/
+//not static
+//intended for local heaps on objects
 tplt struct bag: idheap<T>{
 	index_recycler rcyc;
 
@@ -108,7 +106,7 @@ tplt struct bag: idheap<T>{
 		id i= rcyc();
 		re {idheap<T>::add(i,e...),i};}
 	
-	void sub(id cid){
+	void sub(id cst cid){
 		idheap<T>::sub(cid);
 		rcyc.free(cid);};
 	void sub(T& e){
@@ -116,7 +114,7 @@ tplt struct bag: idheap<T>{
 };
 
 //bag but static
-//i dont remember why this isnt entities
+//i dont remember why this isnt entities, but there is a reason
 tplt struct sbag{
 	inl static index_recycler rcyc;
 	inl static idheap<T> heap;
@@ -132,61 +130,72 @@ tplt struct sbag{
 		rcyc.free(heap.sub(e));}
 };
 
-tplt idheap<T>::idheap(sizt init_cap){
+tplt idheap<T>::idheap(siz init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
-	 map.realloc(init_cap);
-	map.stop= map.cap;
-	fill(map, NULLIDX);
+	 map= alloc<may<idx>>(init_cap);//heuristic
+	fill(map,nullidx);
 }
 
 tplt tples
 T& idheap<T>::add(id id, E&&... e){
-	ass(id!=NULLID);
-	sizt mapsiz= map.size();
-	if(id>=mapsiz){//expand map
-		if(id>TOO_BIG)
-			err("max id exceded");
-		sizt nmapsiz= (id*list<T>::GROW_FACTOR);
-		map.realloc(nmapsiz);
-		map.stop= map.cap;
-		fill({map.base+mapsiz, map.stop}, NULLIDX);
+	if(id==nullid){
+		bad("nullid added; spicey orphan emitted");
+		re *new T(e...);
 	}
-	if(map[id]!=NULLIDX)//entry already present
-		err(str("entry already present ")+id+" - "+map[id]);
+	siz ms= map.size();
+	if(id>=ms){//expand map
+		if(id>TOO_BIG){
+			bad("max id exceded; spicey orphan emitted");
+			re *new T(e...);
+		}
+		siz nms= (id*list<T>::GROW_FACTOR);
+		realloc(map,nms);
+		fill({map.base+ms,map.stop}, NULLIDX);
+		ms= nms;
+	}
+	may_if(idx m,map[id]){//entry already present
+		bad(str("entry already present id=")+id+", idx="+m);
+		re heap[m];
+	}
 
 	ass(ids.size()==heap.size());
-	sizt idx= heap.size();
-	T& ret= heap.add(e...);
+	idx idx= heap.size();
+	T&    r= heap.add(e...);
 	ids.add(id);
-	map[id]= idx;
+	map[id]= {idx};
 
-	re ret;
+	ass(map[id].un()==idx);
+	ass(ids[map[id].un()]==id);
+
+	retr;
 }
 
-tplt void idheap<T>::sub(id i){
-	may<idx> mx= index(i);
-	if(!mx)
-		re;
-	idx x= mx.un();
-
+tplt void idheap<T>::sub(
+	       id  cst  id_sub){
+	may_re(idx cst idx_sub,index(id_sub));
+	       idx cst idx_end= ids.size()-1;//replacement
+	       id  cst  id_end= ids[idx_end];
+	ass(ids[map[id_end].un()]==id_end);
+	
 	ass(ids.size()==heap.size());
-	idx idx_end= heap.size()-1;
-	id id_end= ids[idx_end];
+	ass(idx_sub<heap.size());
+	ass(idx_end==map[id_end].un());
 
-	heap[x].~T();//dlet
-	map[i]= NULLIDX;//unmap id
+	     heap[idx_sub].~T();//dlet
+	map[id_sub]= {nullidx};//unmap
 
-	if(x!=idx_end){
-		//swap with end entry
-		//heap[x]= (T&&)heap[idx_end];//object
-		_memcpy(&heap[x], &heap[idx_end],TSIZ);
+	if(likely(id_sub!=id_end)){
+			//move end onto freed spot
+			copy(heap[idx_sub], heap[idx_end]);
+			      ids[idx_sub]= id_end; 
+				  map[ id_end]= {idx_sub};
 
-		 ids[x]= ids[idx_end];//id
-		map[id_end]= x;//remap end index
+		ass(ids[map[id_end].un()]==id_end);
 	}
+	ass(ids[idx_sub]==id_end);
 	heap.stop--;
-	ids.stop--;
+	 ids.stop--;
 }
 tplt id idheap<T>::sub(T* t){
 	id i= ptr_id(t);
@@ -195,35 +204,27 @@ tplt id idheap<T>::sub(T* t){
 };
 
 tplt may<idx> idheap<T>::index(id id) cst{
-	if(id<0 || id>=map.size()){
-		warn("idheap::index param:id OOB");
+	if(unlikely( id>=map.size() ))//implies null because unsigned
 		nope;
-	}
-	idx& mi= map[id];//list
-	ass( mi!=nullidx);
-	re { mi};
+	re map[id];
 }
 tplt maybe<T> idheap<T>::op[](id id) cst{
-	auto idx= index(id);
-	if(!idx)
-		nope;
-	re {heap[idx.un()]};
-}
-tplt void idheap<T>::getarr(arr<id> in, arr<T*> out){
-	zip(i,o,in,out){
-		o= op[](i);
-	}
+	may_nope(ato i,index(id));
+	re heap[     i];
 }
 tplt void idheap<T>::purge(){
 	heap.clear();
 	ids.clear();
-	fill(map, NULLIDX);
+	fill(map,nullidx);
 }
 
 tplt void idheap<T>::prealloc(siz s){
 	heap.prealloc(s);
 	ids.prealloc(s);
-	map.prealloc(s);
+	if(siz ms= map.size(); s>ms){
+		realloc(map,s);//mapsize is heuristic here
+		fill({map.base+ms,map.stop}, NULLIDX);
+	}
 }
 
 };

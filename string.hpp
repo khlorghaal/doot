@@ -37,6 +37,7 @@ struct str{
 	void cat(i64 x){ cat(itod(x)); };
 	void cat(u32 x){ cat(itod(x)); };
 	void cat(u64 x){ cat(itod(x)); };
+	void cat(f32 x){ cat(ftod(x)); };
 	void cat(f64 x){ cat(ftod(x)); };
 	void cat(long x         ){ re cat(itod((i64)x)); };
 	void cat(unsigned long x){ re cat(itod((u64)x)); };

@@ -1,10 +1,4 @@
 //OS specific stuff
-
-#ifndef DOOT_NO_MAIN
-	extern int dootmain(int, char**);
-#endif
-// DOOT_NO_MAIN for main't-ed linked libs
-
 #ifdef __linux__
 #include <time.h>
 #include <sys/termios.h>
@@ -23,6 +17,17 @@
 #ifdef __linux__
 #endif
 */
+
+#import "doot.hpp"
+#import "list.hpp"
+#import "string.hpp"
+using doot::list;
+using doot::str;
+using doot::i64;
+#ifndef DOOT_NO_MAIN
+	extern int dootmain(list<str>& args);
+#endif
+// DOOT_NO_MAIN for main't-ed linked libs
 
 #ifndef DOOT_NO_MAIN
 	#import "thread.hpp"
@@ -54,7 +59,10 @@
 
 			#endif
 
-			return dootmain(argc,argv);
+			list<str> args;
+			ra(i,argc)
+				args+= str(argv[i]);
+			re dootmain(args);
 		}
 #endif
 
@@ -79,12 +87,12 @@ nsec current_time(){
 		QueryPerformanceFrequency(&f);
 		LARGE_INTEGER t;
 		QueryPerformanceCounter(&t);
-		return t.QuadPart/(f.QuadPart/1000000000ll);
+		return t.QuadPart*1'000'000'000ll/f.QuadPart;
 	#endif
 	#ifdef __linux__
 		timespec t;
 		clock_gettime(CLOCK_MONOTONIC,&t);
-		return t.tv_nsec;
+		return t.tv_sec*1'000'000'000ll + t.tv_nsec;
 	#endif
 }
 
@@ -149,7 +157,7 @@ struct fchgcall{
 };
 hmap<str, fchgcall> fchgmap;
 void fchg_(str fnam){
-	may_if(call, fchgmap[fnam])
+	may_if(ato call, fchgmap[fnam])
 		call.invoke();
 	else
 		err("fook fnam findn't");//future self will HATE this //future self: lmoa

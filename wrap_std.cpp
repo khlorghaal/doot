@@ -148,7 +148,8 @@ void _memcpy(void* dst, void* src, siz len){
 	::memcpy(dst,src,len); }
 void _memclr(void* dst, siz len){
 	::memset(dst,0,len); }
-
+void  _memset( void* dst, u8 v, sizt len){
+	::memset(dst,v,len); }
 
 constexpr int STRMAX= 0x1000;
 size_t _strnlen(char const* s, siz n){
