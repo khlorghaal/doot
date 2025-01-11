@@ -19,14 +19,14 @@ public:
 		   car= n;
 		mut.locknt();
 	}
-	maybe<T*> pull(){
+	maybe<T> pull(){
 		mut.lock();
 		if(!car){
 			mut.locknt();
 			nope;
 		}
-		 may<T*>  a= car->a;
-		cons<T*>* b= car->b;
+		 may<T >  a= {car->a};
+		cons<T*>* b=  car->b;
 		delete car;
 		car= b;
 
@@ -48,7 +48,7 @@ public:
 		retr;
 	}
 
-	maybe<T*> dump(){//discards all and returns last
+	maybe<T> dump(){//discards all and returns last
 		mut.lock();
 		if(!car){
 			mut.locknt();
@@ -64,7 +64,7 @@ public:
 		delete car;
 		car= null;
 		mut.locknt();
-		retr;
+		re {r};
 	}
 };
 

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "defs.hpp"
 //this is a header so that externs may be refed without including all of doot
 
 namespace doot{
@@ -20,36 +20,35 @@ using u64= unsigned long long;
 using f32=  float;
 using f64=  double;
 using cstr= char const*;
-using fL= long double;//abomination should only be used for constexprs
+using fL= long double;//abomination should only be used for cexs
 
 #define null 0
 //must define otherwise endless type coercion bitching
 
 
-using index=  u32;
+using index= u32;
+using    id= u32;
 using idx= index;
-using  id=u32;
-using eid=u32;//entity ID
-using cid=u32;//component ID, where an entity possess multiple components, cids are unique per entity
+using eid= id;//for namespacing and clarity, as ptr<T>::id isomorph T
 //use of distinct types was evited due to potential complexity
 //component arrays prefered over subentities to min deref
-index constexpr NULLIDX= -1u  ;  index constexpr nullidx= NULLIDX;
-   id constexpr NULLID = -1u  ;     id constexpr nullid = NULLID ;
-  siz constexpr NULLSIZ= -1ull;    siz constexpr nullsiz= NULLSIZ;
+index cex NULLIDX= -1u  ;  index cex nullidx= NULLIDX;
+   id cex NULLID = -1u  ;     id cex nullid = NULLID ;
+  siz cex NULLSIZ= -1ull;    siz cex nullsiz= NULLSIZ;
 struct idid{
 	id e= NULLID;
 	id i= NULLID;
-	inline bool operator!(){        return e==NULLID || i==NULLID; };
-	inline bool operator==(idid b){ return e==b.e    && i==b.i;    };
+	inline bool op!(){        re e==NULLID || i==NULLID; };
+	inline bool op==(idid b){ re e==b.e    && i==b.i;    };
 
 	#define NULLIDID {NULLID,NULLID}
 };
 
 using hash_t= u32;
-hash_t constexpr HASH_MAX= 0xFFFFFFFFUL;
-f32 constexpr HASH_MAX_F= f32(HASH_MAX);
+hash_t cex HASH_MAX= 0xFFFFFFFFUL;
+f32 cex HASH_MAX_F= f32(HASH_MAX);
 
-siz constexpr TOO_BIG= 0x10000000ULL-1;
+siz cex TOO_BIG= 0x10000000ULL-1;
 //no reasonable allocation allowed to excede
 
 using nsec= i64;//nanoseconds are the standard time unit
@@ -57,12 +56,12 @@ using nsec= i64;//nanoseconds are the standard time unit
 //i tried strongly typed implicit scalar basis conversions, but it was against the will of god
 using time_t= i64;
 
-constexpr nsec operator""_ns(u64 v){ return v; }
-constexpr nsec operator""_us(u64 v){ return v*1'000ll; }
-constexpr nsec operator""_ms(u64 v){ return v*1'000'000ll; }
-constexpr nsec operator""_s( u64 v){ return v*1'000'000'000ll; }
-constexpr time_t usec(nsec t){       return t/1'000ll; }
-constexpr time_t msec(nsec t){       return t/1'000'000ll; }
-constexpr time_t  sec(nsec t){       return t/1'000'000'000ll; }
+cex nsec op""_ns(u64 v){ re v; }
+cex nsec op""_us(u64 v){ re v*1'000ll; }
+cex nsec op""_ms(u64 v){ re v*1'000'000ll; }
+cex nsec op""_s( u64 v){ re v*1'000'000'000ll; }
+cex time_t usec(nsec t){       re t/1'000ll; }
+cex time_t msec(nsec t){       re t/1'000'000ll; }
+cex time_t  sec(nsec t){       re t/1'000'000'000ll; }
 
 }

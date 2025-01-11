@@ -47,8 +47,11 @@ tplt struct list: arr<T>, container{
 	//realloc capacity*grow_factor
 	void expand();
 
-	//args forward to ctor
-	tples T& add( E&&... e);
+	T* _alloc();
+	tples T&  add(E&&... e){//forward to ctor
+		re *new(_alloc())T( e... );}
+	tples T& init(E&&... e){//forward to initer
+		re *new(_alloc())T({e...});}
 	tples T& op+=(E&&... e){ re add(e...); };
 
 	//appends b to this
@@ -184,12 +187,12 @@ tplt void list<T>::expand(){
 	ass(cap>stop);
 }
 
-tplt tples
-T& list<T>::add(E&&... e){
+
+tplt T* list<T>::_alloc(){
 	if(stop==cap)
 		expand();
 	ass(stop<cap);
-	re *new(stop++)T(e...);
+	re stop++;
 }
 
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "defs.hpp"
 #include "primitives.hpp"
 #include "pp.h"
 
@@ -10,63 +11,11 @@
 		#define DEBUG 1
 #endif
 
-#define TSIZ sizeof(T)
-
-#define re return
-#define rethis return *this
-#define reth   return *this
-#define retr   return r
-#define retret return ret;
-
-#define inl inline
-#define op operator
-#define tpl template
-#define typn typename
-#define tplt  template<typename T>
-#define tple  template<typename E>
-#define tples template<typename... E>
-#define kind tpl<typn> typn
-#define cst const
-#define cre const&
-#define ato auto
-#define atc auto const
-#define acs acs
-#define acr auto const&
-#define are auto&
-#define cex constexpr
-#define sex static constexpr
-#define ass assert
-#define ext  extern
-#define xtrn extern
-#define extc extern "C"
-#define dtyp decltype
-#define lis list
-#define may maybe
-#define nope return {}
 #define print(x) cout((str)x)
 
 #define   likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
-#endif
-
-#ifndef DOOT_NOCOMBINATORIAL
-	#define dooT doot
-	#define doOt doot
-	#define doOT doot
-	#define dOot doot
-	#define dOoT doot
-	#define dOOt doot
-	#define dOOT doot
-	#define Doot doot
-	#define DooT doot
-	#define DoOt doot
-	#define DoOT doot
-	#define DOot doot
-	#define DOoT doot
-	#define DOOt doot
-	#define DOOT doot
-	#define DOOOT doot;
 #endif
 
 namespace doot{
@@ -431,11 +380,18 @@ but mostly i find template syntax arbitrary and incomprehensible.
 
 #define voidmap(vec,f,a...) each(_e,vec){ _e.f(a); }
 
+//static condition //generally avoid since should do something else
+tpl<bool v> struct scond{ sex bool val= v; };
+tplt struct pointyT    : scond<false>{};
+tplt struct pointyT<T*>: scond< true>{};
+
 //not elegant, but robust
 tplt struct maybe{
 	T* t= null;
-	maybe(T& t_):t( &t_){}
-	maybe(T* t_):t(  t_){}
+	maybe(T   t_)= delete;//for deteled use _val
+	maybe(T&  t_):t(&t_){}
+	maybe(T&& t_)= delete;
+	maybe(T*  t_):t( t_){}
 	maybe(     ):t(null){}
 
 	bool op!(){ re !t; }
@@ -446,16 +402,32 @@ tplt struct maybe{
 	T& un(){
 		ass(!!t); re *t; }
 };
-tpl<> struct maybe<id>{//i think theres a better way to do this
-	id t= nullid;
-	         bool op!(){  re t==nullid; }
-	id un(){ ass(!op!()); re t; }
+//for primitives that cannot nully intrinsic
+tplt struct maybe_val{
+	struct val{ T t; };
+	val* v;
+
+	maybe_val(maybe_val<T>&& m)
+	                 :v(m.v){ m.v=null; }
+	//maybe_val(T   t_):v(new val(     t_)){}
+	maybe_val(T&  t_):v(new val(     t_)){}
+	maybe_val(T&& t_):v(new val((T&&)t_)){}
+	maybe_val(      ):v(null){}
+	//default ctor too ambiguous
+
+	bool op!(){ re !v; }
+	op bool(){ re !!v;}
+	T op()(T none){  re !!v?v->t:none; }
+	T un(){ass(!!v); re v->t; }
 };
-tpl<> struct maybe<siz>{
-	siz t= nullsiz;
-	          bool op!(){  re t==nullsiz; }
-	siz un(){ ass(!op!()); re t; }
+tplt struct maybe_i{
+	sex T none= nullidx;
+	T t=  none;
+	        bool op!(){  re t==none; }
+	T un(){ ass(!op!()); re t; }
 };
+tplt using mai= maybe_i<  T>;
+tplt using mav= maybe_val<T>;
 
 //unwrappers
 //bracketed
@@ -463,9 +435,6 @@ tpl<> struct maybe<siz>{
 	let(ato _may=m)\
 	if(likely(!!_may))\
 		let(s=  _may.un())
-//if null => {}; discouraged, use ({})
-#define may_emp(s,m)\
-	s= m({});
 //if null return
 #define may_re(s,m)\
 	if(unlikely(!m)) re;\
@@ -486,6 +455,11 @@ tpl<> struct maybe<siz>{
 #define may_nope(s,m)\
 	if(!m) nope;\
 	s=  m.un();
+//null coalesce
+#define may_nuco(m,e)\
+	( (m)? (m).un().e : decltype(m){} )
+#define may_conu(m,e,n)\
+	( (m)? (m).un().e : (n) )
 
 tplt struct cons{
          T   a;
@@ -497,7 +471,10 @@ tplt cons<T>* tail(cons<T>* r){
 	retr;
 }
 
-
+//nondefault fields and associative ctor for, as init list fwd unviable
+//#define CONSTRUCT2(T, T0,F0, T1,F1) \
+//	T0 F0; T1 F1; \
+//	T(T0 )
 
 //essential math
 
@@ -544,10 +521,10 @@ inl float rand(float in){
 }
 
 
-
-
 }//namespace end
-//namespace doot::doot= ::doot;//hack, it sometimes gets nested i dont know why, -E didnt show it
+//namespace doot::doot= ::doot;
+	//hack, it sometimes gets nested i dont know why, -E didnt show it
+	//nested namespace resolution can cause compiler bugs
 
 
 #ifndef _DOOT_NO_NEW_

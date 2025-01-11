@@ -138,7 +138,7 @@ maybe<V> hmap<K,V>::operator[](K cre k) cst{
 		if(at.empty)//not contained
 			nope;
 		if(at.k==k)
-			re {at.v};
+			re {&at.v};
 	}
 	//not contained
 	nope;
@@ -157,7 +157,7 @@ V* hmap<K,V>::_alloc(K cre k){
 				at.k= k;
 				//keys may be nontrivial
 				//-move ctors must work lest woe
-				re &(at.v);
+				re &at.v;
 			}
 			else if(at.k==k){//entry with key already present
 				warn("hmap overwrite");
@@ -170,7 +170,7 @@ V* hmap<K,V>::_alloc(K cre k){
 		//expansion guarantees >=1 free slot per bucket
 		expand();
 	}
-	unreachable; re null;
+	unreachable; re 0;
 }
 
 

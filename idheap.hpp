@@ -25,7 +25,7 @@ tplt struct idheap: container{
 
 	list<T > heap;
 	list<id> ids;//index->id. element-aligned with heap
-	arr<maybe<idx>> map;//id->index. associative array.
+	arr<maybe_i<idx>> map;//id->index. associative array.
 
 	arrayable( heap.base, heap.stop );
 	//arr<id> id_iter(){ re ids; };
@@ -39,14 +39,8 @@ tplt struct idheap: container{
 
 	//sub for pointer, id, or object-equality
 	void sub(id);
-	id sub(T* t);
 
-	may<idx> index(id) cst;//generally private
-	id ptr_id(T* t) cst{
-		siz i= t-heap.base;
-		ass(i>=0&&i<heap.size());
-		re ids[i];
-	}
+	mai<idx> index(id) cst;//generally private
 	may<T> op[](id) cst;
 	T& getormake(id);
 
@@ -65,7 +59,7 @@ tplt struct idheap: container{
 
 //#define ZIP_MULTIHEAP(o,id,h) {\
 //auto& _lh= h.heap.heap;\
-//auto& _li= h.eids;\
+//auto& _li= h.ids;\
 //for(int _i=0; _i!=_lh.size(); _i++){\
 //	auto&  o= _lh[_i];\
 //	auto& id= _li[_i];
@@ -113,28 +107,11 @@ tplt struct bag: idheap<T>{
 		rcyc.free(idheap<T>::sub(e));}
 };
 
-//bag but static
-//i dont remember why this isnt entities, but there is a reason
-tplt struct sbag{
-	inl static index_recycler rcyc;
-	inl static idheap<T> heap;
-
-	tples static pair<T&,id> add(E&&... e){
-		id i= rcyc();
-		re { heap.add(i,e...), i};}
-	
-	static void sub(id cid){
-		heap.sub(cid);
-		rcyc.free(cid);};
-	static void sub(T* e){
-		rcyc.free(heap.sub(e));}
-};
-
 tplt idheap<T>::idheap(siz init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
-	 map= alloc<may<idx>>(init_cap);//heuristic
-	fill(map,nullidx);
+	 map= alloc<mai<idx>>(init_cap);//heuristic
+	fill(map,{});
 }
 
 tplt tples
@@ -151,7 +128,7 @@ T& idheap<T>::add(id id, E&&... e){
 		}
 		siz nms= (id*list<T>::GROW_FACTOR);
 		realloc(map,nms);
-		fill({map.base+ms,map.stop}, NULLIDX);
+		fill({map.base+ms,map.stop},mai<idx>{});
 		ms= nms;
 	}
 	may_if(idx m,map[id]){//entry already present
@@ -197,25 +174,28 @@ tplt void idheap<T>::sub(
 	heap.stop--;
 	 ids.stop--;
 }
-tplt id idheap<T>::sub(T* t){
-	id i= ptr_id(t);
+/*tplt id idheap<T>::sub(T* t){
+	siz x= t-heap.base;
+	ass(0<=x&x<heap.size());
+	id i= ids[x];
+	ass(map[i].un()==x);
 	sub(i);
 	re i;
-};
+};*/
 
-tplt may<idx> idheap<T>::index(id id) cst{
+tplt mai<idx> idheap<T>::index(id id) cst{
 	if(unlikely( id>=map.size() ))//implies null because unsigned
 		nope;
 	re map[id];
 }
 tplt maybe<T> idheap<T>::op[](id id) cst{
 	may_nope(ato i,index(id));
-	re heap[     i];
+	re {&heap[   i]};
 }
 tplt void idheap<T>::purge(){
 	heap.clear();
 	ids.clear();
-	fill(map,nullidx);
+	fill(map,mai<idx>{});
 }
 
 tplt void idheap<T>::prealloc(siz s){
@@ -223,7 +203,7 @@ tplt void idheap<T>::prealloc(siz s){
 	ids.prealloc(s);
 	if(siz ms= map.size(); s>ms){
 		realloc(map,s);//mapsize is heuristic here
-		fill({map.base+ms,map.stop}, NULLIDX);
+		fill({map.base+ms,map.stop},mai<idx>{});
 	}
 }
 

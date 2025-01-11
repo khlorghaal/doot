@@ -265,7 +265,7 @@ void run_tests(){
 		ra(i,0x1000)
 			map.add(i,i);
 		ra(i,0x1000){
-			auto p= map[i];
+			may<int> p= map[i];
 			ass(!!p);
 			ass(p.un()==i);
 		}
@@ -280,7 +280,7 @@ void run_tests(){
 		ra(i,512){
 			i32& e= heap[i].un();
 			ass(e==i);
-			ass(heap.ptr_id(&e)==i);
+			//ass(heap.ptr_id(&e)==i);
 			ass(heap.index(i).un()==i);
 		}
 		ra(i,512){
