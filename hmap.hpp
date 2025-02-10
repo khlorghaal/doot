@@ -11,10 +11,10 @@ struct hmap: container{
 	struct slot{
 		V v;
 		K k;
-		bool empty;
+		bool empty= true;
 	};
 	sex siz SLOT_SIZE= sizeof(slot);
-	sex u16 DEPTH= 4;//depth must be cex for performance
+	sex u16 DEPTH= 4;//depth must be cex for perf
 	sex siz DEFAULT_LEN= 0x20;
 
 	u8 grow_factor= 4;//tunable
@@ -57,7 +57,7 @@ struct hmap: container{
 //expensive, avoid
 #define each_hmap(e,M) \
 		each(_S_##e,M.heap)\
-			if(unlikely(!_S_##e.empty))\
+			if(!_S_##e.empty)\
 				let(are e= _S_##e.v )
 
 tpl<typn K, typn V>
@@ -68,8 +68,7 @@ hmap<K,V>::hmap(sizt init_len){
 		e.empty= true;
 }
 tpl<typn K, typn V>
-hmap<K,V>::hmap(): hmap(hmap<K,V>::DEFAULT_LEN){
-};
+hmap<K,V>::hmap(): hmap(hmap<K,V>::DEFAULT_LEN){};
 tpl<typn K, typn V>
 hmap<K,V>::~hmap(){
 	clear();
@@ -86,11 +85,11 @@ void hmap<K,V>::expand(){
 	//move all !null slots
 	arr_raii<slot> t_entries(heap.size());
 	siz i= 0;
-	each(e,heap){
-		if(!e.empty){//todo opt skip rest of bucket if empty
+	each(e,heap)
+		if(!e.empty)
 			copy(t_entries[i++],e);
-		}
-	}
+	ass(i<=t_entries.size());
+	t_entries.stop= t_entries.base+i;
 
 	siz nbucks= heap.size()/DEPTH;
 	
@@ -156,7 +155,8 @@ V* hmap<K,V>::_alloc(K cre k){
 				new(&at.k)K();
 				at.k= k;
 				//keys may be nontrivial
-				//-move ctors must work lest woe
+				// copy assignor must work lest woe
+				// problematic, per my lang choice
 				re &at.v;
 			}
 			else if(at.k==k){//entry with key already present
@@ -164,10 +164,11 @@ V* hmap<K,V>::_alloc(K cre k){
 				at.v.~V();
 				re &(at.v);
 			}
+			//else entry of different key
 		}
 		//could not fit in bucket
 		ass(expansion==0);
-		//expansion guarantees >=1 free slot per bucket
+		ass(expand_pad>=1);//expansion guarantees >=1 free slot per bucket
 		expand();
 	}
 	unreachable; re 0;

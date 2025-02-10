@@ -55,10 +55,10 @@ tplt siz len(T cre a){ re a.size(); }
 // something doesnt want to inherit arr's pointers
 // something has multiple arrays and only wants to iterate one
 #define arrayable(b,e) \
-T* begin ()cst{ re b; }\
-T* end   ()cst{ re e; }\
-sizt size()cst{ re  e-b ; }\
-op arr<T>(){ re {b,e}; }
+T* begin ()cst{ re  (b)     ; }\
+T* end   ()cst{ re  (e)     ; }\
+sizt size()cst{ re  (e)-(b) ; }\
+op arr<T>(){    re {(b),(e)}; }
 
 tpl<> struct arr<void>{
 	void* base;
@@ -72,13 +72,23 @@ tplt arr<T> vcas(arr<void> a){   re {(   T*)a.base,(   T*)a.stop}; };
 //c's fixed arrays result in ugly, these are somewhat better
 //does not like constness
 //copymoveable
-tpl<typn T, sizt CAP>
+tpl<typn T, sizt N>
 struct fixedarr{
-	T base[CAP];
-	arrayable(base,(base+CAP))
+	T base[N];
+	arrayable((T*)&(base),(T*)&(base)+N)
+
+	//default ctor makes ambiguity
+	//equivalent fixedarr<T,N> s{{}};
+	static fixedarr<T,N> empty(){ re {{}};	}
+
+	//fixedarr<T,N> s{{a,b,...}};
+    fixedarr(const T (&arr)[N]) {  	
+        ra(i,N)
+            base[i] = arr[i];
+    }
 
 	T& op[](idx i){
-		ass(i>=0 & i<CAP);
+		ass(i>=0 & i<N);
 		re base[i];
 	}
 };

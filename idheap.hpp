@@ -1,7 +1,6 @@
 #pragma once
 #include "doot.hpp"
 #include "algos.hpp"
-#include "string.hpp"
 
 namespace doot{
 /*
@@ -132,7 +131,8 @@ T& idheap<T>::add(id id, E&&... e){
 		ms= nms;
 	}
 	may_if(idx m,map[id]){//entry already present
-		bad(str("entry already present id=")+id+", idx="+m);
+		bad("entry already present id=");
+		//fukkin deps bad(str("entry already present id=")+id+", idx="+m);
 		re heap[m];
 	}
 

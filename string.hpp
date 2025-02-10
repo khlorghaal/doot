@@ -2,6 +2,7 @@
 #include "primitives.hpp"
 #include "list.hpp"
 #include "hmap.hpp"
+#include "idheap.hpp"
 
 namespace doot{
 
@@ -86,6 +87,11 @@ struct str{
 			cat(e.a)+cat(":")+cat(e.b)+cat(",");}//i hunger for fstrings
 		cat(";");
 	};
+	tple str(idheap<E> cre h){
+		each(e,h.heap)
+			cat(e);
+		//todo ids
+	}
 };
 
 inl hash_t hash(str cre str){

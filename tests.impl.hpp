@@ -179,12 +179,12 @@ void run_tests(){
 		}
 		{//average
 			i64 racc= 0;
-			ra(i,0x1000){//
-				racc+= (i32)hash((u64)i);
-				racc+= (i32)hash((u32)i);
+			ra2(i,-0x1000,0x1000){//
+				racc+= (i32)hash((i64)i);
+				racc+= (i32)hash((i32)i);
 			}
-			ass( abs(racc/0x1000ll) < INTMAX<hash_t> );
-			//fixme doesnt lgtm
+			ass( abs(racc/0x2000ll) < INTMAX<hash_t> );
+			//fixme lbtm
 		}
 		{//modular
 			//i64 a= 0;
@@ -261,10 +261,15 @@ void run_tests(){
 	}
 	
 	{//hashmap
-		hmap<int, int> map;
-		ra(i,0x1000)
+		hmap<i32, i32> map;
+		ra2(i,-0x100,0x100){
 			map.add(i,i);
-		ra(i,0x1000){
+		}
+		hmap<i64, i64> map2;
+		ra2(i,-0x100,0x100){
+			map2.add(i,i);
+		}
+		ra(i,0x100){
 			may<int> p= map[i];
 			ass(!!p);
 			ass(p.un()==i);

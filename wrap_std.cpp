@@ -92,27 +92,19 @@ struct _latch{
 };
 
 
-
+//f(void) != f()
 OPAQ_CDTR(mutex);
-OPAQ_MTHD(mutex,lock);
-OPAQ_MTHD(mutex,locknt);
+OPAQ_MTHD(mutex,lock  , NOTHING,NOTHING, void);
+OPAQ_MTHD(mutex,locknt, NOTHING,NOTHING, void);
 
 OPAQ_CDTR(lock);
-OPAQ_MTHD(lock,wait);
-#define OPAQ_ARGS bool b
-#define OPAQ_ARGN      b
-OPAQ_MTHD(lock,wake);
-#define OPAQ_ARGS void
-#define OPAQ_ARGN
+OPAQ_MTHD(lock,wait, NOTHING,NOTHING, void);
+OPAQ_MTHD(lock,wake, bool,_         , void);
 
 OPAQ_CDTR(latch);
-#define OPAQ_ARGS int i
-#define OPAQ_ARGN     i
-OPAQ_MTHD(latch,set);
-#define OPAQ_ARGS void
-#define OPAQ_ARGN
-OPAQ_MTHD(latch,tick);
-OPAQ_MTHD(latch,wait);
+OPAQ_MTHD(latch,set , int,_          ,void);
+OPAQ_MTHD(latch,tick, NOTHING,NOTHING,void);
+OPAQ_MTHD(latch,wait, NOTHING,NOTHING,void);
 
 
 int vcore_count(){

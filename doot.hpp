@@ -198,6 +198,9 @@ struct triad{
 	C c;
 };
 
+#define NOTHING
+//distinct from void; ie void f(NOTHING NOTHING)
+
 #define L2S(A,B) A   B
 #define L2C(A,B) A , B
 #define L2M(A,B) A ; B ;
@@ -220,7 +223,7 @@ subjugate and contain unholy
 may thine codebase be minimized of voodoo
 
 was some of most horrendous code ive ever written
-but now decent, not needing comment
+but now decent,? not needing comment?
 
 #.hpp
 struct A{
@@ -236,14 +239,8 @@ struct _A{
 	int g(float);
 }
 OPAQ_CDTR(A);
-OPAQ_MTHD(A,f);
-#define OPAQ_RETT int
-#define OPAQ_ARGS float f
-#define OPAQ_ARGN       f
-OPAQ_MTHD(A,g);
-#define OPAQ_RETT void
-#define OPAQ_ARGS void
-#define OPAQ_ARGN
+OPAQ_MTHD(A,f,  int, float);
+OPAQ_MTHD(A,g, void,  void);
 */
 #define OPAQ_OBJ(T) \
 	void* opaq=nullptr; T(); ~T();
@@ -259,17 +256,18 @@ OPAQ_MTHD(A,g);
 	void T##_##DTOR(void* v){ \
 		ass(!!v);\
 		delete ((_##T*)v); }
-#define OPAQ_ARGS void//must X for commas
-#define OPAQ_RETT void
-#define OPAQ_ARGN
-#define OPAQ_MTHD(T,M)\
-	OPAQ_RETT T::M(OPAQ_ARGS){ \
+//previously used Xes for commas
+// but that was abhorrent
+// use a compound type if needed
+#define OPAQ_MTHD(T,M, ARGT,ARG,RETT)\
+	RETT T::M(ARGT ARG){\
 		ass(!!opaq);\
-		re ((_##T*)opaq)->M( OPAQ_ARGN);}
+		re ((_##T*)opaq)->M(ARG);}
 
 //#define OPAQ_T_DEREF(v,T,s)
 //	auto _t= ((_##T*)v);\
 //	T& s= *((T*)(*((void**)v)));
+		/// dont remember what the fuck this is
 
 //T_F  the opaque function
 //T::F the member function forwarding to the opaque
@@ -388,9 +386,9 @@ tplt struct pointyT<T*>: scond< true>{};
 //not elegant, but robust
 tplt struct maybe{
 	T* t= null;
-	maybe(T   t_)= delete;//for deteled use _val
+	//maybe(T   t_)= delete; del ctor causes ambiguity oddly
 	maybe(T&  t_):t(&t_){}
-	maybe(T&& t_)= delete;
+	maybe(T&& t_)= delete;//for deteled use _val
 	maybe(T*  t_):t( t_){}
 	maybe(     ):t(null){}
 
@@ -488,8 +486,10 @@ inl hash_t hash(u32 x){
 	u32 a1= x*PRIME_1;
 	u32 a2= x*PRIME_2;
 	u32 a3= x*PRIME_3;
-	x^= a0^a1^a2^a3;
-
+		x= a0^a1;
+	u64 y= a2^a3;
+	y^= (y<<16)|(y>>16);
+	x^= y;
 	re x;
 }
 inl hash_t hash(u64 x){
@@ -502,11 +502,10 @@ inl hash_t hash(u64 x){
 	u64 a1= x*PRIME_1;
 	u64 a2= x*PRIME_2;
 	u64 a3= x*PRIME_3;
-		x= a0;
+		x= a0^a1;
 	u64 y= a2^a3;
 	y^= (y<<32)|(y>>32);
 	x^= y;
-
 	re x;
 }
 inl hash_t hash(void* x){ re hash((u64) x); };
