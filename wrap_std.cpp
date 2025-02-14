@@ -189,7 +189,7 @@ void console::put(str x){
 	fflush(       stream->self);
 };
 
-bool file_dump(list<u8>& ret, str& name){
+bool file_dump(list<u8>& ret, str name){
 	print("fdump\""+name+"\"");
 	errno= 0;
 	//errno must manual reset
@@ -214,7 +214,7 @@ bool file_dump(list<u8>& ret, str& name){
     fclose(file);
     re false;
 }
-bool file_dump(str& ret, str& name){
+bool file_dump(str& ret, str name){
 	ass(sizeof(ret.dat.base[0])==sizeof(u8));//no wchar support
 	re file_dump(rcas<list<u8>>(ret),name);
 }

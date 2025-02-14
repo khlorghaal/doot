@@ -1,6 +1,7 @@
 #pragma once
 #include "list.hpp"
 #include "algos.hpp"
+#include "string.hpp"
 
 namespace doot{
 
@@ -51,14 +52,14 @@ struct hmap: container{
 	void   keys_cpy(list<K>&);
 	void values_cpy(list<V>&);
 	void key_values_cpy(list<pair<K,V>>&);
-
 };
 
-//expensive, avoid
-#define each_hmap(e,M) \
-		each(_S_##e,M.heap)\
-			if(!_S_##e.empty)\
-				let(are e= _S_##e.v )
+//sparsity varying expense
+#define each_hmap(K,V,M) \
+		each(_s_##e, M.heap)\
+			if(!_s_##e.empty)\
+				let(are K= _s_##e.k)\
+				let(are V= _s_##e.v)
 
 tpl<typn K, typn V>
 hmap<K,V>::hmap(sizt init_len){

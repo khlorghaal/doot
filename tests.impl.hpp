@@ -12,7 +12,7 @@
 namespace doot{
 
 void run_tests(){
-	cout("tests");
+	cout("doot::tests");
 	profiler pf;
 	{
 		ass(sizeof(int )==4);
@@ -382,6 +382,6 @@ void run_tests(){
 
 	}
 	*/
-	cout("tests pass");
+	cout("doot:: tests pass");
 };
 };

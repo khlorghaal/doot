@@ -81,10 +81,8 @@ struct str{
 		cat(";");
 	};
 	tpl<typn K, typn V> str(hmap<K,V> cre h){
-		list<pair<K,V>> a;
-		h.key_values_cpy(a);//slow but so is console
-		each(e,a){
-			cat(e.a)+cat(":")+cat(e.b)+cat(",");}//i hunger for fstrings
+		each_hmap(k,v,h){
+			cat(k);cat(":");cat(v);cat(",");}//i hunger for fstrings //so true oomfie
 		cat(";");
 	};
 	tple str(idheap<E> cre h){

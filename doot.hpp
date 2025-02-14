@@ -53,6 +53,7 @@ extern void _err(cstr,cstr);
 #define err(s) _err((SRCLOC),s);
 #define unreachable err("unreachable");
 
+inl void break_(){};//for shite ide
 
 inline void nop(){}//for setting breakpoints
 
