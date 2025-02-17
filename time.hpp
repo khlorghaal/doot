@@ -8,8 +8,8 @@ extern nsec current_time();//os.cpp
 extern void sleep(nsec);
 
 class Timer{
-	nsec tInvoke, tBegin, tBeginp;
-	nsec targetTime;
+	nsec tInvoke=0, tBegin=0, tBeginp=0;
+	nsec targetTime=0;
 
 	volatile bool waiting= false;
 

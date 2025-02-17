@@ -22,7 +22,9 @@ void Timer::invoke(){
 	tInvoke= current_time();
 	nsec tProcess= tInvoke-tBegin;
 	nsec dt= tBegin-tBeginp;
-	spf= 1.f/sec(dt);
+	spf= 1000000.f/usec(dt);
+	if(!finite(spf))
+		spf= 0;
 
 	spf_avg= spf_avg*.8 + spf*.2;
 
@@ -36,6 +38,7 @@ void Timer::invoke(){
 
 	tBeginp= tBegin;
 	tBegin= current_time();
+	ass(finite(tBegin));
 	total_time+= tBegin-tBeginp;
 	tick++;
 }

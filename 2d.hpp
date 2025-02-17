@@ -172,8 +172,8 @@ struct circle{
 	f32 r;
 };
 struct mat3x2{
-	f32 mxx, mxy, tx,
-	    myx, myy, ty;
+	f32 mxx=1, mxy=0, tx=0,
+	    myx=0, myy=1, ty=0;
 
 	void op=(mat3x2 cre);
 
@@ -228,7 +228,8 @@ struct trans2{
 		s= 1;
 		theta= 0;
 	};
-	trans2(vec2 t_, vec2 s_, f32 th_): t(t_), s(s_), theta(th_){}
+	trans2(vec2 t_, vec2 s_,    f32 th_):
+		      t(t_),   s(s_), theta(th_){}
 
 	inl op mat3x2() cst{ re mat; };
 	//inl op rect() cst{ re {mat,mat_inverse,s}; }
@@ -243,11 +244,12 @@ struct trans2{
 	op str() cst{ re "tr:"_s+t.op str()+",s:"+s.op str()+",th:"+theta+";"; }
 };
 inl trans2 lerp(f32 t,trans2 cre a,trans2 cre b){
-	trans2 ret;
-	lerp_ab(t);
-	lerp_ab(s);
-	lerp_ab(theta);
-	re ret;
+	trans2 r;
+	r.t    = lerp(t, a.t,     b.t);
+	r.s    = lerp(t, a.s,     b.s);
+	r.theta= lerp(t, a.theta, b.theta);
+	r.clean();
+	retr;
 }
 
 //child transform

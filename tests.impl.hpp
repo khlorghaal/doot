@@ -382,6 +382,6 @@ void run_tests(){
 
 	}
 	*/
-	cout("doot:: tests pass");
+	cout("doot::tests pass");
 };
 };
