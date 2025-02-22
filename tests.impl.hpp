@@ -11,6 +11,15 @@
 
 namespace doot{
 
+str test_strmov_c(){
+	str r= "test_strmov";
+	retr;}
+str const test_strmov_c_cst(){
+	str cst r= "test_strmov";
+	retr;}
+str test_strmov_x(){
+	re str("test_strmov");}
+
 void run_tests(){
 	cout("doot::tests");
 	profiler pf;
@@ -58,6 +67,44 @@ void run_tests(){
 		ass(str()+(0u  )=="0");
 		ass(str()+(0ul )=="0");
 		ass(str()+(0ull)=="0");
+
+		str m_c= test_strmov_c();
+		str m_s= test_strmov_c_cst();
+		str m_x= test_strmov_x();
+		str     l = "l";
+		str cst lc= "lc";
+		str m_cc= m_c;
+		str m_cx;
+		{
+			str x= "x";
+			m_cx= x;
+		}
+		str m_u= "u";
+		str m_ux= (str&&)m_u;//uam sentinel internal to list
+		str m_pc = str("p"); m_pc += "c";
+		str m_ps = str("p"); m_ps +=  l ;
+		str m_psc= str("p"); m_psc+=  lc;
+		#define A(s) ass(s.len()>0);
+		#define B(s) ass(!!s.dat.base);
+		#define X(L) FOM10(L,;, \
+			m_c,\
+			m_s,\
+			m_x,\
+			  l,\
+			m_cc,\
+			m_cx,\
+			m_ux,\
+			m_pc,\
+			m_ps,\
+			m_psc)
+		X(A);
+		X(B);
+		//lol foof
+		#undef A
+		#undef B
+		#undef X
+
+		fixedarr<lis<str>,1> fa= {{}};
 
 		ass(str()+(0.1f )=="0.1000");
 		ass(str()+(0.1  )=="0.1000");

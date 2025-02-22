@@ -206,7 +206,7 @@ bool file_dump(list<u8>& ret, str name){
     siz size = ftell(file);
     fseek(file, 0, SEEK_SET);
     ret.prealloc(ret.size()+size);
-    if(fread(ret.base, 1, size, file) != size){
+    if(fread(ret.stop, 1, size, file) != size){
         fclose(file);
         re true;
     }

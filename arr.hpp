@@ -70,7 +70,7 @@ tplt arr<T>::op arr<void>() cst{ re {(void*)  base,(void*)  stop}; };
 tplt arr<T> vcas(arr<void> a){   re {(   T*)a.base,(   T*)a.stop}; };
 
 //c's fixed arrays result in ugly, these are somewhat better
-//does not like constness
+//does not like constness //wtf does that mean
 //copymoveable
 tpl<typn T, sizt N>
 struct fixedarr{
@@ -81,11 +81,14 @@ struct fixedarr{
 	//equivalent fixedarr<T,N> s{{}};
 	static fixedarr<T,N> empty(){ re {{}};	}
 
-	//fixedarr<T,N> s{{a,b,...}};
-    fixedarr(const T (&arr)[N]) {  	
-        ra(i,N)
-            base[i] = arr[i];
-    }
+	//use fixedarr<T,N> s{{a,b,...}};
+	//deranged shite is init-list  	
+	//fixedarr(const T ( &arr)[N]){//copy
+    //	ra(i,N)
+    //    	base[i] = (T cst)arr[i];}
+	//fixedarr(      T (&&arr)[N]){//move
+    //	ra(i,N)
+    //    	base[i] = (T&&)arr[i];}
 
 	T& op[](idx i){
 		ass(i>=0 & i<N);

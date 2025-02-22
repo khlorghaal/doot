@@ -14,7 +14,7 @@ TODO heap container that is a generic allocation owner as a superclass of list
 tplt struct list: arr<T>, container{
 	using arr<T>::base;
 	using arr<T>::stop;
-	T* cap;
+	T* cap= null;
 
 	sex siz GROW_FACTOR= 4;
 	sex siz CAP_DEFAULT= 16;//4*16=64 cache line size
@@ -49,10 +49,10 @@ tplt struct list: arr<T>, container{
 
 	T* _alloc();
 	tples T&  add(E&&... e){//forward to ctor
-		re *new(_alloc())T( e... );}
+		re *new(_alloc())T( (E&&)e... );}
 	tples T& init(E&&... e){//forward to initer
-		re *new(_alloc())T({e...});}
-	tples T& op+=(E&&... e){ re add(e...); };
+		re *new(_alloc())T({(E&&)e...});}
+	tples T& op+=(E&&... e){ re add((E&&)e...); };
 
 	//appends b to this
 	//this must be explicitly seperate from add
@@ -60,7 +60,8 @@ tplt struct list: arr<T>, container{
 	tple void addl(arr<E> cre b){
 		prealloc(size()+b.size());
 		each(e,b)
-			add(e);}
+			add((E cst)e);}
+			//xval handling is fucked, dont
 
 
 	//container placement requires forwarding
@@ -130,7 +131,7 @@ tplt void acquire(list<T>& d, list<T>& s){
 	d.base= s.base;
 	d.stop= s.stop;
 	d.cap=  s.cap;
-	s.base= s.stop= s.cap= 0;
+	s.base= s.stop= s.cap= 0;//uam safety
 };
 tplt void acquire(arr<T>& d,list<T>& s){
 	d.base= s.base;
@@ -141,9 +142,10 @@ tplt void acquire(arr<T>& d,list<T>& s){
 tplt list<T>::list(siz init_cap){
 	if(init_cap!=0){
 		auto a= doot::alloc<T>(init_cap);
+		ass(!base & !stop & !cap);
 		base= a.base;
-		stop= base;
-		cap= a.stop;}
+		stop=   base;
+		 cap= a.stop;}
 	else
 		base= stop= cap= 0;
 }
@@ -153,13 +155,15 @@ tplt list<T>::~list(){
 	if(!!base)//must not be invoked on uninitialized memory
 		clear();
 	doot::free(*this);
+	cap= null;
 }
 
 tplt void list<T>::realloc(siz n){
 	siz siz= size();
-	if(n<siz)
+	if(n<siz){//trim end
 		ra2(i,n,siz)
 			base[i].~T();
+		stop= base+n;}
 
 	if(!!base)
 		doot::realloc<T>(*this, n);//violates names, swap cap and stop
@@ -175,8 +179,6 @@ tplt void list<T>::prealloc(siz n){
 	siz c= capacity();
 	if(n<=c)
 		re;
-	c= c*GROW_FACTOR;
-	n= n>c?n:c;
 	realloc(n);
 };
 tplt void list<T>::expand(){

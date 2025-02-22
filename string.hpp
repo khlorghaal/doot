@@ -23,7 +23,7 @@ struct str{
 	str(i64 x):str(itod(x)){};//to prevent cast to cstr
 	str(u64 x):str(itod(x)){};
 	tple str(E* e) :str(itox( (u64)(void*)e )){};
-	tple explicit str(E&& x):dat(){ cat(x); };
+	tple explicit str(E&& x):dat(){ cat((E&&)x); };
 	str& op=(str cre  b){ dat.clear();  dat.addl(b.dat); reth; }
 	str& op=(str &&   b){ free(dat); acquire(dat,b.dat); reth; }
 	str& op=(cstr b){ op=(str(b)); reth; }
@@ -90,6 +90,8 @@ struct str{
 			cat(e);
 		//todo ids
 	}
+
+	siz len(){ re dat.len(); }
 };
 
 inl hash_t hash(str cre str){
