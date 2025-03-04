@@ -167,6 +167,9 @@ tplt T clamp(T cst x, T cst a, T cst b){
 	re x*same + a*lt_a + b*gt_b;
 }
 
+inl f32 sat( f32 x){ re clamp<f32>(x, 0,1); }
+inl f32 sats(f32 x){ re clamp<f32>(x,-1,1); }
+
 //todo make lerp sig conform to glsl
 inl f32 lerp(f32 x, f32 a, f32 b){ re a+(b-a)*x; }
 inl f64 lerp(f64 x, f64 a, f64 b){ re a+(b-a)*x; }

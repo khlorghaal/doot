@@ -99,7 +99,7 @@ void run_tests(){
 			m_psc)
 		X(A);
 		X(B);
-		//lol foof
+		//lol foof //some code of all time
 		#undef A
 		#undef B
 		#undef X
@@ -281,9 +281,10 @@ void run_tests(){
 		ass(b.capacity()>=512);
 
 		list<u8> m(1);
-		m.realloc(1);
 		m.prealloc(8);
 		m.base[7]=0;
+		m.realloc(1);
+		m.base[0]=0;
 
 		list<u8> m2= list<u8>(list<u8>(1));
 		m2.realloc(1);

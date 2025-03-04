@@ -316,8 +316,6 @@ CALL_T( call_opaq_t, void*, void )
 //used for loopy macros to prevent parents mismatch
 //horribly renegade //ive been told this isnt abnormal; that is horrifying
 #define let(S) if(S;1)
-#define let(S) if(S;1)
-#define let(S) if(S;1)
 #define let_expr(S) if( ([&]{ (S); re true;})() ) //=> (S);
 //range
 #define ra( o,n    ) for(i64 o=0   ; o<(n ); o++)

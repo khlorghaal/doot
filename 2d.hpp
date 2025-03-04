@@ -12,6 +12,7 @@ struct line;
 struct point;
 struct rect;
 struct circle;
+struct mat2x2;
 struct mat3x2;
 struct trans2;
 struct trans2ch;
@@ -171,6 +172,12 @@ struct circle{
 	vec2 p;
 	f32 r;
 };
+struct mat2x2{
+	f32 mxx=1, mxy=0,
+	    myx=0, myy=1;
+
+	op str() cst{ re str(arr<f32 cst>{&mxx,(&myy)+1}); };
+};
 struct mat3x2{
 	f32 mxx=1, mxy=0, tx=0,
 	    myx=0, myy=1, ty=0;
@@ -191,14 +198,15 @@ struct mat3x2{
 	vec2 op*(vec2 cre p) cst;
 	vec2 mul_atrans(vec2 cre) cst;//multiply without translation
 	mat3x2 op*(mat3x2 cre) cst;
-
-	void colMajor(f32 ret[6]);
-
+	
 	//these elide all multiplications
 	inl vec2 unitX()  cst{ re {mxx    +tx,myx    +ty}; };//mul by [1,0]
 	inl vec2 unit11() cst{ re {mxx+mxy+tx,myx+myy+ty}; };//mul by [1,1]
 	void unit_box(vec2(&)[4]) cst;//multiply by vec2 permutations [-1,1]
 
+	op mat2x2() cst{ re {
+		mxx, mxy,
+		myx, myy }; }
 	op str() cst{ re str(arr<f32 cst>{&mxx,(&ty)+1}); };
 };
 inl mat3x2 lerp(f32 t, mat3x2 cre a, mat3x2 cre b){
@@ -218,17 +226,13 @@ inl vec2 rotnorm2(f32 theta){
 //	trans*rot*scl
 struct trans2{
 	vec2 t, s;
-	f32 theta;
+	rad theta=0;
 
 	mat3x2 mat;
 	mat3x2 matinv;
 
-	trans2(){//identity
-		t= 0;
-		s= 1;
-		theta= 0;
-	};
-	trans2(vec2 t_, vec2 s_,    f32 th_):
+	trans2()= default;//identity
+	trans2(vec2 t_, vec2 s_,    rad th_):
 		      t(t_),   s(s_), theta(th_){}
 
 	inl op mat3x2() cst{ re mat; };

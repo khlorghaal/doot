@@ -90,11 +90,6 @@ void mat3x2::inverse_trans_rot_scl(vec2 t, f32 r, vec2 s){
 	ty= -(t.x*myx + t.y*myy);
 }
 
-void mat3x2::colMajor(f32 ret[6]){
-	ret[0]= mxx; ret[2]= mxy; ret[4]= tx;
-	ret[1]= myx; ret[3]= myy; ret[5]= ty;
-}
-
 void mat3x2::unit_box(vec2(&r)[4]) cst{
 	r[0].x= -mxx-mxy+tx;//nn
 	r[0].y= -myx-myy+ty;
