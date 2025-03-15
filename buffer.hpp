@@ -5,26 +5,25 @@
 namespace doot{
 
 //consecutive pushes without a pull overwrite eachother
-template<typename T>
-struct buffer_overflowy{
+tplt struct buffer{
 	mutex mut;
-	T buff;
+	maybe<T> b={};
 	
-	//copy into buffer
-	void push(T t){
+	void push(T* t){
 		mut.lock();
-		buff= t;
-		mut.unlock();
+		if(b)
+			delete b.t;
+		b= {t};
+		mut.locknt();
 	};
 	//copy from buffer
-	T pull(){
+	maybe<T> pull(){
 		mut.lock();
-		T t= buff;
-		mut.unlock();
-		return t;
+		maybe<T> r= b;
+		b= {};
+		mut.locknt();
+		retr;
 	};
 };
-
-//i cannot figure out how to get a nice variadic impl of this
 
 }

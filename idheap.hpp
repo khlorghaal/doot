@@ -24,13 +24,13 @@ tplt struct idheap: container{
 
 	list<T > heap;
 	list<id> ids;//index->id. element-aligned with heap
-	arr<maybe_i<idx>> map;//id->index. associative array.
+	list<maybe_i<idx>> map;//id->index. associative array.
 
 	arrayable( heap.base, heap.stop );
 	//arr<id> id_iter(){ re ids; };
 
 	idheap(sizt init_cap);
-	idheap(): idheap(8){};
+	idheap(): idheap(INIT_CAP){};
 	~idheap()= default;
 	//idheap(idheap&& b)= default;//list move ctor invoked
 
@@ -109,7 +109,8 @@ tplt struct bag: idheap<T>{
 tplt idheap<T>::idheap(siz init_cap){
 	heap.realloc(init_cap);
 	 ids.realloc(init_cap);
-	 map= alloc<mai<idx>>(init_cap);//heuristic
+	 map.realloc(init_cap);//heuristic
+	map.stop= map.cap;
 	fill(map,{});
 }
 
@@ -123,13 +124,17 @@ T& idheap<T>::add(id id, E&&... e){
 	if(id>=ms){//expand map
 		if(id>TOO_BIG){
 			bad("max id exceded; spicey orphan emitted");
-			re *new T(e...);
+				re *new T((E&&)e...);
+				//why did i think this was a good idea
 		}
 		siz nms= (id*list<T>::GROW_FACTOR);
-		realloc(map,nms);
-		fill({map.base+ms,map.stop},mai<idx>{});
+		ass(nms>0);
+		map.realloc(nms);
+		fill({map.stop,map.cap},mai<idx>{});
+		map.stop= map.cap;
 		ms= nms;
 	}
+	ass(id<map.size());//THIS
 	may_if(idx m,map[id]){//entry already present
 		bad("entry already present id=");
 		//fukkin deps bad(str("entry already present id=")+id+", idx="+m);
@@ -138,7 +143,7 @@ T& idheap<T>::add(id id, E&&... e){
 
 	ass(ids.size()==heap.size());
 	idx idx= heap.size();
-	T&    r= heap.add(e...);
+	T&    r= heap.add((E&&)e...);
 	ids.add(id);
 	map[id]= {idx};
 

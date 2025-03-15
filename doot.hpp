@@ -385,6 +385,7 @@ tplt struct pointyT<T*>: scond< true>{};
 //not elegant, but robust
 tplt struct maybe{
 	T* t= null;
+	using type= T;
 	//maybe(T   t_)= delete; del ctor causes ambiguity oddly
 	maybe(T&  t_):t(&t_){}
 	maybe(T&& t_)= delete;//for deteled use _val
@@ -399,32 +400,14 @@ tplt struct maybe{
 	T& un(){
 		ass(!!t); re *t; }
 };
-//for primitives that cannot nully intrinsic
-tplt struct maybe_val{
-	struct val{ T t; };
-	val* v;
 
-	maybe_val(maybe_val<T>&& m)
-	                 :v(m.v){ m.v=null; }
-	//maybe_val(T   t_):v(new val(     t_)){}
-	maybe_val(T&  t_):v(new val(     t_)){}
-	maybe_val(T&& t_):v(new val((T&&)t_)){}
-	maybe_val(      ):v(null){}
-	//default ctor too ambiguous
-
-	bool op!(){ re !v; }
-	op bool(){ re !!v;}
-	T op()(T none){  re !!v?v->t:none; }
-	T un(){ass(!!v); re v->t; }
-};
 tplt struct maybe_i{
 	sex T none= nullidx;
 	T t=  none;
 	        bool op!(){  re t==none; }
 	T un(){ ass(!op!()); re t; }
 };
-tplt using mai= maybe_i<  T>;
-tplt using mav= maybe_val<T>;
+tplt using mai= maybe_i<T>;
 
 //unwrappers
 //bracketed
@@ -432,6 +415,7 @@ tplt using mav= maybe_val<T>;
 	let(ato _may=m)\
 	if(likely(!!_may))\
 		let(s=  _may.un())
+#define ifm may_if
 //if null return
 #define may_re(s,m)\
 	if(unlikely(!m)) re;\
@@ -454,7 +438,7 @@ tplt using mav= maybe_val<T>;
 	s=  m.un();
 //null coalesce
 #define may_nuco(m,e)\
-	( (m)? (m).un().e : decltype(m){} )
+	( (m)? (m).un().e : decltype(m)::type{} )
 #define may_conu(m,e,n)\
 	( (m)? (m).un().e : (n) )
 
@@ -467,6 +451,11 @@ tplt cons<T>* tail(cons<T>* r){
 		 r= i;
 	retr;
 }
+
+//useful for conditional construction
+#define mem(T,s) \
+	alignas(T) u8 _##s[sizeof(T)];\
+	T* s= rcas<T*>(_##s);
 
 //nondefault fields and associative ctor for, as init list fwd unviable
 //#define CONSTRUCT2(T, T0,F0, T1,F1) \
