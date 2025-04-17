@@ -132,6 +132,8 @@ tplt inl T prod(gvec2<T> cre a){ re a.x*a.y; }
 tplt inl T len(gvec2<T> cre a){ re sqrt(sum(a*a)); }
 tplt inl gvec2<T> norm(gvec2<T> cre a){ re a/len(a); }//todo invsqrt
 tplt inl f64 atan(gvec2<T> cre a){ re atan2((f64)a.y,(f64)a.x); }
+tplt inl gvec2<T> trot(gvec2<T> cre a){ re {-a.y,a.x}; }
+//todo div safety
 
 tplt inl T dot(gvec2<T> cre a,gvec2<T> cre b){ re a.x*b.x + a.y*b.y; }
 tplt inl gvec2<T> rot4(gvec2<T> cre a){ re {a.y,-a.x}; }

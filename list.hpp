@@ -88,6 +88,15 @@ tplt struct list: arr<T>, container{
 
 	void clear();
 };
+//A+= B=>A
+//E dyn capt B(E)
+//iterator conv classive addl
+#define lcat(A,B,E,L) {\
+	A.prealloc(A.size()     +B.size());\
+	ato N= arr{A.stop,A.stop+B.size()};\
+	zip(_n,E,N,B){\
+		_n= L;}\
+	A.stop+= B.size();}
 
 tpl<> struct list<void>{
 	void* base;

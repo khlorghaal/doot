@@ -14,7 +14,7 @@ rather unoptimized
 doot neednt good strings, use something else if you do
 */
 struct str{
-	lis<char> dat;//no terminator because skill issues
+	lis<char> dat= lis<char>(32);//no terminator because skill issues
 
 	str()= default;
 	str(cstr    b):dat(){ cat(b); }

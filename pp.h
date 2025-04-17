@@ -18,9 +18,9 @@
 //inspired by cppcomplete@orangeduck
 
 #define VOID 
-#define QUOT(S) S VOID
-#define EVAL(S) S
+#define QUOT(...) __VA_ARGS__
 
+//#define  CURRY(F,X) EVAL(F(X,))
 
 #define FOM FOM##N
 #define FOM1( F,OP, L0) F(L0)

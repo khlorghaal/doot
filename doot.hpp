@@ -12,6 +12,7 @@
 #endif
 
 #define print(x) cout((str)x)
+#define look(x) cout(str(#x)+str(":")+str(x))
 
 #define   likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -165,17 +166,6 @@ tpl<> inl cex f32 TINY<f32> = 1e-32f;
 tpl<> inl cex f64 HUGE<f64> = 1e300 ;
 tpl<> inl cex f64 TINY<f64> = 1e-300;
 cex f32 ETA= 1.e-5;//kinda small but not really
-
-
-//tplt struct MAP_KIND;
-//#define MAPT(S,A,B) tpl<> struct MAP_KIND_##S<A>{ using T= B };
-//DEMAPT(S) using MAP_KIND_##S<A>::T
-//MAPT(signedT,  u8, i8 )
-//MAPT(signedT, u16, i16)
-//MAPT(signedT, u32, i32)
-//MAPT(signedT, u64, i64)
-//MAPT(signedT,   T, T  )
-
 
 //next power of 2
 inl sizt nxpo2(sizt x){
@@ -342,7 +332,7 @@ CALL_T( call_opaq_t, void*, void )
 	if( la.size()==lb.size() )\
 		ra(_i##a##b, la.size())\
 			let(are a=la[_i##a##b])\
-				let(are b=lb[_i##a##b])
+			let(are b=lb[_i##a##b])
 
 //symcats must use the symbol names not the lists, as the list symbols may be expressions
 
@@ -439,8 +429,6 @@ tplt using mai= maybe_i<T>;
 //null coalesce
 #define may_nuco(m,e)\
 	( (m)? (m).un().e : decltype(m)::type{} )
-#define may_conu(m,e,n)\
-	( (m)? (m).un().e : (n) )
 
 tplt struct cons{
          T   a;
