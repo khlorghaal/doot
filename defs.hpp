@@ -8,6 +8,7 @@
 #define retr   return r
 #define retret return ret;
 
+#define elif else if
 #define inl inline
 #define op operator
 #define tpl template

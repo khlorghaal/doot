@@ -86,6 +86,25 @@ tplt void div(arr<T> a, siz divisor, list<arr<T>>& b){
 
 }
 
+#define LT(A,B) (A<B)
+#define GT(A,B) (A>B)
+
+#define FILTER_VAL(W,INIT,OP) \
+	W= INIT;\
+	each(e,a)\
+		if(OP(e,W))\
+			W=e;
+#define FILTER_IDX(W,INIT,OP) \
+	W= INIT;\
+	en(i,e,a)\
+		if(OP(e,W)){\
+			W=e;\
+			I= i; }
+#define ARR_MIN_VAL(R) FILTER_VAL(ARR_MIN_VAL_##W##R, HUGE<typeof(W)>,LT)
+#define ARR_MAX_VAL(R) FILTER_VAL(ARR_MAX_VAL_##W##R,-HUGE<typeof(W)>,GT)//unsigned undefined lol
+#define ARR_MIN_IDX(R) FILTER_IDX(ARR_MIN_IDX_##W##R, HUGE<typeof(W)>,LT)
+#define ARR_MAX_IDX(R) FILTER_IDX(ARR_MAX_IDX_##W##R,-HUGE<typeof(W)>,GT)
+
 #define FLAT(aa,r) \
 	r.prealloc(aa.size()*4);\
 	each(a,aa) r+= a;

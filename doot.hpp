@@ -12,7 +12,7 @@
 #endif
 
 #define print(x) cout((str)x)
-#define look(x) cout(str(#x)+str(":")+str(x))
+#define what(x) cout(str(#x)+str(":")+str(x))
 
 #define   likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -161,11 +161,11 @@ tpl<> inl cex u64 INTMAX<u64> = 0xffffffffffffffff;
 
 tplt cex T HUGE;
 tplt cex T TINY;
-tpl<> inl cex f32 HUGE<f32> = 1e32f;
-tpl<> inl cex f32 TINY<f32> = 1e-32f;
+tpl<> inl cex f32 HUGE<f32> = 1e30f;
+tpl<> inl cex f32 TINY<f32> = 1e-30f;
 tpl<> inl cex f64 HUGE<f64> = 1e300 ;
 tpl<> inl cex f64 TINY<f64> = 1e-300;
-cex f32 ETA= 1.e-5;//kinda small but not really
+cex f32 ETA= 1.234e-5;//kinda small but not really
 
 //next power of 2
 inl sizt nxpo2(sizt x){
@@ -322,11 +322,13 @@ CALL_T( call_opaq_t, void*, void )
 
 //enumerate
 #define en(i,o,v) \
-	ra(i,v.size())\
-		let(are o=v[i])
+	let(are v##_= v)\
+		ra(i,v##_.size())\
+			let(are o=v##_[i])
 #define en_d(i,o,v) \
-	rd(i,v.size())\
-		let(are o=v[i])
+	let(are v##_= v)\
+		rd(i,v##_.size())\
+			let(are o=v##_[i])
 
 #define zip(a,b, la,lb) \
 	if( la.size()==lb.size() )\
@@ -372,7 +374,8 @@ tpl<bool v> struct scond{ sex bool val= v; };
 tplt struct pointyT    : scond<false>{};
 tplt struct pointyT<T*>: scond< true>{};
 
-//not elegant, but robust
+//fairly robust
+//prefer forwarding maybes rather than forwarding derefs
 tplt struct maybe{
 	T* t= null;
 	using type= T;
@@ -397,7 +400,16 @@ tplt struct maybe_i{
 	        bool op!(){  re t==none; }
 	T un(){ ass(!op!()); re t; }
 };
+tplt struct maybe_v{
+	T t= 0;
+	bool no= true;
+	        bool  op!(){  re no; }
+	T& un(){ ass(!op!()); re  t; }
+	void op=(voidstruct){  no= true; };
+	void op=(T t_){ t= t_; no= false; };
+};
 tplt using mai= maybe_i<T>;
+tplt using mav= maybe_v<T>;
 
 //unwrappers
 //bracketed

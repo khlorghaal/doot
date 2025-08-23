@@ -49,13 +49,13 @@ void mat3x2::trans_rot_scl(f32 tx_, f32 ty_, f32 theta, f32 sx, f32 sy){
 	ty= ty_;
 }
 vec2 mat3x2::operator*(vec2 cre p) cst{
-	return {
+	return vec2{
 		p.x*mxx + p.y*mxy + tx,
 		p.x*myx + p.y*myy + ty
 	};
 }
 vec2 mat3x2::mul_atrans(vec2 cre p) cst{
-	return {
+	return vec2{
 		p.x*mxx + p.y*mxy,
 		p.x*myx + p.y*myy
 	};

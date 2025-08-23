@@ -41,8 +41,10 @@ extern double log2 (double __x) __attribute__ ((__nothrow__ ));
 extern double log2f (float __x) __attribute__ ((__nothrow__ ));
 extern int finite (double __value) __attribute__ ((__nothrow__ ));
 extern int finitef (float __value) __attribute__ ((__nothrow__ ));
-extern int isnan (double __value) __attribute__ ((__nothrow__ ));
-extern int isnanf (float __value) __attribute__ ((__nothrow__ ));
+extern double isnan (double __value) __attribute__ ((__nothrow__ ));
+extern float isnanf (float __value) __attribute__ ((__nothrow__ ));
+extern double isinf (double __value) __attribute__ ((__nothrow__ ));
+extern float isinff (float __value) __attribute__ ((__nothrow__ ));
 }
 
 namespace doot{
@@ -111,6 +113,8 @@ imply1_i_f32(tan) imply1_i_f32(atan)
 imply1_i_f32(sqrt)
 imply2_i_f32(mod) imply2_i_f32(smod)
 
+cppize_x_xf(isnan)
+cppize_x_xf(isinf)
 
 inl f32 fract(f32 x){ re x-(i32)x; }
 inl f64 fract(f64 x){ re x-(i64)x; }
@@ -258,6 +262,11 @@ inl f32 invsqrt(){
 	ass(false);
 	re 0;
 }
+
+inl f32  nant(f32 x){ re isnan(x)?0         :x; }
+inl f32 infnt(f32 x){ re isinf(x)?HUGE<f32> :x; }
+inl f64  nant(f64 x){ re isnan(x)?0         :x; }
+inl f64 infnt(f64 x){ re isinf(x)?HUGE<f64> :x; }
 
 extern thread_local hash_t frand_seed;
 inl f64 frand(){

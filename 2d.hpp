@@ -17,14 +17,13 @@ struct mat3x2;
 struct trans2;
 struct trans2ch;
 
-
 tplt struct gvec2{
 	using type= T;
 	T x,y;
 	gvec2(){ x= y= 0;};
 	//explicit needed since c++ preceden't ctor declaratively
-	                	explicit gvec2(T   a       ){ x=a     ; y=a     ; };
-	                	         gvec2(T   a, T   b){ x=a     ; y=b     ; };
+	                	           gvec2(T   a       ){ x=   a  ; y=   a  ; };
+	                	           gvec2(T   a, T   b){ x=   a  ; y=   b  ; };
 	tpl<typn A, typn B> explicit gvec2(A   a, B   b){ x=(T)a  ; y=(T)b  ; };
 	tple                explicit gvec2(gvec2<E> a  ){ x=(T)a.x; y=(T)a.y; };
 	tple                inl gvec2<T> op=(E a       ){ x=(T)a  ; y=(T)a  ; reth; };
@@ -63,22 +62,21 @@ tplt struct gvec2{
 	//tple op gvec2<E>(){ re gvec2<E>(x,y);}
 
 	op str() cst{ re "v["_s+x+","+y+"]"; }
-};
+}; 
 
 using   vec2= gvec2<f32>;
-using  dvec2= gvec2<f64>;
 using  ivec2= gvec2<i32>;
 using  lvec2= gvec2<i64>;
 using  uvec2= gvec2<u32>;
 using ulvec2= gvec2<u64>;
+//no f64 it causes conv ambiguity
 
-#define vec2_kinds vec2,dvec2,ivec2,lvec2,uvec2,ulvec2
+#define vec2_kinds vec2,ivec2,lvec2,uvec2,ulvec2
 
 //inl f64 abs(f64 a){ re ::doot::abs((f64)a); }
 //inl f32 abs(f32 a){ re ::doot::abs((f32)a); }
 //inl i32 abs(i32 a){ re ::doot::abs((i32)a); }
 //inl vec2 abs(vec2 a){ re vec2(::doot::abs((f32)a.x),::doot::abs((f32)a.y)); }
-//inl dvec2 abs(dvec2 a){ re dvec2(::doot::abs((f64)a.x),::doot::abs((f64)a.y)); }
 //inl ivec2 abs(ivec2 a){ re ivec2(::doot::abs((i32)a.x),::doot::abs((i32)a.y)); }
 
 //needed as template overload causes issues with non-template scalar declarations
@@ -86,11 +84,11 @@ using ulvec2= gvec2<u64>;
 #define vec2ize_1_(F,V) \
 	inl V F(V a){ V r; r.x= F((V::type)a.x); r.y= F((V::type)a.y); retr; }
 #define vec2ize_2_(F,V) \
-	inl V F(V       a,V       b){ using T= V::type; V r; r.x= F((T)a.x,(T)b.x); r.y= F((T)a.y,(T)b.y); retr; }\
-	inl V F(V       a,V::type b){ using T= V::type; V r; r.x= F((T)a.x,(T)b  ); r.y= F((T)a.y,(T)b  ); retr; }\
-	inl V F(V::type a,V       b){ using T= V::type; V r; r.x= F((T)a  ,(T)b.x); r.y= F((T)a  ,(T)b.y); retr; }
-#define vec2ize_1f(F) vec2ize_1_(F,vec2) vec2ize_1_(F,dvec2)
-#define vec2ize_2f(F) vec2ize_2_(F,vec2) vec2ize_2_(F,dvec2)
+	inl V F(V       a,V       b){ using T= V::type; V r; r.x= F( (T)a.x,(T)b.x ); r.y= F( (T)a.y,(T)b.y ); retr; }\
+	inl V F(V       a,V::type b){ using T= V::type; V r; r.x= F( (T)a.x,(T)b   ); r.y= F( (T)a.y,(T)b   ); retr; }\
+	inl V F(V::type a,V       b){ using T= V::type; V r; r.x= F( (T)a  ,(T)b.x ); r.y= F( (T)a  ,(T)b.y ); retr; }
+#define vec2ize_1f(F) vec2ize_1_(F,vec2)
+#define vec2ize_2f(F) vec2ize_2_(F,vec2)
 #define vec2ize_1(F)  vec2ize_1f(F)      vec2ize_1_(F,ivec2) vec2ize_1_(F,lvec2)
 #define vec2ize_2(F)  vec2ize_2f(F)      vec2ize_2_(F,ivec2) vec2ize_2_(F,lvec2)
 
@@ -115,11 +113,8 @@ vec2ize_2(max);
 
 inl f32 min( vec2 v){ re min(v.x,v.y); }
 inl f32 max( vec2 v){ re max(v.x,v.y); }
-inl f64 min(dvec2 v){ re min(v.x,v.y); }
-inl f64 max(dvec2 v){ re max(v.x,v.y); }
 
 inl  vec2 lerp( vec2 x,  vec2 a,  vec2 b){ re  vec2(lerp(x.x,a.x,b.x),lerp(x.y,a.y,b.y)); }
-inl dvec2 lerp(dvec2 x, dvec2 a, dvec2 b){ re dvec2(lerp(x.x,a.x,b.x),lerp(x.y,a.y,b.y)); }
 inl  vec2 lerp(  f32 t,  vec2 a,  vec2 b){
 	re vec2(
 		lerp(t,a.x,b.x),
@@ -130,13 +125,13 @@ inl  vec2 lerp(  f32 t,  vec2 a,  vec2 b){
 tplt inl T sum( gvec2<T> cre a){ re a.x+a.y; }
 tplt inl T prod(gvec2<T> cre a){ re a.x*a.y; }
 tplt inl T len(gvec2<T> cre a){ re sqrt(sum(a*a)); }
-tplt inl gvec2<T> norm(gvec2<T> cre a){ re a/len(a); }//todo invsqrt
+tplt inl gvec2<T> norm(gvec2<T> cre a){ re a/max(ETA,len(a)); }//todo invsqrt
 tplt inl f64 atan(gvec2<T> cre a){ re atan2((f64)a.y,(f64)a.x); }
 tplt inl gvec2<T> trot(gvec2<T> cre a){ re {-a.y,a.x}; }
 //todo div safety
 
 tplt inl T dot(gvec2<T> cre a,gvec2<T> cre b){ re a.x*b.x + a.y*b.y; }
-tplt inl gvec2<T> rot4(gvec2<T> cre a){ re {a.y,-a.x}; }
+tplt inl gvec2<T> rot4(gvec2<T> cre a){ re vec2{a.y,-a.x}; }
 
 
 struct ray{
@@ -202,8 +197,8 @@ struct mat3x2{
 	mat3x2 op*(mat3x2 cre) cst;
 	
 	//these elide all multiplications
-	inl vec2 unitX()  cst{ re {mxx    +tx,myx    +ty}; };//mul by [1,0]
-	inl vec2 unit11() cst{ re {mxx+mxy+tx,myx+myy+ty}; };//mul by [1,1]
+	inl vec2 unitX()  cst{ re vec2{mxx    +tx,myx    +ty}; };//mul by [1,0]
+	inl vec2 unit11() cst{ re vec2{mxx+mxy+tx,myx+myy+ty}; };//mul by [1,1]
 	void unit_box(vec2(&)[4]) cst;//multiply by vec2 permutations [-1,1]
 
 	op mat2x2() cst{ re {
@@ -227,7 +222,7 @@ inl vec2 rotnorm2(f32 theta){
 //matrix of the form
 //	trans*rot*scl
 struct trans2{
-	vec2 t, s;
+	vec2 t=vec2(0), s=vec2(1);
 	rad theta=0;
 
 	mat3x2 mat;
@@ -236,6 +231,8 @@ struct trans2{
 	trans2()= default;//identity
 	trans2(vec2 t_, vec2 s_,    rad th_):
 		      t(t_),   s(s_), theta(th_){}
+	trans2(vec2 t_):
+		      t(t_){}
 
 	inl op mat3x2() cst{ re mat; };
 	//inl op rect() cst{ re {mat,mat_inverse,s}; }
@@ -262,11 +259,10 @@ inl trans2 lerp(f32 t,trans2 cre a,trans2 cre b){
 //does not inherit scale, because reasons
 struct trans2ch{
 	trans2 local;
-	trans2 global;
-	trans2ch(){}
-	trans2ch(trans2 l, trans2 p): local(l), global(){
-		update(p);
-	}
+	trans2 global;//product, local space into global
+	trans2ch()= default;
+	trans2ch(trans2 cre l): local(l){}
+
 	//updates global from parameter
 	//does not mutate local
 	void update(trans2 cre parent){
@@ -274,6 +270,7 @@ struct trans2ch{
 		global.t= p*local.t;
 		global.s= local.s;
 		global.theta= local.theta+parent.theta;
+		global.clean();
 	};
 };
 
